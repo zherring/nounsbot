@@ -2,7 +2,7 @@
 
 A personal governance agent for Nouns DAO. I write a constitution; an agent evaluates every proposal against it; I ratify or override via Telegram; votes are cast onchain with clause-cited reasoning; a public page shows the constitution, the voting record, and a delegate button.
 
-**Status:** draft · **Owner:** zach · **Last updated:** 2026-07-05
+**Status:** V1 LIVE (see §13) · **Owner:** zach · **Last updated:** 2026-07-05
 
 ---
 
@@ -179,18 +179,48 @@ Key timing facts (verified, but **read from chain at runtime**): lifecycle ~9 da
 
 ## 10. Milestones
 
-- **M0 — Paper agent (this repo, week 1).** Constitution v1 drafted. Ingest + enrich + evaluate running locally against live props; verdicts to Telegram; I vote by hand. Proves verdict quality before any key exists.
-- **M1 — Hands on chain (week 2–3).** Hot EOA, delegation, `castRefundableVoteWithReason`, client ID registered. Ratify-then-cast loop live end to end.
-- **M2 — Public surface (week 3–4).** Static site: constitution, verdict feed, record, delegate button. Weekly thesis publishing to Farcaster.
-- **M3 — Full coverage (week 4+).** Candidate lane, tripwires, objection-window watch, missed-cast alarm. Deployed to Railway/Fly, fully unattended between Telegram taps.
-- **V2 (later, separate PRD).** Hosted constitutions: fork mine, answer 3 questions, instant backtest against my verdict record, shadow-vote every live prop with no wallet. The M0–M3 verdict table is the dataset that makes this possible.
+- ✅ **M0 — Paper agent.** DONE 2026-07-05. Constitution drafted and battle-tested to v0.4 across a 24-prop backtest; three amendments each triggered by a real divergence (969 → II.4 direction test, 970 → I.5 recognition in kind, 962 → II.5 reconnaissance clause). Tiered evaluation (Sonnet condenser → Opus judge), verdicts + full re-evaluation history published.
+- ✅ **M1 — Hands on chain.** DONE 2026-07-05. Vote-only EOA `0xF6e7…6aA9`, Noun 1251 delegated (via the site's own delegate button), `castRefundableVoteWithReason` encoding validated against the live governor, Telegram ratification loop (`/status /hold /release /override /cast`), default-fire at 65% of window with 24h floor, flagged-never-fires, hold-wins-at-deadline, spend guards. Client ID: still 0, registration deferred.
+- ✅ **M2 — Public surface (mostly).** Site live (Railway-served; nounsvote.com DNS deferred as a cheap-experiment call): constitution with amendment log, live verdict record with per-version history, dynamic delegation hero, in-app delegate button. Weekly Farcaster thesis: NOT built.
+- **M3 — Full coverage (next).** Candidate lane + pooled auto-sponsorship (§6.6), calldata ABI decoding, tripwires, objection-window watch, missed-cast dead-man alarm, client ID registration.
+- **V2 (later, separate PRD).** Hosted constitutions: fork mine, answer 3 questions, instant backtest against my verdict record, shadow-vote every live prop with no wallet. The verdict table is the dataset that makes this possible.
 
 ## 11. Open questions
 
 1. ~~**Ratification default**~~ — **resolved (2026-07-05):** optimistic execution with a hold window (§6.4). Every decision reported, unflagged verdicts default-fire with a ≥24h guaranteed gap, `/hold` vetoes, flagged verdicts always require an explicit command.
-2. **Delegate button timing** — ship in M2, or hold until the record has ~a month of votes so the pitch is a track record rather than a promise?
-3. **Site data path** — runtime commits JSON back to this repo (simple, auditable, slightly janky) vs. a tiny read endpoint on the runtime (cleaner, but the public surface stops being fully static)?
-4. **Constitution v1 scope** — start opinionated-and-narrow (spending posture, structural-prop posture, a default for everything else) and let the override log grow it, vs. attempt comprehensive coverage up front? (Leaning narrow.)
+2. ~~**Delegate button timing**~~ — **resolved (2026-07-05):** shipped at launch with the paper record as the track record. In-app `delegate()` tx, no libraries.
+3. ~~**Site data path**~~ — **resolved (2026-07-05):** both. The runtime serves `/verdicts.json` live from SQLite (freshness) AND commits it to the repo (tamper-evident audit trail; excluded from redeploy triggers).
+4. ~~**Constitution v1 scope**~~ — **resolved:** narrow-and-opinionated won. v0.1 was ~6 articles; three real divergences grew it to v0.4 within one backtest cycle — the override→amend loop works.
+5. **Vote privacy (prop 972)** — open; see the constitution's "worth debating" section. Transparency-as-weapon vs privacy-as-shield.
+6. **982-class direction calls** — is delegating treasury Nouns to a community body control-concentration (III.2) or dormancy-activation (II.4-adjacent)? Candidate for the next amendment.
+
+## 13. Current state & next steps (2026-07-05)
+
+**Live:** Railway project `distinguished-surprise`/`nounsbot`, volume `/data`, site at
+nounsbot-production.up.railway.app. Bot EOA `0xF6e7501dFe7003299108020c5830C4c5B3CA6aA9`
+holds 1 delegated vote (Noun 1251). Telegram channel wired (`⌐◨-◨ Constitution Forge`).
+Constitution v0.4. Two-speed loop: commands/casts/publish every 120s; ingest every
+120s with spend guards. Verdict record: 22 paper + 3 live-rev verdicts (981 AGAINST⚑,
+982 AGAINST⚑ — both awaiting explicit human ratification; 983 FOR, auto-cast armed).
+
+**Awaiting first onchain cast:** prop 983, ~65% through its voting window, will be
+the record's first "🗳 cast" row.
+
+**Near-term queue (M3), in priority order:**
+1. Calldata ABI decoding in the enricher — removes the "couldn't verify vs verified
+   mismatch" ambiguity (the 957 flip-flop).
+2. Missed-cast dead-man alarm (healthchecks.io ping per tick).
+3. Candidate lane + pooled auto-sponsorship (§6.6) — the delegation pitch.
+4. Tripwires: late-window vote-dump alerts, defeated→successful flip alerts,
+   objection-window watch.
+5. Client ID registration (client incentives).
+6. nounsvote.com DNS when the experiment earns it; retire the GitHub Pages mirror.
+
+**Operational notes:** never run the poller locally while Railway is live (Telegram
+offset contention). Amendments: edit constitution.md + docs/constitution.html, add
+rev to docs/amendments.json, commit with trigger, push (auto-redeploy re-evaluates
+open props). `GIT_PUSH_TOKEN` not yet set on Railway — the git audit trail of
+verdicts.json only updates from local runs until it is.
 
 ## 12. Success criteria (90 days)
 

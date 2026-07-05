@@ -1,49 +1,102 @@
 # Constitution Forge
 
 A personal governance agent for Nouns DAO. The constitution is the product; the
-agent is plumbing.
+agent is plumbing. **V1 is live**: Noun 1251 votes by a written constitution, and
+anyone can delegate theirs to the same standing vote — or fork the repo and run
+their own.
 
-- **What it does:** evaluates every Nouns proposal against a written, git-versioned
-  constitution; the owner ratifies via Telegram; votes are cast onchain with
-  clause-cited reasoning; the record is public.
-- **Why:** governance participation is bottlenecked on attention, not voting power.
-  Lowering the cost of expressing a consistent position converts dormant votes into
-  standing ones.
+- **Site:** https://nounsbot-production.up.railway.app (nounsvote.com purchased, DNS pending)
+- **Bot delegate (vote-only EOA):** `0xF6e7501dFe7003299108020c5830C4c5B3CA6aA9`
+- **Constitution:** [constitution.md](constitution.md) — v0.4, amendment history on the site
+- **Spec:** [PRD.md](PRD.md) · **Status & roadmap:** see the bottom of the PRD
 
-See [PRD.md](PRD.md) for the full spec. [constitution.md](constitution.md) is the
-document everything else serves (v0.1 draft, unratified).
+## How it works
 
-## The site
+```
+Railway loop (bot/poller.py)
+ ├── every 120s ── subgraph ingest → new/edited props → evaluate → Telegram card
+ │                 (spend-guarded: ≤3 evals/prop/day, ≤20/day global)
+ ├── every 120s ── Telegram commands: /status /hold /release /override /cast
+ ├── every 120s ── cast scheduler: auto-fire unflagged verdicts at 65% of the
+ │                 voting window, ≥24h after the verdict; flagged props NEVER
+ │                 auto-fire; a held prop just doesn't vote (logged publicly)
+ ├── castRefundableVoteWithReason ── the vote, gas refunded, reason onchain
+ ├── serves the site + live /verdicts.json from SQLite  (bot/web.py)
+ └── commits docs/verdicts.json to this repo ── the tamper-evident audit trail
+Browser (no bot involvement)
+ ├── hero: delegation count + Noun gallery straight from the Nouns subgraph
+ └── delegate button: builds the delegate() tx in-page — no custody, reversible
+```
 
-`docs/` is a dependency-free static site served by GitHub Pages, styled on nouns.wtf's
-own design tokens (Londrina Solid / PT Root UI, cool `#d5d7e1` / warm `#e1d7d5`):
+**Evaluation pipeline** (`bot/evaluator.py`): proposals over ~6k chars get crunched
+by Sonnet 5 into a structured brief; Opus 4.8 judges brief + raw onchain actions
+against the constitution (in the system prompt, prompt-cached). Proposal text is
+quarantined as untrusted data (prompt-injection defense). Output: vote, confidence,
+clauses cited, publishable reason, flags. Verdicts are keyed to
+`(prop, content-hash, constitution git rev)` — edits and amendments re-evaluate,
+history is append-only and published.
 
-- **[index](docs/index.html)** — what a standing vote is and how it works
-- **[constitution](docs/constitution.html)** — the constitution, clause by clause
-- **[faction](docs/faction.html)** — The Dead Nouns Faction: the captured bloc's
-  playbook, receipts, and the euphemism watchlist — published so Plan A/Plan B
-  proposals arrive pre-labeled
+## Operating it (Telegram)
 
-Open locally with `open docs/index.html`, or serve via `python3 -m http.server -d docs`.
+Channel: `⌐◨-◨ Constitution Forge`. Cards arrive per verdict with the scheduled
+cast time. Commands:
 
-## The bot (M0 — paper agent)
+| Command | Effect |
+|---|---|
+| `/status` | all open props: verdict, state, cast block, flags |
+| `/hold <id>` | freeze the cast; hold wins at the deadline (no vote, public miss) |
+| `/release <id>` | back on schedule |
+| `/override <id> <for\|against\|abstain> <reason>` | replace the verdict; reason mandatory + logged |
+| `/cast <id>` | cast now — also the explicit ratify for ⚑flagged props |
 
-`bot/` is the M0 runtime: event-driven ingest from the Nouns subgraph, constitution
-evaluation via Claude, verdicts to stdout/Telegram. No keys, no casting — the human
-votes by hand while the verdict quality proves itself.
+**Never run `python -m bot.poller` locally while Railway is live** — two loops
+fight over the Telegram update queue.
+
+## Development
 
 ```sh
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-cp .env.example .env   # add ANTHROPIC_API_KEY
+cp .env.example .env   # ANTHROPIC_API_KEY at minimum
 
 .venv/bin/python -m bot.backtest --last 20 --dry-run   # cost estimate, no API calls
-.venv/bin/python -m bot.backtest --last 20             # evaluate history vs constitution
-.venv/bin/python -m bot.poller                         # watch live props
+.venv/bin/python -m bot.backtest --last 20             # judge history vs constitution
+.venv/bin/python -m bot.backtest --from-id 955 --to-id 980
+.venv/bin/python -m bot.telegram                       # discover channel chat id
+.venv/bin/python -m bot.keygen                         # generate vote-only EOA (run yourself)
 ```
 
-Backtest reports land in `backtests/` — agreement vs. divergence against what the
-DAO actually did, with clause-cited reasoning per prop.
+Backtests write agreement/divergence reports to `backtests/`. Divergence from
+history is the point: the constitution disagrees with the DAO's outcomes exactly
+where the DAO was frozen (see the [faction page](docs/faction.html)).
 
-**Delegate:** if you've read the constitution and want your Noun to vote by it,
-the site will have a one-click `delegate()` button — no custody, reversible
-any time. It ships once there's a voting record to judge us by.
+Amending the constitution: edit `constitution.md` (+ mirror `docs/constitution.html`),
+add the new git rev to `docs/amendments.json`, commit with the trigger in the
+message, push. Railway redeploys and re-evaluates open props under the new rev.
+
+## Deployment (Railway)
+
+Project `distinguished-surprise` → service `nounsbot` (repo dir is `railway link`ed).
+Auto-deploys on push to main (`railway.json` — the publisher's own verdicts.json
+commits are excluded from redeploy triggers). Volume at `/data` holds SQLite;
+`data/seed.db` bootstraps fresh volumes with the paper-era history.
+
+Env vars (set via `railway variables --set`): `ANTHROPIC_API_KEY`,
+`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `BOT_PRIVATE_KEY`, `DB_PATH`,
+optional `GIT_PUSH_TOKEN` (GitHub fine-grained PAT, contents:write — enables the
+git audit trail from Railway), `INGEST_INTERVAL_SECONDS`, `MAX_EVALS_PER_DAY`,
+`MAX_EVALS_PER_PROP_PER_DAY`, `NOUNS_CLIENT_ID`, `RPC_URL`.
+
+Key safety model: the EOA can **vote but never transfer** — delegation isn't
+custody. Worst case on key compromise: bad votes until re-delegation.
+
+## Repo map
+
+```
+constitution.md      the product — versioned, forkable, CC0
+PRD.md               spec + status + roadmap
+bot/                 the agent: poller, evaluator, executor, telegram, web, publisher
+docs/                the site (also served by the bot): pages, verdicts.json, amendments.json
+backtests/           agreement/divergence reports per constitution version
+data/seed.db         paper-era verdict history for fresh deploys
+notes/               gitignored — private strategy
+```
