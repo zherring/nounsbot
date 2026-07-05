@@ -19,4 +19,7 @@ CONSTITUTION_PATH = Path(os.environ.get("CONSTITUTION_PATH", REPO_ROOT / "consti
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
+# fast lane: telegram commands + cast schedule + publish (cheap, no LLM calls)
 POLL_INTERVAL_SECONDS = int(os.environ.get("POLL_INTERVAL_SECONDS", "120"))
+# slow lane: subgraph ingest + evaluation of new/edited props (the LLM spend)
+INGEST_INTERVAL_SECONDS = int(os.environ.get("INGEST_INTERVAL_SECONDS", "86400"))

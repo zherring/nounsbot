@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 import anthropic
 
 from . import db, publisher, subgraph, telegram
-from .config import ANTHROPIC_MODEL, POLL_INTERVAL_SECONDS
+from .config import ANTHROPIC_MODEL, INGEST_INTERVAL_SECONDS, POLL_INTERVAL_SECONDS
 from .evaluator import evaluate
 
 CAST_AT_FRACTION = 0.65  # through the voting window
@@ -206,13 +206,17 @@ def main() -> None:
 
     addr = bot_address()
     mode = f"live, casting from {addr}" if addr else "paper mode (no key)"
-    banner = f"nounsbot loop up — {mode}, every {POLL_INTERVAL_SECONDS}s, judge {ANTHROPIC_MODEL}"
+    banner = (f"nounsbot loop up — {mode} · commands/casts every {POLL_INTERVAL_SECONDS}s, "
+              f"ingest every {INGEST_INTERVAL_SECONDS // 3600}h, judge {ANTHROPIC_MODEL}")
     print(banner)
     telegram.send_message(f"🤖 {banner}")
+    last_ingest = 0.0
     while True:
         try:
             head = subgraph.current_block()
-            ingest_and_evaluate(client, conn, head)
+            if time.time() - last_ingest >= INGEST_INTERVAL_SECONDS:
+                ingest_and_evaluate(client, conn, head)
+                last_ingest = time.time()
             handle_commands(conn)
             check_schedule(conn, head)
             publisher.publish(conn)
