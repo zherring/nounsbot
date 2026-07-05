@@ -1,0 +1,17 @@
+# Private strategy notes — never publish
+notes/
+
+# Secrets & runtime state
+.env
+.env.*
+*.key
+*.sqlite
+*.db
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
