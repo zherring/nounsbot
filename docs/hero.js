@@ -24,44 +24,54 @@ function jitter(id, salt, range) {
   return ((h >>> 8) % (range * 2 + 1)) - range;
 }
 
+const MAX_SIDE = 4; // side-column cards before the +N overflow kicks in
+
+function makeCard(noun, cls, rot) {
+  const a = document.createElement("a");
+  a.className = `noun-card ${cls}`;
+  a.href = `https://nouns.wtf/noun/${noun.id}`;
+  a.dataset.label = noun.owner
+    ? `Noun ${noun.id} — delegated by ${short(noun.owner)}`
+    : `Noun ${noun.id}`;
+  a.style.setProperty("--rot", `${rot}deg`);
+  const img = document.createElement("img");
+  img.src = `https://noun.pics/${noun.id}`;
+  img.alt = a.dataset.label;
+  img.loading = "lazy";
+  a.appendChild(img);
+  return a;
+}
+
 function renderStack(nouns) {
-  // nouns: [{id, owner}]
+  // nouns: [{id, owner}] — featured + side picks are randomized per load
   const stack = document.getElementById("noun-gallery");
   if (!stack || nouns.length === 0) return;
   stack.innerHTML = "";
-  stack.classList.add("filled", nouns.length === 1 ? "solo" : "pile");
-  stack.classList.remove(nouns.length === 1 ? "pile" : "solo");
+  stack.classList.add("filled");
 
-  const n = nouns.length;
-  nouns.forEach((noun, i) => {
-    const a = document.createElement("a");
-    a.className = "noun-card";
-    a.href = `https://nouns.wtf/noun/${noun.id}`;
-    a.dataset.label = noun.owner
-      ? `Noun ${noun.id} — delegated by ${short(noun.owner)}`
-      : `Noun ${noun.id}`;
+  const shuffled = [...nouns].sort(() => Math.random() - 0.5);
+  const featured = shuffled[0];
+  const sides = shuffled.slice(1, 1 + MAX_SIDE);
+  const overflow = shuffled.length - 1 - sides.length;
 
-    const size = n === 1 ? 280 : Math.max(200 - i * 24, 92);
-    const rot = n === 1 ? -2 : jitter(noun.id, i, 5) + (i === 0 ? 0 : i * 2.5 * (i % 2 ? 1 : -1));
-    const dx = n === 1 ? 0 : -i * 26 + jitter(noun.id, i + 7, 12);
-    const dy = n === 1 ? 0 : (i % 2 ? -1 : 1) * (i * 9 + jitter(noun.id, i + 13, 8));
+  stack.appendChild(makeCard(featured, "featured", -1.5));
 
-    a.style.width = `${size}px`;
-    a.style.height = `${size}px`;
-    a.style.left = `calc(50% - ${size / 2}px)`;
-    a.style.top = `calc(50% - ${size / 2}px)`;
-    a.style.zIndex = String(n - i);
-    a.style.setProperty("--dx", `${dx}px`);
-    a.style.setProperty("--dy", `${dy}px`);
-    a.style.setProperty("--rot", `${rot}deg`);
-
-    const img = document.createElement("img");
-    img.src = `https://noun.pics/${noun.id}`;
-    img.alt = a.dataset.label;
-    img.loading = "lazy";
-    a.appendChild(img);
-    stack.appendChild(a);
-  });
+  if (sides.length) {
+    const col = document.createElement("div");
+    col.className = "noun-side";
+    sides.forEach((noun, i) => {
+      const rot = (i % 2 ? 1 : -1) * (7 + Math.abs(jitter(noun.id, i, 5)));
+      col.appendChild(makeCard(noun, "side", rot));
+    });
+    if (overflow > 0) {
+      const more = document.createElement("div");
+      more.className = "noun-more";
+      more.textContent = `+${overflow}`;
+      more.title = `${overflow} more Nouns delegated`;
+      col.appendChild(more);
+    }
+    stack.appendChild(col);
+  }
 }
 
 async function gql(query) {

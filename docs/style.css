@@ -112,23 +112,20 @@ p + p { margin-top: 0.9rem; }
 .hero-flex > div:first-child { flex: 1 1 24rem; min-width: 0; }
 .noun-gallery {
   flex: 0 0 auto;
-  position: relative;
   display: none;
   align-items: center;
-  justify-content: center;
+  gap: 1.1rem;
 }
 .noun-gallery.filled { display: flex; }
-.noun-gallery.solo { width: 300px; height: 300px; }
-.noun-gallery.pile { width: 340px; height: 320px; }
 
 .noun-card {
-  position: absolute;
+  position: relative;
   display: block;
   line-height: 0;
   border-radius: 16px;
-  overflow: visible;
-  transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg));
+  transform: rotate(var(--rot, 0deg));
   transition: transform 0.15s ease;
+  z-index: 1;
 }
 .noun-card img {
   width: 100%;
@@ -139,9 +136,25 @@ p + p { margin-top: 0.9rem; }
   border: 3px solid #fff;
   box-shadow: 0 6px 18px rgba(21, 28, 59, 0.22);
 }
+.noun-card.featured { width: 272px; height: 272px; }
+.noun-card.side { width: 88px; height: 88px; margin: -6px 0; }
 .noun-card:hover {
-  z-index: 999 !important;
-  transform: translate(var(--dx, 0px), calc(var(--dy, 0px) - 10px)) rotate(0deg) scale(1.05);
+  z-index: 9;
+  transform: rotate(0deg) translateY(-6px) scale(1.06);
+}
+
+.noun-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.noun-more {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  color: var(--cool-dark);
+  margin-top: 0.4rem;
+  line-height: 1;
+  cursor: default;
 }
 /* hover label: "Noun 1251 — delegated by 0x…" */
 .noun-card::after {
