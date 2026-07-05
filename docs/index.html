@@ -27,21 +27,24 @@
   </div>
 
   <header class="section cool hero" style="padding-top:2.5rem;">
-    <div class="container">
-      <h1>One Noun.<br />Every proposal.<br />Forever.</h1>
-      <p class="lede">
-        A standing vote: an agent votes one Noun on every proposal, by a
-        <a href="constitution.html">written constitution</a>, with the deciding
-        clause cited onchain.
-      </p>
-      <div class="btn-row">
-        <a class="btn btn-dark disabled" aria-disabled="true">Delegate your Noun — soon</a>
-        <a class="btn btn-outline" href="constitution.html">Read the constitution</a>
+    <div class="container hero-flex">
+      <div>
+        <h1><span id="noun-count">One</span> <span id="noun-word">Noun.</span><br />Every proposal.<br />Forever.</h1>
+        <p class="lede">
+          A standing vote: an agent votes every delegated Noun on every proposal,
+          by a <a href="constitution.html">written constitution</a>, with the
+          deciding clause cited onchain.
+        </p>
+        <div class="btn-row">
+          <a class="btn btn-dark disabled" aria-disabled="true">Delegate your Noun — soon</a>
+          <a class="btn btn-outline" href="constitution.html">Read the constitution</a>
+        </div>
+        <p class="muted" style="margin-top:1rem; font-size:0.9rem;">
+          One transaction, no custody, reversible any time. Ships once there's a
+          record to judge us by.
+        </p>
       </div>
-      <p class="muted" style="margin-top:1rem; font-size:0.9rem;">
-        One transaction, no custody, reversible any time. Ships once there's a
-        record to judge us by.
-      </p>
+      <div id="noun-gallery" class="noun-gallery" aria-label="Nouns delegated to this constitution"></div>
     </div>
   </header>
 
@@ -160,5 +163,6 @@
     </div>
   </footer>
 
+  <script src="hero.js"></script>
 </body>
 </html>

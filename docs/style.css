@@ -103,6 +103,48 @@ p + p { margin-top: 0.9rem; }
   font-weight: 500;
 }
 
+/* ---- hero gallery (delegated nouns) ---- */
+.hero-flex {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+}
+.hero-flex > div:first-child { flex: 1 1 24rem; min-width: 0; }
+.noun-gallery {
+  flex: 0 1 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 72px);
+  justify-content: flex-end;
+  align-content: center;
+  gap: 0.6rem;
+  max-width: 24rem;
+}
+.noun-gallery.filled { min-width: 9rem; }
+.noun-gallery a {
+  display: block;
+  line-height: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--cool-border);
+  transition: transform 0.08s ease;
+}
+.noun-gallery a:hover { transform: scale(1.06); }
+.noun-gallery img {
+  width: 72px;
+  height: 72px;
+  image-rendering: pixelated;
+  display: block;
+}
+@media (max-width: 720px) {
+  .hero-flex { flex-direction: column; align-items: flex-start; }
+  .noun-gallery {
+    justify-content: flex-start;
+    max-width: 100%;
+    grid-template-columns: repeat(auto-fit, 56px);
+  }
+  .noun-gallery img { width: 56px; height: 56px; }
+}
+
 /* ---- buttons ---- */
 .btn {
   display: inline-block;
