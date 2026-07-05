@@ -388,3 +388,16 @@ footer a { color: var(--gray-light); }
   .section { padding: 2.75rem 0; }
   .hero { padding: 2.5rem 0 3rem; }
 }
+
+/* ---- verdict history (reruns under prior constitutions) ---- */
+.verdict-history { margin-top: 0.5rem; font-size: 0.85rem; }
+.verdict-history summary {
+  cursor: pointer;
+  color: var(--gray-light);
+  font-weight: 700;
+}
+.verdict-history .history-entry {
+  margin: 0.5rem 0 0 0.25rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--gray-border);
+}

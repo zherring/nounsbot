@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-05T17:44:48+00:00",
+ "generated_at": "2026-07-05T17:47:23+00:00",
  "verdicts": [
   {
    "prop_id": 980,
@@ -17,7 +17,20 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:44:08.189898+00:00"
+   "evaluated_at": "2026-07-05T17:44:08.189898+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.82,
+     "clauses": [
+      "I.1",
+      "I.4"
+     ],
+     "reason": "This is a small ($12,500, far below the 100 ETH cap) retroactive grant for a delivered children's art and cultural tour that spreads Nouns/CC0 culture through education, workshops, and a co-branded physical product sale \u2014 squarely within Article I.1 mission spending and Article I.4 retroactive funding for visible delivered work. The onchain actions use the standard Nouns payer debt mechanism to reimburse the tour, consistent with the prose ask, and nothing here touches treasury/auction/governance mechanics.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T17:00:16.498946+00:00"
+    }
+   ]
   },
   {
    "prop_id": 979,
@@ -39,7 +52,21 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:43:58.409389+00:00"
+   "evaluated_at": "2026-07-05T17:43:58.409389+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.66,
+     "clauses": [
+      "I.1",
+      "I.2",
+      "I.3"
+     ],
+     "reason": "This is a mission-spend USDC grant (~$43k) below the 100 ETH cap, defaulting FOR under Article I.1, and the proposer cites a verifiable track record (returned 40k USDC) supporting credibility per I.2. However ~80% of the ask is compensation to the sole proposer/operator, and the member-deposit mechanism holds third-party consumer funds under terms set unilaterally by the proposer with no named legal entity yet \u2014 enough concentration and execution risk to warrant human review despite the FOR lean. The calldata correctly targets USDC transfer to the stated recipient, but the exact amount is truncated and could not be fully verified against the ~37.6k EUR prose figure.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T17:00:06.243879+00:00"
+    }
+   ]
   },
   {
    "prop_id": 978,
@@ -57,7 +84,21 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:43:18.852547+00:00"
+   "evaluated_at": "2026-07-05T17:43:18.852547+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.75,
+     "clauses": [
+      "I.1",
+      "I.3",
+      "I.4"
+     ],
+     "reason": "This is mission spending \u2014 a theatrical production that prominently features Nouns branding and commits to releasing its script CC0 for global reuse, squarely within Article I.1's default FOR for art/media/events that spread Nouns and CC0 culture. The $40,000 ask (denominated in USDC) is well below the 100 ETH cap and represents a cheap, reversible experiment under I.3. The promised 5% revenue payback is a trust-based commitment with no onchain enforcement, but that is a soft representation rather than a calldata/prose conflict; the actual onchain action is a straightforward token transfer consistent with a grant.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:59:33.011072+00:00"
+    }
+   ]
   },
   {
    "prop_id": 975,
@@ -76,7 +117,21 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:42:44.146270+00:00"
+   "evaluated_at": "2026-07-05T17:42:44.146270+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.82,
+     "clauses": [
+      "I.1",
+      "I.3",
+      "IV.2"
+     ],
+     "reason": "This is a cheap (3,250 USDC, far below the 100 ETH cap) public-good grant that funds a CC0-licensed, Noun-674-inspired playground spreading Nouns culture, which is a default FOR under Article I.1 and a low-risk reversible experiment under I.3. The proposer cites a track record (Props 483, 709), supporting trust under IV.2. The calldata (sendOrRegisterDebt to the proposer for a modest sum) is consistent with a small direct grant.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:58:55.060959+00:00"
+    }
+   ]
   },
   {
    "prop_id": 974,
@@ -97,7 +152,21 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:42:37.093654+00:00"
+   "evaluated_at": "2026-07-05T17:42:37.093654+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.85,
+     "clauses": [
+      "II.1",
+      "II.3",
+      "II.2"
+     ],
+     "reason": "This proposal pauses the auction house and sets the reserve price to 0 ETH \u2014 a direct change to auction reserve pricing, which Article II.1 explicitly names as structural and defaults AGAINST absent extraordinary justification. The calldata (setReservePrice to 0) matches the prose, but the 'make Nouns bid again' framing is exactly the kind of euphemistic justification Article II.3 warns does not change classification. Per Article II.2 this class is never auto-ratified and requires human review.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:58:47.966321+00:00"
+    }
+   ]
   },
   {
    "prop_id": 973,
@@ -115,7 +184,21 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:42:32.103957+00:00"
+   "evaluated_at": "2026-07-05T17:42:32.103957+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.82,
+     "clauses": [
+      "I.1",
+      "I.3",
+      "IV.4"
+     ],
+     "reason": "This is a small media/proliferation grant ($500/month for six months, ~$3,000 total) funding content that spreads Nouns culture, far below the 100 ETH cap and thus a default FOR under Article I.1. It is a cheap, reversible six-month experiment that gets the benefit of the doubt (I.3), and the proposer discloses a prior track record of funded media work. The onchain actions (createStream to the proposer plus a debt registration) are consistent with the described streaming payment, and no treasury/governance mechanics are altered.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:58:41.902606+00:00"
+    }
+   ]
   },
   {
    "prop_id": 972,
@@ -139,7 +222,21 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:42:24.471153+00:00"
+   "evaluated_at": "2026-07-05T17:42:24.471153+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.85,
+     "clauses": [
+      "IV.1",
+      "I.2",
+      "III.2"
+     ],
+     "reason": "The prose describes an investment with a 12-month holding period and 24-month linear unlock, but the onchain actions are simple, immediate safeTransferFrom and transfer calls with no vesting or lockup logic encoded \u2014 a direct prose/calldata conflict requiring AGAINST under Article IV.1. Independently, the ask (111 stETH plus a Noun) exceeds the 100 ETH cap and is a lump-sum with no on-chain milestones, clawback, or streaming, failing Article I.2. The valuation and token terms reference an unlaunched, unaudited third-party protocol, and the recipient addresses are not verifiably tied to the team, deepening the integrity gap.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:58:34.158063+00:00"
+    }
+   ]
   },
   {
    "prop_id": 971,
@@ -157,7 +254,20 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:41:45.153074+00:00"
+   "evaluated_at": "2026-07-05T17:41:45.153074+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.72,
+     "clauses": [
+      "I.1",
+      "I.4"
+     ],
+     "reason": "This funds ongoing social media marketing that spreads Nouns/CC0 culture, with a modest ask (~$11,250 at $15/hr \u00d7 15hr/wk \u00d7 50wks) far below the 100 ETH cap, and a demonstrated three-year track record of near-daily delivery \u2014 squarely within Article I.1's default FOR for media that proliferates Nouns, reinforced by I.4 for visible prior work. The single onchain action is a payment/debt registration to the proposer with no treasury, auction, or governance mechanics touched.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:57:59.113050+00:00"
+    }
+   ]
   },
   {
    "prop_id": 970,
@@ -176,7 +286,21 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:41:33.396983+00:00"
+   "evaluated_at": "2026-07-05T17:41:33.396983+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.7,
+     "clauses": [
+      "II.1",
+      "II.2",
+      "II.3"
+     ],
+     "reason": "The proposal bundles a benign ENS delegation with a transfer of treasury-owned Noun 826 out of the DAO as a personal reward. Disposing of a treasury Noun is structural (redirection of treasury assets / entity structure) and defaults to AGAINST under Article II.1 absent extraordinary, milestone-backed justification. The delegation portion is acceptable participation, but the treasury Noun giveaway drives the verdict and requires human review under Article II.2.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:57:48.003032+00:00"
+    }
+   ]
   },
   {
    "prop_id": 969,
@@ -197,7 +321,33 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:41:15.557833+00:00"
+   "evaluated_at": "2026-07-05T17:41:15.557833+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.82,
+     "clauses": [
+      "II.1",
+      "II.2",
+      "II.3"
+     ],
+     "reason": "The onchain actions pause the auction house, set the auction reserve price to 0 (calldata 0xc0555d98 with a zero argument), and unpause \u2014 a direct change to auction reserve pricing, which Article II.1 explicitly names as structural and defaults AGAINST. The prose's 'resume proliferation' framing does not change the classification per Article II.3; the calldata is structural. No extraordinary justification with verifiable safeguards is presented to overcome the default, and Article II.2 requires human review regardless of confidence.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:53:36.750765+00:00"
+    },
+    {
+     "vote": "FOR",
+     "confidence": 0.85,
+     "clauses": [
+      "II.4",
+      "I.3",
+      "II.2"
+     ],
+     "reason": "The calldata pauses the auction house, sets the reserve price to 0, and unpauses \u2014 restoring stalled daily issuance by zeroing the auction reserve. Article II.4 explicitly classifies lowering/zeroing the reserve to restore issuance as mission infrastructure, defaulting FOR under Article I.3. Calldata matches the prose claim of a 0 ETH reserve. As a structural change to auction mechanics, human review is still required per II.2.",
+     "constitution_rev": "5f6222b",
+     "evaluated_at": "2026-07-05T17:02:09.600043+00:00"
+    }
+   ]
   },
   {
    "prop_id": 968,
@@ -218,7 +368,21 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:41:09.107763+00:00"
+   "evaluated_at": "2026-07-05T17:41:09.107763+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.75,
+     "clauses": [
+      "II.1",
+      "II.2",
+      "II.3"
+     ],
+     "reason": "This is a structural proposal: it upgrades the NounsAuctionHouse implementation to redirect no-bid (unsold) Nouns to the treasury instead of burning them \u2014 explicitly enumerated under Article II.1 as changing auction mechanics and redirecting unsold Nouns. The default is AGAINST absent extraordinary and explicit justification, and no participation-widening exception (II.4) applies. The calldata (a proxy upgrade call) matches the prose, so there is no mismatch, but the classification stands regardless of framing (II.3), and per II.2 this cannot be auto-ratified and requires human review.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:57:35.251010+00:00"
+    }
+   ]
   },
   {
    "prop_id": 967,
@@ -236,7 +400,20 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:40:37.125113+00:00"
+   "evaluated_at": "2026-07-05T17:40:37.125113+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.85,
+     "clauses": [
+      "I.1",
+      "I.3"
+     ],
+     "reason": "This is a small mission-spending grant ($3,250 USDC, far below the 100 ETH cap) funding a CC0-licensed, Nouns-branded public good that spreads the brand and supports inclusive therapy for children with autism. The proposer shows a track record of prior delivery (Props 483 and 709), and the calldata is a standard sendOrRegisterDebt USDC payment via the Payer contract consistent with the ask. Under Article I.1 and I.3, cheap, well-scoped proliferation spending defaults FOR.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:57:07.543097+00:00"
+    }
+   ]
   },
   {
    "prop_id": 966,
@@ -254,7 +431,21 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:40:29.934066+00:00"
+   "evaluated_at": "2026-07-05T17:40:29.934066+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.82,
+     "clauses": [
+      "I.1",
+      "I.3",
+      "IV.1"
+     ],
+     "reason": "This proposal adds a free CC0 multicolor accessory trait to the Nouns art collection at zero treasury cost, directly serving proliferation of Nouns art and the CC0 commons (Article I.1). The onchain action (addAccessories) matches the prose, with a signed CC0 contribution agreement, and it is a cheap, reversible contribution to the shared visual language (Article I.3). It does not touch treasury, auction, entity, or governance mechanics, so it is not structural.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:56:58.409492+00:00"
+    }
+   ]
   },
   {
    "prop_id": 965,
@@ -272,7 +463,20 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:40:21.999337+00:00"
+   "evaluated_at": "2026-07-05T17:40:21.999337+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.76,
+     "clauses": [
+      "I.1",
+      "I.3"
+     ],
+     "reason": "This funds production of Nounish vinyl toys and a branded booth at the Taipei Toy Festival \u2014 creation, art, and events that spread Nouns and CC0 culture \u2014 with an ask of ~28,535 USDC, well below the 100 ETH cap, so Article I.1 defaults FOR. The activity is a discrete, mission-aligned experiment (Article I.3). The narrative profit-split and COI framing are noted but the beneficiary is the artist doing the work, not treasury-liquidity self-dealing under IV.3, so it does not disqualify.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:56:49.704337+00:00"
+    }
+   ]
   },
   {
    "prop_id": 964,
@@ -293,7 +497,21 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:39:53.006692+00:00"
+   "evaluated_at": "2026-07-05T17:39:53.006692+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.6,
+     "clauses": [
+      "I.1",
+      "I.3",
+      "IV.1"
+     ],
+     "reason": "This is a mission-spend proposal: a CC0-licensed theatrical production explicitly featuring Nouns branding and a Noun character, spreading the brand into Swedish public culture, at ~$40,000 which is well below the [CAP: 100 ETH] threshold, so Article I.1 and I.3 default FOR. However, the onchain calldata is truncated, so the exact amount and token cannot be verified against the stated $40,000, and the sole action registers debt to the proposer's own address \u2014 this prevents full Article IV.1 verification and warrants human confirmation that calldata matches the prose before execution.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:56:18.900466+00:00"
+    }
+   ]
   },
   {
    "prop_id": 963,
@@ -311,7 +529,20 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:39:23.525878+00:00"
+   "evaluated_at": "2026-07-05T17:39:23.525878+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.82,
+     "clauses": [
+      "I.1",
+      "I.3"
+     ],
+     "reason": "This is mission spending that spreads Nouns branding and CC0 culture at international toy festivals (Taipei, Shanghai, Hong Kong) plus Nounish vinyl toy development, at ~23,735 USDC \u2014 well below the 100 ETH cap, so it defaults FOR under Article I.1. The activation is a cheap, culture-proliferating experiment consistent with Article I.3. The onchain action (sendOrRegisterDebt via the DAO USDC payer) is consistent with the stated grant payment.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:55:46.520978+00:00"
+    }
+   ]
   },
   {
    "prop_id": 962,
@@ -332,7 +563,22 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:39:16.652051+00:00"
+   "evaluated_at": "2026-07-05T17:39:16.652051+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.55,
+     "clauses": [
+      "I.1",
+      "I.3",
+      "IV.2",
+      "II.3"
+     ],
+     "reason": "The onchain calldata funds a research engagement (1 Noun + 20,000 USDC) rather than itself altering entity structure, so it reads as mission/operational spending under Article I.1, and the proposer shows a documented track record (12 months of prior work and public presentations) per Article IV.2. The total ask sits below the 100 ETH cap, earning benefit-of-the-doubt as a scoped experiment (I.3). However, the subject matter directly concerns creating a sister 501c3 entity, the 20,000 USDC lacks a disclosed split or clawback/milestone structure, and the request is self-authored compensation \u2014 these warrant human review before ratification.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:55:37.497689+00:00"
+    }
+   ]
   },
   {
    "prop_id": 961,
@@ -352,7 +598,21 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:38:55.221349+00:00"
+   "evaluated_at": "2026-07-05T17:38:55.221349+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.85,
+     "clauses": [
+      "II.1",
+      "II.2",
+      "II.3"
+     ],
+     "reason": "This proposal alters auction reserve pricing via setReservePrice(0), which is explicitly enumerated as structural under Article II.1 and carries a default AGAINST absent extraordinary, explicit justification. The prose offers only cultural rhetoric \u2014 no verifiable case that removing the reserve widens participation or serves the mission \u2014 so the Article II.4 exception does not apply. The calldata (pause, setReservePrice=0, unpause) matches the prose claims, but structural changes are never auto-ratified and require human review.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:54:49.791986+00:00"
+    }
+   ]
   },
   {
    "prop_id": 960,
@@ -370,7 +630,20 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:38:50.016821+00:00"
+   "evaluated_at": "2026-07-05T17:38:50.016821+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.75,
+     "clauses": [
+      "I.1",
+      "I.3"
+     ],
+     "reason": "This is a mission-spend proposal funding a Nogles-shaped Biorock coral reef that combines public-good ecological restoration with Nouns brand visibility in a high-traffic tourism area \u2014 squarely within Article I.1's default FOR for creation/art/events that spread Nouns culture. The ask (~13,000 USDC) is far below the 100 ETH cap and represents a cheap, reversible experiment (Article I.3). The calldata is a single USDC transfer consistent with the stated ask, so no calldata mismatch exists; the recipient address is asserted-but-unverified as belonging to Gili Eco Trust, which modestly tempers confidence.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:54:44.545029+00:00"
+    }
+   ]
   },
   {
    "prop_id": 957,
@@ -389,7 +662,20 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:38:28.527853+00:00"
+   "evaluated_at": "2026-07-05T17:38:28.527853+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.6,
+     "clauses": [
+      "IV.1",
+      "I.1"
+     ],
+     "reason": "This is a mission-aligned art-education initiative that spreads Nouns/CC0 culture and would default FOR under Article I.1 given its sub-CAP fiat budget. However, the onchain action is a truncated 'sendOrRegisterDebt' call whose recipient and ETH amount cannot be verified against the prose's $67,600 fiat budget. Per Article IV.1 the calldata is the proposal, and an unverifiable mismatch between prose claims and the decoded transaction compels an AGAINST pending human confirmation of the exact recipient and amount.",
+     "constitution_rev": "401a716",
+     "evaluated_at": "2026-07-05T16:54:20.446330+00:00"
+    }
+   ]
   },
   {
    "prop_id": 956,
@@ -410,7 +696,8 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:38:00.449235+00:00"
+   "evaluated_at": "2026-07-05T17:38:00.449235+00:00",
+   "history": []
   },
   {
    "prop_id": 955,
@@ -431,7 +718,21 @@
    "status": "paper",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-05T17:37:31.683298+00:00"
+   "evaluated_at": "2026-07-05T17:37:31.683298+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.85,
+     "clauses": [
+      "II.1",
+      "II.4",
+      "III.2"
+     ],
+     "reason": "Setting an auction reserve price of 2.8 ETH is an auction-mechanics change and thus structural under Article II.1. Per Article II.4, its direction raises the barrier to entry and restricts issuance \u2014 the freeze Article II targets \u2014 so the default is AGAINST. The calldata (pause, setReservePrice to 2.8 ETH, unpause) matches the prose. Requires human review per II.2.",
+     "constitution_rev": "5f6222b",
+     "evaluated_at": "2026-07-05T17:02:17.614135+00:00"
+    }
+   ]
   }
  ]
 }

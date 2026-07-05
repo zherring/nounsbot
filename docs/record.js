@@ -14,10 +14,13 @@ async function loadRecord() {
   const tbody = document.getElementById("record-body");
   if (!tbody) return;
   let data;
+  let revMap = {};
   try {
     const resp = await fetch("verdicts.json", { cache: "no-store" });
     if (!resp.ok) return;
     data = await resp.json();
+    const am = await fetch("amendments.json", { cache: "no-store" });
+    if (am.ok) revMap = (await am.json()).revs || {};
   } catch {
     return; // keep the placeholder row
   }
@@ -34,15 +37,32 @@ async function loadRecord() {
       : "";
     const flags = v.flags?.length ? ` ⚑ ${v.flags.join(", ")}` : "";
     const override = v.overridden ? " · human override" : "";
+    const ver = revMap[v.constitution_rev] || v.constitution_rev || "";
+    const historyHtml = (v.history || []).length
+      ? `<details class="verdict-history">
+           <summary>↺ ${v.history.length} earlier verdict${v.history.length > 1 ? "s" : ""} under prior constitutions</summary>
+           ${v.history
+             .slice()
+             .reverse()
+             .map(
+               (h) =>
+                 `<div class="history-entry"><b>${revMap[h.constitution_rev] || h.constitution_rev}</b>:
+                  ${h.vote} (${(h.confidence ?? 0).toFixed(2)}) · ${(h.clauses || []).join(", ")}<br>
+                  <span class="muted">${esc(h.reason || "")}</span></div>`
+             )
+             .join("")}
+         </details>`
+      : "";
     tr.innerHTML = `
       <td><a href="https://nouns.wtf/vote/${v.prop_id}">${v.prop_id}</a><br>
           <span class="muted" style="font-size:0.85rem">${esc(v.title || "")}</span></td>
       <td><span class="pill ${pill}">${v.vote}</span><br>
-          <span class="muted" style="font-size:0.8rem">${status}${tx}${override}</span></td>
+          <span class="muted" style="font-size:0.8rem">${status} · ${ver}${tx}${override}</span></td>
       <td>${(v.clauses || []).join(", ")}</td>
       <td class="reason-cell" style="max-width:26rem">
         <span class="reason-text">${esc(v.reason || "")}<span class="muted">${esc(flags)}</span></span>
         <button type="button" class="reason-toggle" aria-expanded="false">Show more</button>
+        ${historyHtml}
       </td>
       <td>${esc(v.outcome || "")}</td>`;
     tbody.appendChild(tr);

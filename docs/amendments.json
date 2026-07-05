@@ -1,0 +1,33 @@
+{
+  "revs": {
+    "401a716": "v0.1",
+    "5f6222b": "v0.2",
+    "58d6f7d": "v0.3",
+    "10086dd": "v0.4"
+  },
+  "amendments": [
+    {
+      "version": "v0.1",
+      "date": "2026-07-05",
+      "summary": "Initial draft: proliferation spending default-FOR under a cap, structural props default-AGAINST, anti-capture, calldata-is-truth integrity, override-driven amendment process."
+    },
+    {
+      "version": "v0.2",
+      "date": "2026-07-05",
+      "trigger": "Prop 969 (0 ETH reserve) judged AGAINST — the clause aimed at the reserve-raise freeze also blocked the reserve-removal restoration.",
+      "summary": "II.4 'Direction matters': Article II targets freeze-direction changes; structural changes that restore issuance or widen entry default FOR under Article I."
+    },
+    {
+      "version": "v0.3",
+      "date": "2026-07-05",
+      "trigger": "Prop 970 (Noun 826 to Gramajo) judged AGAINST — contributor rewards in kind were read as treasury redirection.",
+      "summary": "I.5 'Recognition in kind': small treasury-Noun transfers to named contributors with delivered work are mission spending valued at book. I.2 track record now includes unfunded ecosystem work."
+    },
+    {
+      "version": "v0.4",
+      "date": "2026-07-05",
+      "trigger": "Prop 962 (501c3 Study) leaned FOR — classify-by-calldata let entity-conversion groundwork read as a small grant.",
+      "summary": "II.5 'Reconnaissance is part of the invasion': spending whose deliverable is groundwork for a structural change inherits Article II's default AGAINST, even when the calldata only spends."
+    }
+  ]
+}

@@ -181,6 +181,14 @@
         </ol>
       </div>
 
+      <div class="article">
+        <h3><span class="clause-id">History</span> Amendments</h3>
+        <p style="margin-top:0.5rem;">Every amendment is a public commit, triggered by a
+        real verdict the author overruled. Re-evaluated proposals keep their old verdicts
+        visible in <a href="index.html#record">the record</a>.</p>
+        <ol id="amendment-list"></ol>
+      </div>
+
       <div class="card" style="margin-top:2.5rem;">
         <h3>Fork it</h3>
         <p>This constitution is CC0 and lives as
@@ -200,5 +208,22 @@
     </div>
   </footer>
 
+  <script>
+    fetch("amendments.json", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        const list = document.getElementById("amendment-list");
+        if (!list) return;
+        for (const a of (data.amendments || []).slice().reverse()) {
+          const li = document.createElement("li");
+          li.style.marginTop = "0.55rem";
+          li.innerHTML =
+            `<strong>${a.version}</strong> (${a.date}) — ${a.summary}` +
+            (a.trigger ? `<br><span style="opacity:0.65">Trigger: ${a.trigger}</span>` : "");
+          list.appendChild(li);
+        }
+      })
+      .catch(() => {});
+  </script>
 </body>
 </html>

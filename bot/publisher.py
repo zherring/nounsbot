@@ -32,6 +32,24 @@ def export(conn) -> bool:
            ORDER BY v.prop_id DESC"""
     ).fetchall()
 
+    # full re-evaluation history per prop: the flips ARE the product working,
+    # so they publish too (prior verdicts under earlier constitution revs)
+    history: dict[int, list[dict]] = {}
+    for h in conn.execute(
+        "SELECT prop_id, vote, confidence, clauses, reason, constitution_rev, created_at "
+        "FROM verdicts ORDER BY prop_id, created_at"
+    ):
+        history.setdefault(h["prop_id"], []).append(
+            {
+                "vote": h["vote"],
+                "confidence": h["confidence"],
+                "clauses": json.loads(h["clauses"]),
+                "reason": h["reason"],
+                "constitution_rev": h["constitution_rev"],
+                "evaluated_at": h["created_at"],
+            }
+        )
+
     verdicts = []
     for r in rows:
         verdicts.append(
@@ -49,6 +67,7 @@ def export(conn) -> bool:
                 "tx_hash": r["tx_hash"],
                 "overridden": bool(r["override_by"]),
                 "evaluated_at": r["created_at"],
+                "history": history.get(r["prop_id"], [])[:-1],  # prior eras only
             }
         )
 
