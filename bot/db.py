@@ -53,6 +53,11 @@ CREATE TABLE IF NOT EXISTS verdicts (
 
 def connect() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    seed = REPO_ROOT / "data" / "seed.db"
+    if not DB_PATH.exists() and seed.exists():
+        import shutil
+
+        shutil.copy(seed, DB_PATH)  # fresh volume inherits the paper-era history
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)

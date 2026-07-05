@@ -18,8 +18,8 @@ from .config import REPO_ROOT
 VERDICTS_PATH = REPO_ROOT / "docs" / "verdicts.json"
 
 
-def export(conn) -> bool:
-    """Write docs/verdicts.json. Returns True if content changed."""
+def build_payload(conn) -> dict:
+    """The record as a dict — used by both the file exporter and the live web endpoint."""
     rows = conn.execute(
         """SELECT v.prop_id, v.vote, v.confidence, v.clauses, v.reason, v.flags,
                   v.constitution_rev, v.created_at,
@@ -71,10 +71,15 @@ def export(conn) -> bool:
             }
         )
 
-    payload = {
+    return {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "verdicts": verdicts,
     }
+
+
+def export(conn) -> bool:
+    """Write docs/verdicts.json. Returns True if content changed."""
+    payload = build_payload(conn)
     new_body = json.dumps(payload, indent=1)
     old_body = VERDICTS_PATH.read_text() if VERDICTS_PATH.exists() else ""
     # ignore the timestamp line when deciding whether anything real changed

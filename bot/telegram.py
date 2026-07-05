@@ -68,7 +68,7 @@ def main() -> None:
         return
     seen = {}
     for u in updates:
-        msg = u.get("message") or u.get("channel_post") or {}
+        msg = u.get("message") or u.get("channel_post") or u.get("my_chat_member") or {}
         chat = msg.get("chat", {})
         if chat:
             seen[chat.get("id")] = f"{chat.get('type')} '{chat.get('title') or chat.get('username')}'"

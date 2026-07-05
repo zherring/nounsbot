@@ -1,6 +1,16 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
-  "build": { "builder": "NIXPACKS" },
+  "build": {
+    "builder": "NIXPACKS",
+    "watchPatterns": [
+      "bot/**",
+      "docs/**",
+      "!docs/verdicts.json",
+      "constitution.md",
+      "requirements.txt",
+      "railway.json"
+    ]
+  },
   "deploy": {
     "startCommand": "python -m bot.poller",
     "restartPolicyType": "ALWAYS",

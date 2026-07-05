@@ -218,7 +218,7 @@ p + p { margin-top: 0.9rem; }
 .soon-badge {
   position: absolute;
   top: -1.15rem;
-  right: -0.7rem;
+  left: -0.7rem;
   background: var(--gray-dark);
   color: #fff;
   font-family: var(--font-body);
@@ -231,7 +231,7 @@ p + p { margin-top: 0.9rem; }
   border-radius: 6px;
   border: 2px solid #fff;
   box-shadow: 0 4px 10px rgba(21, 28, 59, 0.25);
-  transform: rotate(-11deg);
+  transform: rotate(11deg);
   pointer-events: none;
   z-index: 2;
   white-space: nowrap;
@@ -322,10 +322,6 @@ tr:last-child td { border-bottom: none; }
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
-.reason-cell.expanded .reason-text {
-  -webkit-line-clamp: unset;
-  overflow: visible;
-}
 .reason-toggle {
   display: block;
   margin-top: 0.35rem;
@@ -339,6 +335,66 @@ tr:last-child td { border-bottom: none; }
   cursor: pointer;
 }
 .reason-toggle:hover { text-decoration: underline; }
+
+/* ---- verdict detail modal ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(21, 28, 59, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 100;
+}
+.modal-overlay[hidden] { display: none; }
+.modal-card {
+  position: relative;
+  background: #fff;
+  color: var(--black);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(21, 28, 59, 0.35);
+}
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: none;
+  background: var(--gray-hover);
+  color: var(--gray-light);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.modal-close:hover { background: var(--gray-border); color: var(--black); }
+.modal-card h3 { padding-right: 2.5rem; font-size: 1.5rem; }
+.modal-meta { margin-top: 0.6rem; font-size: 0.9rem; line-height: 1.6; }
+.modal-section { margin-top: 1.5rem; }
+.modal-section h4 {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-light);
+  margin-bottom: 0.4rem;
+}
+.modal-reason { white-space: pre-wrap; }
+.history-entry {
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--gray-border);
+}
+.history-entry:first-child { border-top: none; }
+.history-meta { font-size: 0.9rem; margin-bottom: 0.3rem; }
+.history-meta b { font-family: var(--font-body); }
 
 /* ---- timeline ---- */
 .timeline { list-style: none; margin-top: 1.5rem; }
@@ -387,17 +443,4 @@ footer a { color: var(--gray-light); }
 @media (max-width: 640px) {
   .section { padding: 2.75rem 0; }
   .hero { padding: 2.5rem 0 3rem; }
-}
-
-/* ---- verdict history (reruns under prior constitutions) ---- */
-.verdict-history { margin-top: 0.5rem; font-size: 0.85rem; }
-.verdict-history summary {
-  cursor: pointer;
-  color: var(--gray-light);
-  font-weight: 700;
-}
-.verdict-history .history-entry {
-  margin: 0.5rem 0 0 0.25rem;
-  padding-left: 0.75rem;
-  border-left: 2px solid var(--gray-border);
 }

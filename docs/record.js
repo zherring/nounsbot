@@ -10,11 +10,12 @@ const STATUS_LABEL = {
   skipped: "📝 paper",
 };
 
+let revMap = {};
+
 async function loadRecord() {
   const tbody = document.getElementById("record-body");
   if (!tbody) return;
   let data;
-  let revMap = {};
   try {
     const resp = await fetch("verdicts.json", { cache: "no-store" });
     if (!resp.ok) return;
@@ -30,7 +31,7 @@ async function loadRecord() {
   tbody.innerHTML = "";
   for (const v of verdicts) {
     const tr = document.createElement("tr");
-    const pill = v.vote === "FOR" ? "pill-for" : v.vote === "AGAINST" ? "pill-against" : "pill-flag";
+    const pill = pillClass(v.vote);
     const status = STATUS_LABEL[v.status] || v.status;
     const tx = v.tx_hash
       ? ` · <a href="https://etherscan.io/tx/0x${v.tx_hash.replace(/^0x/, "")}">tx</a>`
@@ -38,21 +39,10 @@ async function loadRecord() {
     const flags = v.flags?.length ? ` ⚑ ${v.flags.join(", ")}` : "";
     const override = v.overridden ? " · human override" : "";
     const ver = revMap[v.constitution_rev] || v.constitution_rev || "";
-    const historyHtml = (v.history || []).length
-      ? `<details class="verdict-history">
-           <summary>↺ ${v.history.length} earlier verdict${v.history.length > 1 ? "s" : ""} under prior constitutions</summary>
-           ${v.history
-             .slice()
-             .reverse()
-             .map(
-               (h) =>
-                 `<div class="history-entry"><b>${revMap[h.constitution_rev] || h.constitution_rev}</b>:
-                  ${h.vote} (${(h.confidence ?? 0).toFixed(2)}) · ${(h.clauses || []).join(", ")}<br>
-                  <span class="muted">${esc(h.reason || "")}</span></div>`
-             )
-             .join("")}
-         </details>`
-      : "";
+    const historyCount = (v.history || []).length;
+    const detailsLabel = historyCount
+      ? `Full rationale + ${historyCount} earlier verdict${historyCount > 1 ? "s" : ""} →`
+      : "Full rationale →";
     tr.innerHTML = `
       <td><a href="https://nouns.wtf/vote/${v.prop_id}">${v.prop_id}</a><br>
           <span class="muted" style="font-size:0.85rem">${esc(v.title || "")}</span></td>
@@ -61,13 +51,12 @@ async function loadRecord() {
       <td>${(v.clauses || []).join(", ")}</td>
       <td class="reason-cell" style="max-width:26rem">
         <span class="reason-text">${esc(v.reason || "")}<span class="muted">${esc(flags)}</span></span>
-        <button type="button" class="reason-toggle" aria-expanded="false">Show more</button>
-        ${historyHtml}
+        <button type="button" class="reason-toggle">${detailsLabel}</button>
       </td>
       <td>${esc(v.outcome || "")}</td>`;
+    tr.querySelector(".reason-toggle").addEventListener("click", () => openVerdictModal(v));
     tbody.appendChild(tr);
   }
-  wireReasonToggles(tbody);
   const note = document.getElementById("record-note");
   if (note) {
     note.textContent =
@@ -76,21 +65,94 @@ async function loadRecord() {
   }
 }
 
-function wireReasonToggles(tbody) {
-  tbody.querySelectorAll(".reason-cell").forEach((cell) => {
-    const text = cell.querySelector(".reason-text");
-    const toggle = cell.querySelector(".reason-toggle");
-    if (!text || !toggle) return;
-    if (text.scrollHeight <= text.clientHeight + 1) {
-      toggle.remove();
-      return;
-    }
-    toggle.addEventListener("click", () => {
-      const expanded = cell.classList.toggle("expanded");
-      toggle.textContent = expanded ? "Show less" : "Show more";
-      toggle.setAttribute("aria-expanded", String(expanded));
-    });
+function pillClass(vote) {
+  return vote === "FOR" ? "pill-for" : vote === "AGAINST" ? "pill-against" : "pill-flag";
+}
+
+function ensureModal() {
+  let overlay = document.getElementById("verdict-modal");
+  if (overlay) return overlay;
+  overlay = document.createElement("div");
+  overlay.id = "verdict-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="verdict-modal-title">
+      <button type="button" class="modal-close" aria-label="Close">&times;</button>
+      <h3 id="verdict-modal-title"></h3>
+      <p class="muted modal-meta"></p>
+      <div class="modal-section">
+        <h4>Rationale</h4>
+        <p class="modal-reason"></p>
+      </div>
+      <div class="modal-section modal-history" hidden>
+        <h4>Earlier verdicts under prior constitutions</h4>
+        <div class="modal-history-list"></div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector(".modal-close").addEventListener("click", closeVerdictModal);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeVerdictModal();
   });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !overlay.hidden) closeVerdictModal();
+  });
+  return overlay;
+}
+
+function openVerdictModal(v) {
+  const overlay = ensureModal();
+  const status = STATUS_LABEL[v.status] || v.status;
+  const ver = revMap[v.constitution_rev] || v.constitution_rev || "";
+  const tx = v.tx_hash
+    ? ` · <a href="https://etherscan.io/tx/0x${v.tx_hash.replace(/^0x/, "")}" target="_blank" rel="noopener">tx ↗</a>`
+    : "";
+  const override = v.overridden ? " · human override" : "";
+  const flags = v.flags?.length ? ` · ⚑ ${esc(v.flags.join(", "))}` : "";
+  const clauses = (v.clauses || []).join(", ") || "—";
+  const confidence = v.confidence != null ? ` · confidence ${v.confidence.toFixed(2)}` : "";
+
+  overlay.querySelector("#verdict-modal-title").textContent = `Prop ${v.prop_id} — ${v.title || ""}`;
+  overlay.querySelector(".modal-meta").innerHTML =
+    `<a href="https://nouns.wtf/vote/${v.prop_id}" target="_blank" rel="noopener">View on nouns.wtf ↗</a> · ` +
+    `<span class="pill ${pillClass(v.vote)}">${esc(v.vote || "")}</span> · clauses ${esc(clauses)} · ` +
+    `${status} · rev ${esc(ver)}${confidence}${tx}${override} · ${esc(v.outcome || "")}${flags}`;
+  overlay.querySelector(".modal-reason").textContent = v.reason || "";
+
+  const historySection = overlay.querySelector(".modal-history");
+  const historyList = overlay.querySelector(".modal-history-list");
+  const history = v.history || [];
+  if (history.length) {
+    historyList.innerHTML = history
+      .slice()
+      .reverse()
+      .map((h) => {
+        const hVer = revMap[h.constitution_rev] || h.constitution_rev || "";
+        const hConf = h.confidence != null ? ` (${h.confidence.toFixed(2)})` : "";
+        return `<div class="history-entry">
+          <p class="history-meta"><b>${esc(hVer)}</b>${hConf} · ${esc((h.clauses || []).join(", "))} ·
+            <span class="pill ${pillClass(h.vote)}">${esc(h.vote || "")}</span></p>
+          <p class="muted">${esc(h.reason || "")}</p>
+        </div>`;
+      })
+      .join("");
+    historySection.hidden = false;
+  } else {
+    historyList.innerHTML = "";
+    historySection.hidden = true;
+  }
+
+  overlay.hidden = false;
+  document.body.style.overflow = "hidden";
+  overlay.querySelector(".modal-close").focus();
+}
+
+function closeVerdictModal() {
+  const overlay = document.getElementById("verdict-modal");
+  if (!overlay) return;
+  overlay.hidden = true;
+  document.body.style.overflow = "";
 }
 
 function esc(s) {

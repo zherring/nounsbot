@@ -194,8 +194,14 @@ def check_schedule(conn, head: int) -> None:
 
 
 def main() -> None:
+    import os
+
     client = anthropic.Anthropic()
     conn = db.connect()
+    if os.environ.get("PORT"):  # Railway public networking
+        from . import web
+
+        web.start(int(os.environ["PORT"]))
     from .executor import bot_address
 
     addr = bot_address()
