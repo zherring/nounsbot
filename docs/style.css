@@ -430,3 +430,18 @@ footer a { color: var(--gray-light); }
   max-width: 30rem;
 }
 .delegate-status[data-state="ok"] { color: var(--green); }
+
+/* ---- wallet chooser (EIP-6963 multi-wallet) ---- */
+.wallet-choice {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.8rem;
+  margin: 0 0.35rem 0.25rem 0;
+  border-radius: 8px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.wallet-choice:hover { background: rgba(21, 28, 59, 0.08); }

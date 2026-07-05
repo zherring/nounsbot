@@ -30,15 +30,60 @@ function setStatus(button, text, cls) {
   el.dataset.state = cls || "";
 }
 
+// EIP-6963: discover every injected wallet instead of racing for window.ethereum.
+// This is the same discovery standard RainbowKit uses — minus React and a bundler.
+const discoveredWallets = [];
+window.addEventListener("eip6963:announceProvider", (event) => {
+  const { info } = event.detail;
+  if (!discoveredWallets.some((w) => w.info.uuid === info.uuid)) {
+    discoveredWallets.push(event.detail);
+  }
+});
+window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+function statusEl(button) {
+  setStatus(button, ""); // ensure the element exists
+  const row = button.closest(".btn-row") || button.parentElement;
+  return document.getElementById(row.dataset.statusId);
+}
+
+function showMobileWalletLinks(button) {
+  const el = statusEl(button);
+  const here = location.host + location.pathname;
+  el.innerHTML =
+    `No wallet in this browser. Open this site inside your wallet app: ` +
+    `<a href="https://metamask.app.link/dapp/${here}">MetaMask</a> · ` +
+    `<a href="https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(location.href)}">Coinbase Wallet</a> · ` +
+    `or paste <b>${location.href}</b> into any wallet's built-in browser (Rainbow: 🌈 tab).`;
+}
+
+function pickWallet(button) {
+  // 0 discovered: legacy window.ethereum or nothing. 1: use it. 2+: let the user choose.
+  if (discoveredWallets.length === 0) return Promise.resolve(window.ethereum || null);
+  if (discoveredWallets.length === 1) return Promise.resolve(discoveredWallets[0].provider);
+  return new Promise((resolve) => {
+    const el = statusEl(button);
+    el.innerHTML = "Choose a wallet: ";
+    for (const w of discoveredWallets) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "wallet-choice";
+      b.textContent = w.info.name;
+      b.addEventListener("click", () => resolve(w.provider));
+      el.appendChild(b);
+    }
+  });
+}
+
 async function delegateFlow(button) {
-  const eth = window.ethereum;
+  const eth = await pickWallet(button);
   if (!eth) {
-    // no wallet in this browser: fall back to the manual path
-    window.open(
-      `https://etherscan.io/address/${NOUNS_TOKEN}#writeContract`,
-      "_blank"
-    );
-    setStatus(button, `No wallet detected — use delegate(${BOT_DELEGATE}) on Etherscan.`);
+    if (/iPhone|iPad|Android/i.test(navigator.userAgent)) {
+      showMobileWalletLinks(button); // reopen inside the wallet's own browser
+    } else {
+      window.open(`https://etherscan.io/address/${NOUNS_TOKEN}#writeContract`, "_blank");
+      setStatus(button, `No wallet detected — use delegate(${BOT_DELEGATE}) on Etherscan.`);
+    }
     return;
   }
   try {
