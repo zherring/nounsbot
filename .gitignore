@@ -4,6 +4,7 @@ notes/
 # Secrets & runtime state
 .env
 .env.*
+!.env.example
 *.key
 *.sqlite
 *.db

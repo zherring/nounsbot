@@ -1,0 +1,20 @@
+"""Runtime configuration. Everything env-driven; nothing hardcoded that the DAO can change."""
+
+import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+SUBGRAPH_URL = os.environ.get("SUBGRAPH_URL", "https://www.nouns.camp/subgraphs/nouns")
+ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-8")
+DB_PATH = Path(os.environ.get("DB_PATH", REPO_ROOT / "data" / "nounsbot.db"))
+CONSTITUTION_PATH = Path(os.environ.get("CONSTITUTION_PATH", REPO_ROOT / "constitution.md"))
+
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
+
+POLL_INTERVAL_SECONDS = int(os.environ.get("POLL_INTERVAL_SECONDS", "120"))
