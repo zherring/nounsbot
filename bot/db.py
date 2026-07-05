@@ -17,6 +17,20 @@ CREATE TABLE IF NOT EXISTS proposals (
   raw TEXT,
   updated_at TEXT
 );
+CREATE TABLE IF NOT EXISTS casts (
+  prop_id INTEGER PRIMARY KEY,
+  state TEXT DEFAULT 'scheduled',    -- scheduled | held | cast | missed | skipped
+  vote TEXT,                          -- what will be / was cast (verdict or override)
+  reason TEXT,
+  override_by TEXT,                   -- 'human' when /override or /cast forced it
+  cast_block_target INTEGER,
+  tx_hash TEXT,
+  updated_at TEXT
+);
+CREATE TABLE IF NOT EXISTS kv (       -- telegram update offset etc.
+  k TEXT PRIMARY KEY,
+  v TEXT
+);
 CREATE TABLE IF NOT EXISTS verdicts (
   rowid INTEGER PRIMARY KEY AUTOINCREMENT,
   prop_id INTEGER,
@@ -72,6 +86,33 @@ def upsert_proposal(conn: sqlite3.Connection, prop: dict, chash: str, outcome: s
             datetime.now(timezone.utc).isoformat(),
         ),
     )
+    conn.commit()
+
+
+def kv_get(conn, k: str, default: str = "") -> str:
+    row = conn.execute("SELECT v FROM kv WHERE k=?", (k,)).fetchone()
+    return row["v"] if row else default
+
+
+def kv_set(conn, k: str, v: str) -> None:
+    conn.execute("INSERT INTO kv (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v", (k, v))
+    conn.commit()
+
+
+def get_cast(conn, prop_id: int):
+    return conn.execute("SELECT * FROM casts WHERE prop_id=?", (prop_id,)).fetchone()
+
+
+def upsert_cast(conn, prop_id: int, **fields) -> None:
+    existing = get_cast(conn, prop_id)
+    fields["updated_at"] = datetime.now(timezone.utc).isoformat()
+    if existing:
+        sets = ", ".join(f"{k}=?" for k in fields)
+        conn.execute(f"UPDATE casts SET {sets} WHERE prop_id=?", (*fields.values(), prop_id))
+    else:
+        cols = ", ".join(["prop_id", *fields])
+        marks = ", ".join("?" * (len(fields) + 1))
+        conn.execute(f"INSERT INTO casts ({cols}) VALUES ({marks})", (prop_id, *fields.values()))
     conn.commit()
 
 

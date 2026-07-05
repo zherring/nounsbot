@@ -2,3 +2,4 @@ anthropic>=0.60
 pydantic>=2
 requests>=2.31
 python-dotenv>=1
+web3>=6
