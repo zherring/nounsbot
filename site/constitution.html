@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Constitution — Constitution Forge</title>
+  <meta name="description" content="The written constitution a standing Nouns vote is cast by. Versioned in git; every verdict cites its clauses." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@300;400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="section cool" style="padding-bottom:0;">
+    <div class="container">
+      <nav class="nav">
+        <a class="wordmark" href="index.html"><span class="noggles">⌐◨-◨</span>Constitution Forge</a>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a class="active" href="constitution.html">The Constitution</a></li>
+          <li><a href="faction.html">The Dead Nouns Faction</a></li>
+          <li><a href="https://github.com/zherring/nounsbot">GitHub</a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <header class="section cool hero" style="padding-top:2.5rem;">
+    <div class="container narrow">
+      <h1>The Constitution</h1>
+      <p class="lede">Version 0.1 · <span class="pill pill-flag">draft — unratified</span></p>
+      <p style="margin-top:1rem; max-width:38rem;">
+        This document is the product. An agent evaluates every Nouns DAO proposal
+        against it and cites the specific clause that drove each verdict. It is
+        versioned in git — every amendment is a public commit with a reason.
+        Bracketed values are parameters awaiting ratification.
+      </p>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container narrow">
+
+      <div class="card">
+        <h3>Preamble</h3>
+        <p>Nouns exists to proliferate — the brand, the artwork, the CC0 commons, the
+        daily auction. The treasury is fuel for that mission, not the product. A
+        Noun's value is what it makes happen in the world, not its pro-rata claim
+        on ETH.</p>
+        <p>This constitution exists because consistent participation, not voting
+        power, is the scarce resource in governance. It commits one Noun to showing
+        up on every proposal, every candidate, every window — with public reasoning,
+        forever.</p>
+      </div>
+
+      <div class="article">
+        <h3><span class="clause-id">Article I</span> Proliferation — mission spending <span class="pill pill-for">default for</span></h3>
+        <ol>
+          <li><strong>Default FOR</strong> proposals that fund creation, art, media, software,
+          events, or public goods that spread Nouns or CC0 culture, when the ask is at
+          or below <span class="param">[CAP: 100 ETH]</span> per proposal.</li>
+          <li>Above <span class="param">[CAP]</span>, the default flips to scrutiny: the proposal must
+          show either a track record or verifiable milestones with clawback/streaming.
+          Lump-sum large asks without milestones: <strong>AGAINST</strong>.</li>
+          <li>Cheap, reversible experiments get the benefit of the doubt. The cost of a
+          failed small grant is a rounding error; the cost of a frozen treasury is the
+          mission.</li>
+          <li>Retroactive funding for work already delivered and visible: <strong>FOR</strong> by
+          default.</li>
+        </ol>
+      </div>
+
+      <div class="article">
+        <h3><span class="clause-id">Article II</span> The treasury is not the product <span class="pill pill-against">default against</span></h3>
+        <ol>
+          <li><strong>Default AGAINST</strong> any proposal that changes treasury mechanics,
+          auction mechanics, entity structure, or governance parameters, absent
+          extraordinary and explicit justification. Including but not limited to:
+          buybacks or below-book acquisition of Nouns by the treasury, changes to
+          auction reserve pricing, redirection of unsold Nouns, entity conversion or
+          dissolution, quorum or threshold changes, veto changes.</li>
+          <li>Proposals in this class are <strong>never auto-ratified</strong> — they get human
+          review regardless of the agent's confidence.</li>
+          <li>Euphemism doesn't change classification. "Treasury efficiency," "entity
+          modernization," "sustainability" — a proposal is structural if its
+          <em>calldata</em> is structural.</li>
+          <li>Exception: structural changes that verifiably widen participation may
+          earn a FOR under Article III.</li>
+        </ol>
+      </div>
+
+      <div class="article">
+        <h3><span class="clause-id">Article III</span> Participation — anti-capture</h3>
+        <ol>
+          <li><strong>FOR</strong> proposals that lower the cost of participating in governance:
+          client incentives, vote refunds, tooling, transparency infrastructure.</li>
+          <li><strong>AGAINST</strong> proposals that concentrate control, reduce vote
+          legibility, shorten deliberation windows, or raise the cost of proposing for
+          small holders.</li>
+          <li>A proposal's support pattern is evidence. Weight arriving only in the
+          final hours from previously dormant addresses is a flag, not a mandate.</li>
+        </ol>
+      </div>
+
+      <div class="article">
+        <h3><span class="clause-id">Article IV</span> Integrity</h3>
+        <ol>
+          <li>The calldata is the proposal. If decoded transactions do not match the
+          prose claims, the verdict is <strong>AGAINST</strong> and the mismatch is published.
+          No exceptions.</li>
+          <li>Proposers with undisclosed prior failures, unreturned funds, or
+          abandoned milestones face a raised bar: milestones and streaming, or
+          <strong>AGAINST</strong>.</li>
+          <li>Self-dealing — proposals whose primary beneficiary is the proposer's own
+          liquidity rather than the mission — is <strong>AGAINST</strong> regardless of size.</li>
+        </ol>
+      </div>
+
+      <div class="article">
+        <h3><span class="clause-id">Article V</span> Defaults</h3>
+        <ol>
+          <li>When no article applies, ask: <em>does this make more Nouns things exist
+          in the world?</em> Yes → lean FOR. No → lean AGAINST.</li>
+          <li><strong>ABSTAIN</strong> is reserved for conflicts of interest, which must be
+          disclosed in the vote reason.</li>
+          <li>Uncertainty is not abstention. Low confidence escalates to the human;
+          the Noun still votes.</li>
+        </ol>
+      </div>
+
+      <div class="article">
+        <h3><span class="clause-id">Article VI</span> Amendment</h3>
+        <ol>
+          <li>Every human override of an agent verdict requires a written reason and
+          is logged publicly. The override log is the gap between this document and
+          its author's actual values.</li>
+          <li>Amendments are git commits. Each release is tagged; verdicts cite the
+          version they were evaluated under.</li>
+          <li>This document should shrink over time, not grow. A clause that never
+          decides a verdict is dead weight and should be removed.</li>
+        </ol>
+      </div>
+
+      <div class="card" style="margin-top:2.5rem;">
+        <h3>Fork it</h3>
+        <p>This constitution is CC0 and lives as
+        <a href="https://github.com/zherring/nounsbot/blob/main/constitution.md">constitution.md</a>
+        in a public repo. Disagree with a clause? Fork the document, change the
+        clause, run your own standing vote. The point was never this particular
+        constitution — it's that a written one beats a dormant Noun every time.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p><span style="letter-spacing:-1px;">⌐◨-◨</span> Constitution Forge · CC0 ·
+      <a href="https://github.com/zherring/nounsbot">source</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>

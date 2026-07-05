@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Constitution Forge — a standing vote for Nouns</title>
+  <meta name="description" content="A personal governance agent for Nouns DAO. One Noun, every proposal, forever — voting by a public, forkable constitution." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@300;400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="section cool" style="padding-bottom:0;">
+    <div class="container">
+      <nav class="nav">
+        <a class="wordmark" href="index.html"><span class="noggles">⌐◨-◨</span>Constitution Forge</a>
+        <ul>
+          <li><a class="active" href="index.html">Home</a></li>
+          <li><a href="constitution.html">The Constitution</a></li>
+          <li><a href="faction.html">The Dead Nouns Faction</a></li>
+          <li><a href="https://github.com/zherring/nounsbot">GitHub</a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <header class="section cool hero" style="padding-top:2.5rem;">
+    <div class="container">
+      <h1>One Noun.<br />Every proposal.<br />Forever.</h1>
+      <p class="lede">
+        This is a standing vote: an agent that evaluates every Nouns DAO proposal
+        against a <a href="constitution.html">written constitution</a>, and casts
+        onchain with the clause that decided it — cited in the vote reason, every time.
+      </p>
+      <div class="btn-row">
+        <a class="btn btn-dark disabled" aria-disabled="true">Delegate your Noun — soon</a>
+        <a class="btn btn-outline" href="constitution.html">Read the constitution</a>
+      </div>
+      <p class="muted" style="margin-top:1rem; font-size:0.9rem;">
+        Delegation is one transaction, holds no custody, and is reversible any time.
+        The button ships once there's a voting record to judge us by.
+      </p>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container">
+      <h2>Why this exists</h2>
+      <p class="narrow" style="max-width:44rem;">
+        Governance isn't bottlenecked on voting power — it's bottlenecked on
+        <strong>attention</strong>. Every proposal runs its own ~9-day clock, and the cost of
+        showing up to all of them is what keeps most Nouns dormant. Dormant supply is
+        exactly what a <a href="faction.html">captured minority</a> needs to freeze the
+        treasury. This project makes consistent participation nearly free: write your
+        values down once, and the vote shows up every single time.
+      </p>
+      <div class="card-grid">
+        <div class="card">
+          <h3>The constitution is the product</h3>
+          <p>A versioned markdown document of governance values and decision rules.
+          Every amendment is a public commit. The agent is fungible plumbing that
+          executes it.</p>
+        </div>
+        <div class="card">
+          <h3>Human-ratified, machine-consistent</h3>
+          <p>The agent proposes a verdict with clauses cited; a human ratifies or
+          overrides — and every override requires a written reason, logged publicly.</p>
+        </div>
+        <div class="card">
+          <h3>Reasoning onchain</h3>
+          <p>Votes are cast with the reasoning attached, visible in every Nouns
+          client. No silent weight. The full verdict record is public and append-only.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section warm">
+    <div class="container">
+      <h2>How it works</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h3>1 · Watch</h3>
+          <p>Event-driven ingest of every proposal and candidate. Calldata is decoded
+          and checked against the prose — if the transactions don't match the claims,
+          that's an automatic flag.</p>
+        </div>
+        <div class="card">
+          <h3>2 · Judge</h3>
+          <p>Each proposal is evaluated against the constitution. Output: a vote, a
+          confidence, and the specific clauses that drove it. Structural proposals
+          always get human review.</p>
+        </div>
+        <div class="card">
+          <h3>3 · Vote</h3>
+          <p>Cast onchain partway through the voting window — late enough to see the
+          field, never late enough to miss it. Flip attempts in the final hours trigger
+          alerts, not surprises.</p>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="num">100%</div><div class="label">of proposals voted</div></div>
+        <div class="stat"><div class="num">every</div><div class="label">vote reason published</div></div>
+        <div class="stat"><div class="num">0</div><div class="label">custody taken, ever</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2>The record</h2>
+      <p class="muted">Verdicts will publish here as they're cast — proposal, vote,
+      confidence, clauses cited, and any human override with its reason. The table is
+      append-only and doubles as the dataset for backtesting the constitution itself.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Prop</th><th>Verdict</th><th>Clauses</th><th>Reason</th><th>Outcome</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="muted" colspan="5">No votes cast yet — the agent is in its paper-trading phase (M0).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p><span style="letter-spacing:-1px;">⌐◨-◨</span> Constitution Forge · CC0, like everything worth keeping ·
+      <a href="https://github.com/zherring/nounsbot">source</a> ·
+      <a href="faction.html">why now</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>
