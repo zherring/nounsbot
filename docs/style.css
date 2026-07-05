@@ -214,6 +214,29 @@ p + p { margin-top: 0.9rem; }
   .btn-row { flex-wrap: wrap; }
 }
 
+.btn-badge-wrap { position: relative; display: inline-block; }
+.soon-badge {
+  position: absolute;
+  top: -1.15rem;
+  right: -0.7rem;
+  background: var(--gray-dark);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  line-height: 1;
+  padding: 0.28rem 0.55rem;
+  border-radius: 6px;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 10px rgba(21, 28, 59, 0.25);
+  transform: rotate(-11deg);
+  pointer-events: none;
+  z-index: 2;
+  white-space: nowrap;
+}
+
 /* ---- cards ---- */
 .card {
   background: #fff;
