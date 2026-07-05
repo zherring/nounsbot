@@ -27,7 +27,7 @@ FINAL_OUTCOMES = {"EXECUTED", "DEFEATED", "VETOED", "QUEUED", "SUCCEEDED_NOT_QUE
 PASSED = {"EXECUTED", "QUEUED", "SUCCEEDED_NOT_QUEUED"}
 FAILED = {"DEFEATED", "VETOED"}
 
-# Opus 4.8 pricing per MTok
+# dry-run estimate only; real runs price per-model via UsageAgg
 PRICE_IN, PRICE_OUT = 5.00, 25.00
 
 
@@ -100,6 +100,7 @@ def main() -> None:
 
     results = []
     tin = tout = 0
+    cost = 0.0
     for p, outcome in rows:
         chash = subgraph.content_hash(p)
         db.upsert_proposal(conn, p, chash, outcome)
@@ -115,22 +116,22 @@ def main() -> None:
         else:
             verdict, usage = evaluate(client, p)
             db.save_verdict(conn, int(p["id"]), chash, rev, ANTHROPIC_MODEL, verdict, usage)
-            tin += usage.input_tokens + (usage.cache_creation_input_tokens or 0)
+            tin += usage.input_tokens
             tout += usage.output_tokens
+            cost += usage.cost_usd
             print(f"prop {p['id']:>4}  {verdict.vote:<7} conf={verdict.confidence:.2f} "
                   f"vs {outcome:<20} {agreement(verdict.vote, outcome)}"
                   f"{'  ⚑' + ','.join(verdict.flags) if verdict.flags else ''}")
         results.append((p, outcome, verdict))
 
-    write_report(results, rev, tin, tout)
+    write_report(results, rev, tin, tout, cost)
 
 
-def write_report(results, rev: str, tin: int, tout: int) -> None:
+def write_report(results, rev: str, tin: int, tout: int, cost: float) -> None:
     n = len(results)
     agrees = sum(1 for _, o, v in results if agreement(v.vote, o) == "agree")
     diverges = [(p, o, v) for p, o, v in results if agreement(v.vote, o) == "DIVERGE"]
     flagged = sum(1 for _, _, v in results if v.flags)
-    cost = tin / 1e6 * PRICE_IN + tout / 1e6 * PRICE_OUT
 
     ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M")
     out_dir = REPO_ROOT / "backtests"

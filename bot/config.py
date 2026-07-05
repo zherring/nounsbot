@@ -10,7 +10,9 @@ load_dotenv()
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 SUBGRAPH_URL = os.environ.get("SUBGRAPH_URL", "https://www.nouns.camp/subgraphs/nouns")
-ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-8")
+ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-8")  # the judge
+CONDENSER_MODEL = os.environ.get("CONDENSER_MODEL", "claude-sonnet-5")  # crunches long prose
+CONDENSE_THRESHOLD_CHARS = int(os.environ.get("CONDENSE_THRESHOLD_CHARS", "6000"))
 DB_PATH = Path(os.environ.get("DB_PATH", REPO_ROOT / "data" / "nounsbot.db"))
 CONSTITUTION_PATH = Path(os.environ.get("CONSTITUTION_PATH", REPO_ROOT / "constitution.md"))
 
