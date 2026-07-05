@@ -40,16 +40,37 @@ async function loadRecord() {
       <td><span class="pill ${pill}">${v.vote}</span><br>
           <span class="muted" style="font-size:0.8rem">${status}${tx}${override}</span></td>
       <td>${(v.clauses || []).join(", ")}</td>
-      <td style="max-width:26rem">${esc(v.reason || "")}<span class="muted">${esc(flags)}</span></td>
+      <td class="reason-cell" style="max-width:26rem">
+        <span class="reason-text">${esc(v.reason || "")}<span class="muted">${esc(flags)}</span></span>
+        <button type="button" class="reason-toggle" aria-expanded="false">Show more</button>
+      </td>
       <td>${esc(v.outcome || "")}</td>`;
     tbody.appendChild(tr);
   }
+  wireReasonToggles(tbody);
   const note = document.getElementById("record-note");
   if (note) {
     note.textContent =
       `Every verdict publishes here — vote, clauses cited, overrides with reasons. ` +
       `Append-only. Updated ${new Date(data.generated_at).toLocaleString()}.`;
   }
+}
+
+function wireReasonToggles(tbody) {
+  tbody.querySelectorAll(".reason-cell").forEach((cell) => {
+    const text = cell.querySelector(".reason-text");
+    const toggle = cell.querySelector(".reason-toggle");
+    if (!text || !toggle) return;
+    if (text.scrollHeight <= text.clientHeight + 1) {
+      toggle.remove();
+      return;
+    }
+    toggle.addEventListener("click", () => {
+      const expanded = cell.classList.toggle("expanded");
+      toggle.textContent = expanded ? "Show less" : "Show more";
+      toggle.setAttribute("aria-expanded", String(expanded));
+    });
+  });
 }
 
 function esc(s) {

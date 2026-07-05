@@ -1,4 +1,4 @@
-# The Constitution — v0.3 (DRAFT, unratified)
+# The Constitution — v0.4 (DRAFT, unratified)
 
 This document is the product. An agent evaluates every Nouns DAO proposal against
 it and cites the specific clause that drove each verdict. It is versioned in git;
@@ -58,6 +58,13 @@ every candidate, every window — with public reasoning, forever.
    governance participation, lowering the cost of joining — are mission
    infrastructure, not treasury mechanics: default **FOR** under Article I.3.
    Human review still required per II.2.
+5. **Reconnaissance is part of the invasion.** Spending whose deliverable is
+   groundwork for a structural change — legal studies of entity conversion or
+   dissolution, buyback design work, treasury-distribution engineering —
+   inherits this Article's posture even when the calldata only spends: default
+   **AGAINST**, never auto-ratified. The II.4 direction test applies: studying
+   how to widen participation or restore issuance is Article I work; studying
+   how to exit is not.
 
 ## Article III — Participation (anti-capture)
 
