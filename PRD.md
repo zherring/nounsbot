@@ -103,8 +103,18 @@ The agent never asks permission and never acts without a veto window. Every deci
 - **Objection-window watch:** a late defeated→successful flip opens a window where non-voters can only vote AGAINST. If we haven't voted and a flip occurs, alert immediately — a 1-Noun AGAINST has maximum leverage exactly there.
 
 ### 6.6 Candidate lane (disproportionate leverage)
-- Proposals need sponsor signatures from 4 Nouns; my 1 Noun = 25% of threshold.
+- Proposals need sponsor signatures meeting the proposal threshold; my 1 Noun = a meaningful fraction.
 - Evaluate candidates against the constitution: output sponsor / feedback-for / feedback-against + drafted reason, sent via `CandidateFeedbackSent`. Ratify via the same Telegram flow.
+- **Pooled auto-sponsorship (the delegation pitch, post-V1):** delegated weight
+  doesn't just vote — it sponsors. When a candidate earns a FOR verdict, the bot
+  signs the EIP-712 sponsorship with its delegated votes (`addSignature` on the
+  Nouns Data contract), and once enough weight accrues the candidate promotes to
+  a proposal via `proposeBySigs` without the proposer wrangling sponsors.
+  Delegating to the constitution then means: your Noun votes every prop AND
+  lowers the barrier for mission-aligned builders to even get on the ballot —
+  a direct attack on the "proposals starve before they're born" half of the
+  freeze. Same ratification gates as votes; sponsorship is never auto-fired
+  for structural candidates.
 
 ### 6.7 Tripwires
 Alert (Telegram, and publish where appropriate) on:

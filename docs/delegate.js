@@ -1,0 +1,86 @@
+// In-app delegation: builds the Nouns token delegate() tx in the browser.
+// No libraries, no custody — the user's own wallet signs one transaction,
+// reversible any time by delegating elsewhere.
+
+const NOUNS_TOKEN = "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03";
+const BOT_DELEGATE = "0xF6e7501dFe7003299108020c5830C4c5B3CA6aA9";
+const DELEGATE_SELECTOR = "0x5c19a95c"; // delegate(address)
+
+function delegateCalldata() {
+  return DELEGATE_SELECTOR + BOT_DELEGATE.slice(2).toLowerCase().padStart(64, "0");
+}
+
+function setStatus(button, text, cls) {
+  let el = button.parentElement.querySelector(".delegate-status");
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "delegate-status muted";
+    button.parentElement.appendChild(el);
+  }
+  el.textContent = text;
+  el.dataset.state = cls || "";
+}
+
+async function delegateFlow(button) {
+  const eth = window.ethereum;
+  if (!eth) {
+    // no wallet in this browser: fall back to the manual path
+    window.open(
+      `https://etherscan.io/address/${NOUNS_TOKEN}#writeContract`,
+      "_blank"
+    );
+    setStatus(button, `No wallet detected — use delegate(${BOT_DELEGATE}) on Etherscan.`);
+    return;
+  }
+  try {
+    setStatus(button, "Connecting wallet…");
+    const [account] = await eth.request({ method: "eth_requestAccounts" });
+
+    const chainId = await eth.request({ method: "eth_chainId" });
+    if (chainId !== "0x1") {
+      setStatus(button, "Switching to Ethereum mainnet…");
+      await eth.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x1" }],
+      });
+    }
+
+    setStatus(button, "Confirm the delegation in your wallet…");
+    const txHash = await eth.request({
+      method: "eth_sendTransaction",
+      params: [{ from: account, to: NOUNS_TOKEN, data: delegateCalldata() }],
+    });
+
+    setStatus(button, "Delegation submitted — waiting for confirmation…");
+    for (let i = 0; i < 60; i++) {
+      const receipt = await eth.request({
+        method: "eth_getTransactionReceipt",
+        params: [txHash],
+      });
+      if (receipt) {
+        if (receipt.status === "0x1") {
+          setStatus(button, "✓ Delegated. Your Noun now votes by the constitution. (Re-delegate anywhere, any time, to leave.)", "ok");
+          if (typeof loadDelegation === "function") setTimeout(loadDelegation, 4000);
+        } else {
+          setStatus(button, "Transaction reverted — nothing changed.");
+        }
+        return;
+      }
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+    setStatus(button, `Submitted: ${txHash.slice(0, 14)}… — check your wallet for the result.`);
+  } catch (err) {
+    if (err && (err.code === 4001 || err.code === "ACTION_REJECTED")) {
+      setStatus(button, "Cancelled — nothing sent.");
+    } else {
+      setStatus(button, `Wallet error: ${err?.message || err}`);
+    }
+  }
+}
+
+document.querySelectorAll(".btn-delegate").forEach((button) => {
+  button.addEventListener("click", (e) => {
+    e.preventDefault();
+    delegateFlow(button);
+  });
+});

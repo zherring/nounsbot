@@ -39,7 +39,7 @@ async function loadRecord() {
     const flags = v.flags?.length ? ` ⚑ ${v.flags.join(", ")}` : "";
     const override = v.overridden ? " · human override" : "";
     const ver = revMap[v.constitution_rev] || v.constitution_rev || "";
-    const historyCount = (v.history || []).length;
+    const historyCount = diffHistory(v).length;
     const detailsLabel = historyCount
       ? `Full rationale + ${historyCount} earlier verdict${historyCount > 1 ? "s" : ""} →`
       : "Full rationale →";
@@ -69,6 +69,26 @@ function pillClass(vote) {
   return vote === "FOR" ? "pill-for" : vote === "AGAINST" ? "pill-against" : "pill-flag";
 }
 
+// Verdicts get re-run on every constitution amendment, but most re-runs land
+// on the same vote. We only want the points where the vote actually flipped —
+// that's the trail of "this amendment changed the outcome" — not a log of
+// every unchanged re-evaluation. Returns chronological (oldest-first) entries
+// from v.history, excluding v itself, empty if the vote never changed.
+function diffHistory(v) {
+  const history = v.history || [];
+  if (!history.length) return [];
+  const chain = history.concat([v]);
+  const neverChanged = chain.every((h) => h.vote === chain[0].vote);
+  if (neverChanged) return [];
+  const changePoints = [];
+  let prevVote;
+  chain.forEach((h, i) => {
+    if (i === 0 || h.vote !== prevVote) changePoints.push(h);
+    prevVote = h.vote;
+  });
+  return changePoints.filter((h) => h !== v);
+}
+
 function ensureModal() {
   let overlay = document.getElementById("verdict-modal");
   if (overlay) return overlay;
@@ -86,7 +106,7 @@ function ensureModal() {
         <p class="modal-reason"></p>
       </div>
       <div class="modal-section modal-history" hidden>
-        <h4>Earlier verdicts under prior constitutions</h4>
+        <h4>How this vote changed across amendments</h4>
         <div class="modal-history-list"></div>
       </div>
     </div>`;
@@ -122,7 +142,7 @@ function openVerdictModal(v) {
 
   const historySection = overlay.querySelector(".modal-history");
   const historyList = overlay.querySelector(".modal-history-list");
-  const history = v.history || [];
+  const history = diffHistory(v);
   if (history.length) {
     historyList.innerHTML = history
       .slice()
