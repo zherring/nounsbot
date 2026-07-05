@@ -1,4 +1,4 @@
-# The Constitution — v0.1 (DRAFT, unratified)
+# The Constitution — v0.2 (DRAFT, unratified)
 
 This document is the product. An agent evaluates every Nouns DAO proposal against
 it and cites the specific clause that drove each verdict. It is versioned in git;
@@ -43,8 +43,13 @@ every candidate, every window — with public reasoning, forever.
 3. Euphemism doesn't change classification. "Treasury efficiency," "entity
    modernization," "sustainability" — a proposal is structural if its *calldata*
    is structural.
-4. Exception: structural changes that verifiably widen participation (e.g., cheaper
-   voting, better client incentives) may earn a FOR under Article III.
+4. **Direction matters.** Article II targets the freeze: changes that restrict
+   issuance, raise barriers to entry, wall off the treasury, or concentrate
+   control. Structural changes in the opposite direction — restoring stalled
+   issuance (lowering or zeroing the auction reserve), widening auction or
+   governance participation, lowering the cost of joining — are mission
+   infrastructure, not treasury mechanics: default **FOR** under Article I.3.
+   Human review still required per II.2.
 
 ## Article III — Participation (anti-capture)
 
