@@ -3,6 +3,7 @@
 // stays at "One". Preview with ?delegate=0x... in the URL.
 
 const DELEGATE_ADDRESS = ""; // <- bot EOA, lowercase, goes here at M1
+const SEED_NOUNS = [1251]; // shown until live delegation data replaces them
 
 const SUBGRAPH = "https://www.nouns.camp/subgraphs/nouns";
 const WORDS = [
@@ -10,7 +11,27 @@ const WORDS = [
   "Nine", "Ten", "Eleven", "Twelve",
 ];
 
+function renderGallery(ids) {
+  const gallery = document.getElementById("noun-gallery");
+  if (!gallery || ids.length === 0) return;
+  gallery.innerHTML = "";
+  for (const id of ids) {
+    const a = document.createElement("a");
+    a.href = `https://nouns.wtf/noun/${id}`;
+    a.title = `Noun ${id}`;
+    const img = document.createElement("img");
+    img.src = `https://noun.pics/${id}`;
+    img.alt = `Noun ${id}`;
+    img.loading = "lazy";
+    a.appendChild(img);
+    gallery.appendChild(a);
+  }
+  gallery.classList.add("filled");
+}
+
 async function loadDelegation() {
+  renderGallery(SEED_NOUNS);
+
   const param = new URLSearchParams(location.search).get("delegate");
   const address = (param || DELEGATE_ADDRESS).toLowerCase();
   if (!address) return;
@@ -42,21 +63,7 @@ async function loadDelegation() {
   if (countEl) countEl.textContent = count < WORDS.length ? WORDS[count] : String(count);
   if (nounWordEl && count > 1) nounWordEl.textContent = "Nouns.";
 
-  const gallery = document.getElementById("noun-gallery");
-  if (!gallery || nouns.length === 0) return;
-  gallery.innerHTML = "";
-  for (const { id } of nouns) {
-    const a = document.createElement("a");
-    a.href = `https://nouns.wtf/noun/${id}`;
-    a.title = `Noun ${id}`;
-    const img = document.createElement("img");
-    img.src = `https://noun.pics/${id}`;
-    img.alt = `Noun ${id}`;
-    img.loading = "lazy";
-    a.appendChild(img);
-    gallery.appendChild(a);
-  }
-  gallery.classList.add("filled");
+  renderGallery(nouns.map((n) => n.id));
 }
 
 loadDelegation();
