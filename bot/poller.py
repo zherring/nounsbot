@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 
 import anthropic
 
-from . import db, subgraph, telegram
+from . import db, publisher, subgraph, telegram
 from .config import ANTHROPIC_MODEL, POLL_INTERVAL_SECONDS
 from .evaluator import evaluate
 
@@ -209,6 +209,7 @@ def main() -> None:
             ingest_and_evaluate(client, conn, head)
             handle_commands(conn)
             check_schedule(conn, head)
+            publisher.publish(conn)
         except Exception:
             traceback.print_exc()
         time.sleep(POLL_INTERVAL_SECONDS)

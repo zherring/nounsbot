@@ -109,16 +109,16 @@
   <section class="section">
     <div class="container">
       <h2>The record</h2>
-      <p class="muted">Every verdict publishes here — vote, clauses cited, overrides
+      <p class="muted" id="record-note">Every verdict publishes here — vote, clauses cited, overrides
       with reasons. Append-only.</p>
       <div class="table-wrap">
         <table>
           <thead>
             <tr><th>Prop</th><th>Verdict</th><th>Clauses</th><th>Reason</th><th>Outcome</th></tr>
           </thead>
-          <tbody>
+          <tbody id="record-body">
             <tr>
-              <td class="muted" colspan="5">No votes cast yet — the agent is in its paper-trading phase (M0).</td>
+              <td class="muted" colspan="5">No verdicts yet — the agent is warming up.</td>
             </tr>
           </tbody>
         </table>
@@ -169,5 +169,6 @@
   </footer>
 
   <script src="hero.js"></script>
+  <script src="record.js"></script>
 </body>
 </html>
