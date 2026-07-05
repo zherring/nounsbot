@@ -208,7 +208,11 @@ p + p { margin-top: 0.9rem; }
   cursor: not-allowed;
   pointer-events: none;
 }
-.btn-row { display: flex; gap: 0.8rem; margin-top: 1.75rem; flex-wrap: wrap; align-items: center; }
+.btn-row { display: flex; gap: 0.8rem; margin-top: 1.75rem; flex-wrap: nowrap; align-items: center; }
+.btn { white-space: nowrap; }
+@media (max-width: 560px) {
+  .btn-row { flex-wrap: wrap; }
+}
 
 /* ---- cards ---- */
 .card {
