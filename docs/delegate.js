@@ -93,3 +93,38 @@ document.querySelectorAll(".btn-delegate").forEach((button) => {
     delegateFlow(button);
   });
 });
+
+// Dev helper: force any delegate-status visual state without a real wallet
+// or transaction (there's no such thing as a throwaway re-delegate to test
+// against). Console: __mockDelegate("success")  or  __mockDelegate("pending", 1)
+// for the second button on the page. URL: index.html?mock=success applies it
+// to the first button on load.
+const MOCK_STATES = {
+  idle: ["", ""],
+  "no-wallet": [`No wallet detected — use delegate(${BOT_DELEGATE}) on Etherscan.`, ""],
+  connecting: ["Connecting wallet…", ""],
+  switching: ["Switching to Ethereum mainnet…", ""],
+  confirm: ["Confirm the delegation in your wallet…", ""],
+  pending: ["Delegation submitted — waiting for confirmation…", ""],
+  success: [
+    "✓ Delegated. Your Noun now votes by the constitution. (Re-delegate anywhere, any time, to leave.)",
+    "ok",
+  ],
+  reverted: ["Transaction reverted — nothing changed.", ""],
+  timeout: ["Submitted: 0xabc123def4567890… — check your wallet for the result.", ""],
+  cancelled: ["Cancelled — nothing sent.", ""],
+  error: ["Wallet error: user rejected the request.", ""],
+};
+
+window.__mockDelegate = function (state, buttonIndex = 0) {
+  const entry = MOCK_STATES[state];
+  const button = document.querySelectorAll(".btn-delegate")[buttonIndex];
+  if (!button || !entry) {
+    console.log("Usage: __mockDelegate(state, buttonIndex?) — states:", Object.keys(MOCK_STATES).join(", "));
+    return;
+  }
+  setStatus(button, entry[0], entry[1]);
+};
+
+const mockParam = new URLSearchParams(location.search).get("mock");
+if (mockParam) window.__mockDelegate(mockParam);

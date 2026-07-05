@@ -119,8 +119,10 @@ async function loadDelegation() {
 
   const countEl = document.getElementById("noun-count");
   const nounWordEl = document.getElementById("noun-word");
+  const verbEl = document.getElementById("noun-verb");
   if (countEl) countEl.textContent = count < WORDS.length ? WORDS[count] : String(count);
-  if (nounWordEl && count > 1) nounWordEl.textContent = "Nouns.";
+  if (nounWordEl && count > 1) nounWordEl.textContent = "Nouns";
+  if (verbEl) verbEl.textContent = count > 1 ? "vote." : "votes.";
 
   if (nouns.length) {
     renderStack(nouns.map((x) => ({ id: x.id, owner: x.owner?.id })));
