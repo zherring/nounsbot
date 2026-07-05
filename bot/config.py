@@ -22,4 +22,9 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 # fast lane: telegram commands + cast schedule + publish (cheap, no LLM calls)
 POLL_INTERVAL_SECONDS = int(os.environ.get("POLL_INTERVAL_SECONDS", "120"))
 # slow lane: subgraph ingest + evaluation of new/edited props (the LLM spend)
-INGEST_INTERVAL_SECONDS = int(os.environ.get("INGEST_INTERVAL_SECONDS", "86400"))
+INGEST_INTERVAL_SECONDS = int(os.environ.get("INGEST_INTERVAL_SECONDS", "120"))
+
+# spend guards: evaluation is the only cost center; these cap it against
+# prop-edit spam (updateProposal is nearly free for a hostile proposer)
+MAX_EVALS_PER_PROP_PER_DAY = int(os.environ.get("MAX_EVALS_PER_PROP_PER_DAY", "3"))
+MAX_EVALS_PER_DAY = int(os.environ.get("MAX_EVALS_PER_DAY", "20"))

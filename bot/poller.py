@@ -17,7 +17,35 @@ from datetime import datetime, timezone
 import anthropic
 
 from . import db, publisher, subgraph, telegram
-from .config import ANTHROPIC_MODEL, INGEST_INTERVAL_SECONDS, POLL_INTERVAL_SECONDS
+from .config import (
+    ANTHROPIC_MODEL,
+    INGEST_INTERVAL_SECONDS,
+    MAX_EVALS_PER_DAY,
+    MAX_EVALS_PER_PROP_PER_DAY,
+    POLL_INTERVAL_SECONDS,
+)
+
+
+def evals_last_24h(conn, prop_id: int | None = None) -> int:
+    from datetime import timedelta
+
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+    if prop_id is None:
+        row = conn.execute("SELECT COUNT(*) c FROM verdicts WHERE created_at > ?", (cutoff,)).fetchone()
+    else:
+        row = conn.execute(
+            "SELECT COUNT(*) c FROM verdicts WHERE prop_id=? AND created_at > ?", (prop_id, cutoff)
+        ).fetchone()
+    return row["c"]
+
+
+def spend_guard_alert(conn, key: str, message: str) -> None:
+    """Alert once per day per guard, not every tick."""
+    today = datetime.now(timezone.utc).date().isoformat()
+    if db.kv_get(conn, key) != today:
+        db.kv_set(conn, key, today)
+        telegram.send_message(message)
+        print(message)
 from .evaluator import evaluate
 
 CAST_AT_FRACTION = 0.65  # through the voting window
@@ -59,6 +87,18 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
         edited = prior and prior["content_hash"] != chash
         db.upsert_proposal(conn, prop, chash, outcome)
         if db.get_verdict(conn, pid, chash, rev, ANTHROPIC_MODEL):
+            continue
+
+        # spend guards: edit-spam and global runaway protection
+        if evals_last_24h(conn, pid) >= MAX_EVALS_PER_PROP_PER_DAY:
+            spend_guard_alert(conn, f"guard_prop_{pid}",
+                f"🛑 prop {pid} re-evaluated {MAX_EVALS_PER_PROP_PER_DAY}x in 24h (edit spam?) — "
+                f"pausing evaluations for it until tomorrow; latest verdict stands")
+            continue
+        if evals_last_24h(conn) >= MAX_EVALS_PER_DAY:
+            spend_guard_alert(conn, "guard_global",
+                f"🛑 daily evaluation budget ({MAX_EVALS_PER_DAY}) exhausted — "
+                f"new props queue until tomorrow")
             continue
 
         print(f"evaluating prop {pid} ({prop.get('title', '')[:60]})…")
