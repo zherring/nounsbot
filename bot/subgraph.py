@@ -75,7 +75,9 @@ def fetch_proposal_range(from_id: int, to_id: int) -> list[dict]:
         {PROPOSAL_FIELDS}
       }}
     }}"""
-    return query(gql, {"from": str(from_id), "to": str(to_id)})["proposals"]
+    props = query(gql, {"from": str(from_id), "to": str(to_id)})["proposals"]
+    # subgraph compares string IDs lexicographically ("97" sits inside "955".."980")
+    return [p for p in props if from_id <= int(p["id"]) <= to_id]
 
 
 def content_hash(prop: dict) -> str:
