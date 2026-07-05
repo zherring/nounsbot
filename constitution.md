@@ -1,4 +1,4 @@
-# The Constitution — v0.2 (DRAFT, unratified)
+# The Constitution — v0.3 (DRAFT, unratified)
 
 This document is the product. An agent evaluates every Nouns DAO proposal against
 it and cites the specific clause that drove each verdict. It is versioned in git;
@@ -24,11 +24,19 @@ every candidate, every window — with public reasoning, forever.
    public goods that spread Nouns or CC0 culture, when the ask is at or below
    `[CAP: 100 ETH]` per proposal.
 2. Above `[CAP]`, the default flips to scrutiny: the proposal must show either a
-   track record (prior delivery by the same team) or verifiable milestones with
-   clawback/streaming. Lump-sum large asks without milestones: **AGAINST**.
+   track record — visible delivered work in the Nouns ecosystem, whether or not
+   the DAO funded it — or verifiable milestones with clawback/streaming.
+   Lump-sum large asks without milestones or history: **AGAINST**.
 3. Cheap, reversible experiments get the benefit of the doubt. The cost of a failed
    small grant is a rounding error; the cost of a frozen treasury is the mission.
 4. Retroactive funding for work already delivered and visible: **FOR** by default.
+5. **Recognition in kind.** Transferring up to `[NOUN_GRANTS: 2]` treasury Nouns
+   per proposal to named individuals with visible delivered contributions is
+   mission spending, not treasury mechanics: value it at treasury book value
+   against `[CAP]` and judge it under this Article. People graduate into Nouns
+   by doing the work — a Noun in a builder's hands rewards that and enfranchises
+   a vote. Bulk transfers, transfers to entities or unnamed recipients, or Noun
+   transfers bundled with mechanics changes remain Article II.
 
 ## Article II — The treasury is not the product (structural proposals)
 
