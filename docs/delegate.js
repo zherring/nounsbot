@@ -10,12 +10,21 @@ function delegateCalldata() {
   return DELEGATE_SELECTOR + BOT_DELEGATE.slice(2).toLowerCase().padStart(64, "0");
 }
 
+let statusCounter = 0;
+
 function setStatus(button, text, cls) {
-  let el = button.parentElement.querySelector(".delegate-status");
+  // Land the status line as a full-width block right after the whole
+  // button row, not inside the button's own wrapper — that wrapper sits
+  // in a flex row next to other buttons, so appending there squeezes the
+  // message beside them instead of on its own line.
+  const row = button.closest(".btn-row") || button.parentElement;
+  if (!row.dataset.statusId) row.dataset.statusId = `delegate-status-${statusCounter++}`;
+  let el = document.getElementById(row.dataset.statusId);
   if (!el) {
-    el = document.createElement("div");
+    el = document.createElement("p");
+    el.id = row.dataset.statusId;
     el.className = "delegate-status muted";
-    button.parentElement.appendChild(el);
+    row.insertAdjacentElement("afterend", el);
   }
   el.textContent = text;
   el.dataset.state = cls || "";
