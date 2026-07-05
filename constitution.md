@@ -87,3 +87,17 @@ every candidate, every window — with public reasoning, forever.
    they were evaluated under.
 3. This document should shrink over time, not grow. A clause that never decides a
    verdict is dead weight and should be removed.
+
+## Open questions — worth debating, unratified
+
+Live tensions the constitution has not resolved. They bind nothing; they exist so
+amendments happen on purpose, not by accident.
+
+1. **Vote privacy (prop 972).** Article III.2 opposes anything that reduces vote
+   legibility, which rules out secret ballots. The counter-case is real: public
+   votes are what let a cartel police its own members' compliance, let ambushers
+   time weight against a visible tally, and expose grant-dependent voters to
+   retaliation — secret ballots attack all three. But they also blind this
+   project's own weapons: the public record, clause-cited reasons, and tripwire
+   monitoring of late-window vote dumps. Transparency-as-weapon versus
+   privacy-as-shield. III.2 stands until this is debated deliberately.

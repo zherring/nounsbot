@@ -3,7 +3,7 @@
 // Hover a card to see the Noun + its owner/delegator.
 // Set DELEGATE_ADDRESS when the bot EOA exists (M1). Preview: ?delegate=0x...
 
-const DELEGATE_ADDRESS = ""; // <- bot EOA, lowercase, goes here at M1
+const DELEGATE_ADDRESS = "0xf6e7501dfe7003299108020c5830c4c5b3ca6aa9"; // vote-only bot EOA
 const SEED_NOUNS = [1251]; // shown until live delegation data replaces them
 
 const SUBGRAPH = "https://www.nouns.camp/subgraphs/nouns";
