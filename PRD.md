@@ -81,9 +81,20 @@ Three surfaces, one repo:
 - Output schema: `{vote: FOR|AGAINST|ABSTAIN, confidence: 0–1, clauses_cited: [...], draft_reason: str, flags: [...]}`.
 - Low confidence or any flag (calldata mismatch, injection suspicion, constitution gap) ⇒ escalate to me with the specific uncertainty named.
 
-### 6.4 Ratification (Telegram)
-- Verdict card sent when prop becomes evaluable; default-fire at the scheduled cast time unless I override — **silence = ratify** for high-confidence verdicts, **explicit tap required** for flagged/low-confidence ones.
-- Overrides **require a reason**. The override log is the diff between my written constitution and my actual constitution — it drives constitution amendments and is the most valuable training data we produce.
+### 6.4 Ratification (Telegram — optimistic execution with a hold window)
+The agent never asks permission and never acts without a veto window. Every decision is reported; unflagged decisions cast themselves on a timer; one command stops any of them.
+
+- **Verdict card per evaluation** (and re-evaluation): prop, verdict, confidence, clauses cited, draft reason, and the **scheduled cast time**. Plus a daily digest of everything open (verdicts pending cast, holds, timers) whenever ≥1 item is open.
+- **Default-fire with a guaranteed gap.** High-confidence, unflagged verdicts cast automatically at the scheduled time (~60–70% through the voting window). There must be **≥24h between the verdict card and the cast**; since cards normally post when voting opens (or during the updatable phase), the natural gap is ~2.5 days. If a late re-evaluation (prop edit, flip) compresses the gap below 24h, default-fire is disabled for that prop and an explicit command is required.
+- **Commands:**
+  - `/hold <prop>` — freeze the cast. Nothing casts while held; reminders at 75% and 90% of the voting window.
+  - `/release <prop>` — resume the scheduled cast.
+  - `/override <prop> <for|against|abstain> <reason>` — reason is **mandatory**; replaces the verdict and casts on schedule.
+  - `/cast <prop>` — cast immediately (also the explicit ratification for flagged props).
+  - `/status` — all open props: verdict, timer, held/flagged state.
+- **Flagged verdicts never default-fire.** Structural props (Art. II), calldata mismatch, injection suspicion, low confidence, or a compressed gap all require an explicit `/cast` or `/override`. Silence on a flagged prop = no vote, logged publicly as such.
+- **Hold wins at the deadline.** A held prop whose window closes simply doesn't get a vote; the miss is logged publicly. Hold means "not without me," never "cast anyway eventually."
+- The override log is the diff between my written constitution and my actual constitution — it drives amendments and is the most valuable training data we produce.
 
 ### 6.5 Execution
 - `delegate()` my Noun once to a fresh hot EOA. The bot key can **vote but never transfer** — worst case on key compromise is bad votes until I re-delegate.
@@ -166,7 +177,7 @@ Key timing facts (verified, but **read from chain at runtime**): lifecycle ~9 da
 
 ## 11. Open questions
 
-1. **Ratification default** — is silence-= -ratify acceptable for high-confidence verdicts from day one, or start with explicit-tap-for-everything and relax after N weeks of clean overrides?
+1. ~~**Ratification default**~~ — **resolved (2026-07-05):** optimistic execution with a hold window (§6.4). Every decision reported, unflagged verdicts default-fire with a ≥24h guaranteed gap, `/hold` vetoes, flagged verdicts always require an explicit command.
 2. **Delegate button timing** — ship in M2, or hold until the record has ~a month of votes so the pitch is a track record rather than a promise?
 3. **Site data path** — runtime commits JSON back to this repo (simple, auditable, slightly janky) vs. a tiny read endpoint on the runtime (cleaner, but the public surface stops being fully static)?
 4. **Constitution v1 scope** — start opinionated-and-narrow (spending posture, structural-prop posture, a default for everything else) and let the override log grow it, vs. attempt comprehensive coverage up front? (Leaning narrow.)
