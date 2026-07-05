@@ -61,17 +61,25 @@ def connect() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    # one-time hygiene: rev-less verdicts (pre-fix Railway boots) re-evaluate cleanly
+    conn.execute("DELETE FROM verdicts WHERE constitution_rev='unknown'")
+    conn.commit()
     return conn
 
 
 def constitution_rev() -> str:
-    """Verdicts cite the constitution version they were evaluated under (Art. VI.2)."""
+    """Verdicts cite the constitution version they were evaluated under (Art. VI.2).
+    On Railway there is no .git — the platform injects the commit SHA instead."""
+    import os
+
     try:
         return subprocess.check_output(
-            ["git", "-C", str(REPO_ROOT), "rev-parse", "--short", "HEAD"], text=True
+            ["git", "-C", str(REPO_ROOT), "rev-parse", "--short", "HEAD"],
+            text=True, stderr=subprocess.DEVNULL,
         ).strip()
     except Exception:
-        return "unknown"
+        sha = os.environ.get("RAILWAY_GIT_COMMIT_SHA", "")
+        return sha[:7] if sha else "unknown"
 
 
 def upsert_proposal(conn: sqlite3.Connection, prop: dict, chash: str, outcome: str) -> None:
