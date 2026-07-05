@@ -65,23 +65,51 @@ def export(conn) -> bool:
     return True
 
 
+GITHUB_REPO = os.environ.get("GITHUB_REPO", "zherring/nounsbot")
+
+
 def git(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", "-C", str(REPO_ROOT), *args], capture_output=True, text=True)
 
 
+def push_via_api(token: str) -> bool:
+    """Commit docs/verdicts.json through the GitHub Contents API — works on
+    Railway, where the deployed filesystem has no .git directory."""
+    import base64
+
+    import requests
+
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/docs/verdicts.json"
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+    current = requests.get(url, headers=headers, timeout=20)
+    sha = current.json().get("sha") if current.status_code == 200 else None
+    body = {
+        "message": "record: update verdicts.json",
+        "content": base64.b64encode(VERDICTS_PATH.read_bytes()).decode(),
+        "committer": {"name": "nounsbot", "email": "bot@zachherring.com"},
+    }
+    if sha:
+        body["sha"] = sha
+    resp = requests.put(url, headers=headers, json=body, timeout=20)
+    if resp.status_code not in (200, 201):
+        print(f"publish API push failed: {resp.status_code} {resp.text[:200]}")
+        return False
+    return True
+
+
 def push() -> bool:
-    """Commit docs/verdicts.json and push. Returns True on success."""
+    """Publish docs/verdicts.json. GitHub API when GIT_PUSH_TOKEN is set
+    (Railway); plain git commit+push locally."""
+    token = os.environ.get("GIT_PUSH_TOKEN")
+    if token:
+        return push_via_api(token)
+
     git("add", str(VERDICTS_PATH))
     if not git("diff", "--cached", "--quiet").returncode:
         return False  # nothing staged
     git("-c", "user.name=nounsbot", "-c", "user.email=bot@zachherring.com",
         "commit", "-m", "record: update verdicts.json")
-    token = os.environ.get("GIT_PUSH_TOKEN")
-    if token:
-        remote = f"https://x-access-token:{token}@github.com/zherring/nounsbot.git"
-        result = git("push", remote, "HEAD:main")
-    else:
-        result = git("push")
+    result = git("push")
     if result.returncode != 0:
         print(f"publish push failed: {result.stderr.strip()[:300]}")
         return False
