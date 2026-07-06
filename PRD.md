@@ -216,7 +216,8 @@ the record's first "🗳 cast" row.
 4. Tripwires: late-window vote-dump alerts, defeated→successful flip alerts,
    objection-window watch.
 5. Client ID registration (client incentives).
-6. nounsvote.com DNS when the experiment earns it; retire the GitHub Pages mirror.
+6. ~~nounsvote.com DNS~~ — done, live with enforced HTTPS.
+7. **EOA → smart-account delegate address** before delegator #2 arrives — see [SIGNER-PLAN.md](SIGNER-PLAN.md) (Safe+Zodiac vs Splits multisig; decision pending two answers from the Splits team).
 
 **Operational notes:** never run the poller locally while Railway is live (Telegram
 offset contention). Amendments: edit constitution.md + docs/constitution.html, add
