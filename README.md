@@ -5,7 +5,7 @@ agent is plumbing. **V1 is live**: Noun 1251 votes by a written constitution, an
 anyone can delegate theirs to the same standing vote — or fork the repo and run
 their own.
 
-- **Site:** https://zachherring.com/nounsbot/ — GitHub Pages, fully static, zero keys (nounsvote.com purchased; point its DNS at Pages when ready)
+- **Site:** https://nounsvote.com — GitHub Pages, fully static, zero keys
 - **Bot delegate (vote-only EOA):** `0xF6e7501dFe7003299108020c5830C4c5B3CA6aA9`
 - **Constitution:** [constitution.md](constitution.md) — v0.4, amendment history on the site
 - **Spec:** [PRD.md](PRD.md) · **Status & roadmap:** see the bottom of the PRD
