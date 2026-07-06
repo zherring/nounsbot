@@ -5,7 +5,7 @@ agent is plumbing. **V1 is live**: Noun 1251 votes by a written constitution, an
 anyone can delegate theirs to the same standing vote — or fork the repo and run
 their own.
 
-- **Site:** https://nounsbot-production.up.railway.app (nounsvote.com purchased, DNS pending)
+- **Site:** https://zachherring.com/nounsbot/ — GitHub Pages, fully static, zero keys (nounsvote.com purchased; point its DNS at Pages when ready)
 - **Bot delegate (vote-only EOA):** `0xF6e7501dFe7003299108020c5830C4c5B3CA6aA9`
 - **Constitution:** [constitution.md](constitution.md) — v0.4, amendment history on the site
 - **Spec:** [PRD.md](PRD.md) · **Status & roadmap:** see the bottom of the PRD
@@ -21,8 +21,8 @@ Railway loop (bot/poller.py)
  │                 voting window, ≥24h after the verdict; flagged props NEVER
  │                 auto-fire; a held prop just doesn't vote (logged publicly)
  ├── castRefundableVoteWithReason ── the vote, gas refunded, reason onchain
- ├── serves the site + live /verdicts.json from SQLite  (bot/web.py)
- └── commits docs/verdicts.json to this repo ── the tamper-evident audit trail
+ └── commits docs/verdicts.json to this repo ── record + audit trail
+     (the key box accepts NO inbound connections; the site is static Pages)
 Browser (no bot involvement)
  ├── hero: delegation count + Noun gallery straight from the Nouns subgraph
  └── delegate button: builds the delegate() tx in-page — no custody, reversible
@@ -82,9 +82,16 @@ commits are excluded from redeploy triggers). Volume at `/data` holds SQLite;
 
 Env vars (set via `railway variables --set`): `ANTHROPIC_API_KEY`,
 `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `BOT_PRIVATE_KEY`, `DB_PATH`,
-optional `GIT_PUSH_TOKEN` (GitHub fine-grained PAT, contents:write — enables the
-git audit trail from Railway), `INGEST_INTERVAL_SECONDS`, `MAX_EVALS_PER_DAY`,
-`MAX_EVALS_PER_PROP_PER_DAY`, `NOUNS_CLIENT_ID`, `RPC_URL`.
+`GIT_PUSH_TOKEN` (GitHub fine-grained PAT, contents:write on this repo only —
+**required**: it's how verdicts reach the static site), plus optional
+`INGEST_INTERVAL_SECONDS`, `MAX_EVALS_PER_DAY`, `MAX_EVALS_PER_PROP_PER_DAY`,
+`NOUNS_CLIENT_ID`, `RPC_URL`.
+
+**Hardening (post-Winter):** the Railway service has no public domain and no
+inbound port — the box holding the key is outbound-only (subgraph, RPC, Anthropic,
+Telegram, GitHub API). The public site is GitHub Pages: static files, no runtime,
+no keys. Worst case per credential: ETH key → bad votes until re-delegation;
+`GIT_PUSH_TOKEN` → site defacement, reverted with git.
 
 Key safety model: the EOA can **vote but never transfer** — delegation isn't
 custody. Worst case on key compromise: bad votes until re-delegation.
@@ -94,8 +101,8 @@ custody. Worst case on key compromise: bad votes until re-delegation.
 ```
 constitution.md      the product — versioned, forkable, CC0
 PRD.md               spec + status + roadmap
-bot/                 the agent: poller, evaluator, executor, telegram, web, publisher
-docs/                the site (also served by the bot): pages, verdicts.json, amendments.json
+bot/                 the agent: poller, evaluator, executor, telegram, publisher
+docs/                the site (GitHub Pages): pages, verdicts.json, amendments.json
 backtests/           agreement/divergence reports per constitution version
 data/seed.db         paper-era verdict history for fresh deploys
 notes/               gitignored — private strategy

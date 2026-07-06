@@ -196,8 +196,10 @@ Key timing facts (verified, but **read from chain at runtime**): lifecycle ~9 da
 
 ## 13. Current state & next steps (2026-07-05)
 
-**Live:** Railway project `distinguished-surprise`/`nounsbot`, volume `/data`, site at
-nounsbot-production.up.railway.app. Bot EOA `0xF6e7501dFe7003299108020c5830C4c5B3CA6aA9`
+**Live:** Railway project `distinguished-surprise`/`nounsbot`, volume `/data` —
+**no inbound networking** (hardened 2026-07-05: key box is outbound-only; the site
+is static GitHub Pages at zachherring.com/nounsbot/, updated via contents-scoped
+git commits). Bot EOA `0xF6e7501dFe7003299108020c5830C4c5B3CA6aA9`
 holds 1 delegated vote (Noun 1251). Telegram channel wired (`⌐◨-◨ Constitution Forge`).
 Constitution v0.4. Two-speed loop: commands/casts/publish every 120s; ingest every
 120s with spend guards. Verdict record: 22 paper + 3 live-rev verdicts (981 AGAINST⚑,
