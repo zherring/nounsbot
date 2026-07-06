@@ -210,3 +210,110 @@ exist via X / are roadmapped]."
   (audited? Safe-derived? custom validator?). For a "delegate to this address
   forever" pitch, "read the deployed contract yourself" is part of the trust
   story, and the docs don't say what a reader would find.
+
+---
+
+## Head-to-head test plan (run both, screencap everything)
+
+Purpose: a level comparison of Safe+Zodiac vs Splits multisig as the eternal
+delegate address — and a live falsification test of the Appendix ambiguities.
+Every step marked 📸 is a screencap checkpoint; every step marked 🔬 directly
+answers an open question from the appendix.
+
+### Inputs needed before starting
+
+| Input | Used by | Notes |
+|---|---|---|
+| `COLD_1` (hardware wallet address) | both | The root of trust, same in both tests for fairness |
+| `COLD_2` (optional second cold address) | both | Loss-redundancy, not a co-signer (threshold stays 1) |
+| Two fresh hot keys: `HOT_SAFE`, `HOT_SPLITS` | one each | Never reuse the production EOA (0xF6e7…6aA9) — it stays live and untouched throughout |
+| ~0.02 ETH test gas | both | ~0.01 Safe deploy+config, ~0.005 each for test calls |
+| Splits org + owner-scoped API key + passkey enrolled | Splits | `splits auth login`; passkey is the cold root on this side |
+| One ACTIVE Nouns prop id | both | The allowed-call target (any of 981–983 once voting opens) |
+
+Constants: governor `0x6f3E6272A167e8AcCb32072d08E0957F9c79223d`; allowed
+function `castRefundableVoteWithReason(uint256,uint8,string,uint32)` =
+selector `0x8136730f`.
+
+### The three probes (identical on both sides)
+
+Each setup gets the same three attempts from its hot key:
+
+- **P1 — allowed call:** cast a vote on the active prop. (A governor-side
+  revert like "voting is closed" still counts as PASS for the wrapper — it
+  proves the call *reached the governor*; the account layer let it through.)
+- **P2 — disallowed call:** send 0.0001 ETH from the account to `COLD_1`.
+  Safe+Zodiac predicts **hard block** at the Roles Modifier. Splits (per the
+  manifest) predicts **allowed** — 🔬 that outcome, screencapped, is the R3
+  finding in one image.
+- **P3 — self-administration attempt:** try to change the signer/owner set
+  using only the hot key. Safe+Zodiac predicts block (role can't reach the
+  Safe). Splits: 🔬 observe whether the `update-signers` proposal can complete
+  without a passkey/web signature — this is the UX-layer evidence for Q1
+  (the contract-layer answer still needs the team, or a direct-UserOp probe).
+
+### Track A — Safe + Zodiac (est. 45–60 min)
+
+1. 📸 app.safe.global → create Safe on mainnet: owners `[COLD_1, COLD_2]`,
+   threshold 1. Note deploy cost.
+2. 📸 Zodiac Roles app (roles.gnosisguild.org) → enable Roles Modifier on the
+   Safe (owner signs).
+3. 📸 Create role `voter`: target `0x6f3E…223d`, function `0x8136730f` only,
+   no delegatecall, no send. Assign member `HOT_SAFE`. (This screen *is* the
+   R3 story on the Safe side: the scope is visible, onchain, auditable.)
+4. Fund `HOT_SAFE` with ~0.005 ETH (it pays gas on this track).
+5. 📸 Run P1, P2, P3 (P1/P2 via a small script we add to `bot/`; P3 = attempt
+   `swapOwner` through the role — expect revert).
+6. 📸 Rotation drill: owner revokes `HOT_SAFE`, assigns a new member. Count
+   clicks/signatures; confirm the Safe address never changed.
+7. Record: total setup time, gas spent, where the refund from a real
+   `castRefundable` would land (the Safe), ops feel.
+
+### Track B — Splits multisig (est. 20–30 min if the CLI is as smooth as it reads)
+
+1. 📸 `splits auth login` → `splits auth whoami` (org, scopes).
+2. 📸 `splits auth create-key --register` on the Railway-side machine →
+   this becomes `HOT_SPLITS`; note the returned signer id.
+3. 📸 `splits accounts create` — signers: your passkey + `HOT_SPLITS`,
+   threshold 1. Record the account address. 🔬 Check: does the CLI/web state
+   the account's contract implementation anywhere? (Appendix: contract
+   identity.)
+4. Fund the *account* with ~0.005 ETH. 🔬 Note who actually pays UserOp gas
+   at execution (account balance vs paymaster) — appendix gas question.
+5. 📸 P1: `splits transactions create custom` with the cast calldata →
+   `splits transactions sign <id>` → confirm UserOp lands. 🔬 Note whether
+   any step would work without the Splits API reachable (liveness question).
+6. 📸 P2: `transactions create custom` transferring dust to `COLD_1`, sign,
+   execute. Expected per manifest: succeeds → R3 finding.
+7. 📸 P3: `splits accounts update-signers` swapping `HOT_SPLITS` for a fresh
+   key using only the EOA/API — 🔬 does it demand the web `signUrl` +
+   passkey even though threshold is met? Screencap whichever way it goes.
+8. 📸 Rotation drill: complete the signer swap properly (web approval).
+   Confirm account address unchanged. Count clicks vs Track A step 6.
+9. Record: setup time, gas, refund destination, ops feel, dashboard views.
+
+### Scoring sheet (fill in per track)
+
+| Dimension | Safe+Zodiac | Splits |
+|---|---|---|
+| Setup time / #steps / gas | | |
+| P1 allowed call reached governor | | |
+| P2 disallowed call blocked? (R3) | | |
+| P3 self-admin blocked? (R4, UX layer) | | |
+| Rotation: clicks, address unchanged? (R2) | | |
+| Cast path deps (RPC-only vs API) (R5) | | |
+| Refund/gas loop self-contained? | | |
+| "Read the contract" trust story | | |
+| Ops UX (subjective, screencaps tell it) | | |
+
+**Decision rule after the test:** if Splits P3 blocks without a passkey *and*
+the team confirms that block is contract-enforced, Splits wins on ops and the
+R3 gap is accepted for a dust-only account (or closed later by a policy
+feature). Any other P3 outcome → Safe+Zodiac takes the rally point.
+
+### What the agent needs after the winner is chosen
+
+Either way, `bot/executor.py` gains a small adapter (Safe: wrap casts in
+`execTransactionWithRole`; Splits: create-custom + sign via CLI/API), the
+site's `DELEGATE_ADDRESS` moves to the winning account, and Noun 1251
+re-delegates once — the last re-delegation any delegator ever performs.
