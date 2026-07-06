@@ -243,8 +243,10 @@ def main() -> None:
 
     addr = bot_address()
     mode = f"live, casting from {addr}" if addr else "paper mode (no key)"
+    ingest_desc = (f"{INGEST_INTERVAL_SECONDS // 3600}h" if INGEST_INTERVAL_SECONDS >= 3600
+                   else f"{INGEST_INTERVAL_SECONDS}s")
     banner = (f"nounsbot loop up — {mode} · commands/casts every {POLL_INTERVAL_SECONDS}s, "
-              f"ingest every {INGEST_INTERVAL_SECONDS // 3600}h, judge {ANTHROPIC_MODEL}")
+              f"ingest every {ingest_desc}, judge {ANTHROPIC_MODEL}")
     print(banner)
     telegram.send_message(f"🤖 {banner}")
     last_ingest = 0.0

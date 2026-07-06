@@ -12,6 +12,60 @@ const WORDS = [
   "Nine", "Ten", "Eleven", "Twelve",
 ];
 
+// Noun images: read tokenURI() straight off the NounsToken contract instead
+// of a third-party render service. noun.pics (the prior source) 500s or
+// stalls for ~1 in 3 requests on cold ids — the chain is the one renderer
+// that's always up, and it's the same SVG nouns.wtf shows.
+const NOUNS_TOKEN = "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03";
+const TOKEN_URI_SELECTOR = "0xc87b56dd"; // tokenURI(uint256)
+const RPC_ENDPOINTS = ["https://ethereum-rpc.publicnode.com", "https://rpc.ankr.com/eth"];
+const imageCache = new Map();
+
+async function rpcCall(method, params) {
+  for (const url of RPC_ENDPOINTS) {
+    try {
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      });
+      const json = await resp.json();
+      if (json.result) return json.result;
+    } catch {
+      // try the next endpoint
+    }
+  }
+  throw new Error("all RPC endpoints failed");
+}
+
+// ABI-decode a single dynamic `string` return value.
+function decodeAbiString(hex) {
+  const data = hex.slice(2);
+  const length = parseInt(data.slice(64, 128), 16);
+  const strHex = data.slice(128, 128 + length * 2);
+  let str = "";
+  for (let i = 0; i < strHex.length; i += 2) str += String.fromCharCode(parseInt(strHex.slice(i, i + 2), 16));
+  return str;
+}
+
+async function onChainNounImage(id) {
+  if (imageCache.has(id)) return imageCache.get(id);
+  const calldata = TOKEN_URI_SELECTOR + BigInt(id).toString(16).padStart(64, "0");
+  const result = await rpcCall("eth_call", [{ to: NOUNS_TOKEN, data: calldata }, "latest"]);
+  const tokenUri = decodeAbiString(result);
+  const meta = JSON.parse(atob(tokenUri.split(",")[1]));
+  imageCache.set(id, meta.image);
+  return meta.image;
+}
+
+async function loadNounImage(id, img) {
+  try {
+    img.src = await onChainNounImage(id);
+  } catch {
+    img.src = `https://noun.pics/${id}`; // last-resort fallback if every RPC is unreachable
+  }
+}
+
 function short(addr) {
   return addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : "";
 }
@@ -35,10 +89,10 @@ function makeCard(noun, cls, rot) {
     : `Noun ${noun.id}`;
   a.style.setProperty("--rot", `${rot}deg`);
   const img = document.createElement("img");
-  img.src = `https://noun.pics/${noun.id}`;
   img.alt = a.dataset.label;
   img.loading = "lazy";
   a.appendChild(img);
+  loadNounImage(noun.id, img);
   return a;
 }
 
