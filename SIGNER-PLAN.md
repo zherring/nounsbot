@@ -94,3 +94,119 @@ to babysit.
 cost of choosing "wrong" between two eternal-address designs is zero for
 delegators (they delegate once either way); the cost of staying on the EOA is
 a re-delegation campaign that grows with every new delegator.
+
+---
+
+## Appendix: exactly what's ambiguous in the `splits --llms` text (docs feedback)
+
+Written for the Splits team: each item quotes the manifest verbatim, gives the
+two readings the text supports, and suggests the sentence that would collapse
+the ambiguity. The root pattern in both: **the docs specify the workflow but
+not the enforcement layer** — and for a security evaluation, "what does the
+chain reject" vs "what does the backend refuse" is the whole question.
+
+### Q1 — Are signer-set changes contract-enforced or backend policy?
+
+**The quotes doing the work** (all from `splits accounts update-signers`):
+
+> "The proposal is created immediately; it **must be approved and signed on the
+> web via the returned signUrl**."
+
+> "**Recovery / resetting signers stays web-only.**"
+
+and from `splits transactions sign`:
+
+> "Fetches the transaction's signingHash, produces a personal_sign signature
+> locally, and **submits it via POST /public/v1/transactions/:id/sign. By
+> default auto-submits the UserOp** when this signature meets threshold."
+
+**Why this underdetermines the answer.** "UserOp" confirms these are ERC-4337
+accounts — which means the account contract's `validateUserOp` is the *real*
+gatekeeper, and nothing in the manifest describes its rules. That leaves two
+readings, both fully consistent with the quoted text:
+
+- **Reading A (backend policy):** the contract accepts any threshold-meeting
+  signature set for *all* operations, including signer changes. "Must be signed
+  on the web" is the Splits API declining to accept CLI approvals for admin
+  ops, and "web-only" describes product surface (no CLI command exists for
+  recovery). Consequence: an attacker holding a threshold-meeting EOA key
+  doesn't need the API — the contract is public; they construct a UserOp
+  themselves, submit to any bundler, and rotate the signer set. The rule is
+  bypassable by exactly the adversary it exists for.
+- **Reading B (contract-enforced):** the account distinguishes operation
+  classes onchain — signer/config changes require a passkey signature, a
+  higher threshold, an owner-class signer, or a timelock. "Web-only" is then
+  not UX but physics: the web is the only place a biometric passkey can sign,
+  and the chain rejects admin UserOps signed by EOAs alone.
+
+**Circumstantial evidence pointing at B — but never stated:** the
+update-signers text says the proposal "must be approved and signed on the web"
+*unconditionally*, even though a threshold-1 EOA org could plainly meet
+threshold via `transactions sign` — suggesting admin ops are categorically a
+different signature class. And `update-signers` motivates EOA signers with
+"passkeys require a biometric 2nd factor that agents cannot provide,"
+implying passkeys are a distinct, stronger signer class the platform leans on.
+But neither line says the *contract* knows the difference.
+
+**One sentence would resolve it.** Either: "Signer-set changes are enforced by
+the account contract to require ≥1 passkey signature (equivalently: EOA
+signers cannot modify the signer set even via UserOps submitted directly to
+the EntryPoint)." Or the honest converse: "Web-only approval is platform
+policy; onchain, any threshold-meeting signature set can modify signers —
+size your EOA threshold accordingly."
+
+### Q2 — Does any per-signer scoping exist?
+
+**What the text shows.** From `splits transactions create custom`:
+
+> "Create a transaction proposal with raw EVM calls. Use for **any on-chain
+> action** including contract interactions, approvals, and swaps."
+
+From `splits accounts create` / `update-signers`, the complete vocabulary for
+configuring authority is: `--passkeyIds`, `--eoaSignerIds`, and
+
+> "`--threshold` — Number of signers required to approve **transactions**"
+
+**Why I concluded "no scoping" — and why I'm not certain.** This is an
+absence-of-evidence conclusion: one global threshold, no per-signer or
+per-operation parameters anywhere in the account schema, no policy/role/
+allowlist vocabulary in the manifest. A signer appears to be a uniform-power
+object. But two commands hint at an undocumented policy layer whose reach the
+manifest never defines:
+
+> "`splits automations list` — List automations for your org"
+
+> "`splits tokens blocklist` — List your org's blocked tokens" /
+> "`splits tokens whitelist` — List your org's allowlisted tokens"
+
+If **automations** can execute onchain actions under constraints without
+fresh threshold signatures, they may be precisely the scoped-execution
+primitive R3 wants ("this key/automation may only call the governor") — but
+the manifest gives them one line and no schema. If the **token allow/block
+lists** are enforced at proposal/signing time (vs. being display filters),
+that's evidence a policy-enforcement layer exists that could plausibly grow
+target/selector scoping. The docs say neither.
+
+**What would resolve it.** For each: state the enforcement point and the
+boundary. "Automations execute [with / without] signer approval and are
+constrained to [X]." "Token lists are enforced at [proposal creation /
+signing / not enforced — informational]." And explicitly: "Per-signer
+transaction restrictions (by target contract or function) [do not exist /
+exist via X / are roadmapped]."
+
+### Minor ambiguities noticed along the way (same root cause)
+
+- **Cast liveness (R5):** `transactions sign` routes submission through
+  `POST /public/v1/transactions/:id/sign` which "auto-submits the UserOp."
+  Unstated: whether a signer holding local keys can construct and submit the
+  UserOp independently if the API is unavailable (what's fetchable offline:
+  account nonce, validation params, bundler access?).
+- **Gas:** who pays for the UserOp — account balance or a Splits paymaster?
+  Closest text is `transactions create transfer`: "Returns the proposal with
+  gas estimates." Matters here because `castRefundableVoteWithReason` refunds
+  `msg.sender` (the account), so the gas/refund loop is self-contained only
+  if the account itself pays.
+- **Contract identity:** the manifest never names the account implementation
+  (audited? Safe-derived? custom validator?). For a "delegate to this address
+  forever" pitch, "read the deployed contract yourself" is part of the trust
+  story, and the docs don't say what a reader would find.
