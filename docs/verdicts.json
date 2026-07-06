@@ -1,6 +1,142 @@
 {
- "generated_at": "2026-07-05T17:47:23+00:00",
+ "generated_at": "2026-07-06T03:24:04+00:00",
  "verdicts": [
+  {
+   "prop_id": 983,
+   "title": "\ud83c\udfa8 Noundry: Add Messi Accessory",
+   "vote": "FOR",
+   "confidence": 0.9,
+   "clauses": [
+    "I.1",
+    "I.3"
+   ],
+   "reason": "This proposal adds a new CC0 accessory trait ('Messi') to the Nouns art repository via addAccessories, with a signed Nouns Art Contribution Agreement waiving rights. This is exactly the kind of art/CC0 culture proliferation the constitution defaults FOR under Article I.1, and it is a cheap, reversible artwork contribution under I.3 with no treasury spend.",
+   "flags": [],
+   "constitution_rev": "9cd2464",
+   "outcome": "PENDING",
+   "status": "scheduled",
+   "tx_hash": null,
+   "overridden": false,
+   "evaluated_at": "2026-07-05T18:23:14.254363+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.85,
+     "clauses": [
+      "I.1",
+      "I.3"
+     ],
+     "reason": "This proposal adds a single CC0 accessory trait to the Nouns art repository at no treasury cost, directly proliferating Nouns artwork and the CC0 commons. It qualifies for default FOR under Article I.1 (well below cap) and I.3 as a cheap, reversible contribution, with a signed Nouns Art Contribution Agreement waiving rights.",
+     "constitution_rev": "2b163ba",
+     "evaluated_at": "2026-07-05T18:07:18.585251+00:00"
+    },
+    {
+     "vote": "FOR",
+     "confidence": 0.9,
+     "clauses": [
+      "I.1",
+      "I.3"
+     ],
+     "reason": "This proposal adds a new CC0 accessory trait to the Nouns art descriptor via addAccessories, directly proliferating the Nouns commons at zero treasury cost. That is core mission spending under Article I.1 and a cheap, reversible contribution under I.3; the calldata matches the described art-addition action with no treasury, auction, or governance mechanics touched.",
+     "constitution_rev": "a09d378",
+     "evaluated_at": "2026-07-05T18:17:34.073587+00:00"
+    }
+   ]
+  },
+  {
+   "prop_id": 982,
+   "title": "Delegate Treasury Nouns to Nouncil.eth",
+   "vote": "AGAINST",
+   "confidence": 0.55,
+   "clauses": [
+    "II.1",
+    "II.3",
+    "III.2"
+   ],
+   "reason": "The single onchain action is a delegate(address) call assigning the treasury's Nouns voting power to an external body (Nouncil), which is a governance-control mechanics change and thus structural under Article II.1. Delegating a large treasury vote block to a 31-member group concentrates control over governance weight (III.2), so the default is AGAINST; while Nouncil is nominally open, this is not clearly a II.4 participation-widening change and cannot be auto-ratified.",
+   "flags": [
+    "structural"
+   ],
+   "constitution_rev": "9cd2464",
+   "outcome": "VOTING",
+   "status": "scheduled",
+   "tx_hash": null,
+   "overridden": false,
+   "evaluated_at": "2026-07-05T18:23:29.349618+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.6,
+     "clauses": [
+      "II.1",
+      "II.2",
+      "III.2"
+     ],
+     "reason": "The calldata (delegate(address) to 0xcc26...6ed5) redirects the treasury's substantial Noun voting power to an external body, which is a governance/control change under Article II.1 and concentrates control per III.2. While Nouncil presents as an open, one-member-one-vote council (a II.4 participation-widening argument), handing the treasury's aggregate voting weight to a single self-selected delegate defaults AGAINST absent extraordinary justification. This is structural and cannot be auto-ratified; escalating to human review to weigh the participation counter-case.",
+     "constitution_rev": "2b163ba",
+     "evaluated_at": "2026-07-05T18:07:36.346568+00:00"
+    },
+    {
+     "vote": "AGAINST",
+     "confidence": 0.62,
+     "clauses": [
+      "II.1",
+      "II.3",
+      "III.2"
+     ],
+     "reason": "The calldata is delegate(address) on the Nouns token, redirecting the treasury's entire block of voting power to an external body (Nouncil.eth). This touches governance/entity structure and concentrates control of treasury votes in a 31-member group, so it is structural and defaults AGAINST under Article II.1. While Nouncil is nominally open (arguably a II.4 participation-widening argument), delegating the treasury's voting weight to a single external body is a concentration of control that requires deliberate human review rather than auto-approval.",
+     "constitution_rev": "a09d378",
+     "evaluated_at": "2026-07-05T18:17:46.956348+00:00"
+    }
+   ]
+  },
+  {
+   "prop_id": 981,
+   "title": "Termination of Secondary DUNA Administration Services",
+   "vote": "AGAINST",
+   "confidence": 0.6,
+   "clauses": [
+    "II.1",
+    "II.3",
+    "II.4"
+   ],
+   "reason": "Terminating a DUNA administrator alters the DAO's legal entity administration and is structural under Article II.1, where the default is AGAINST absent extraordinary justification. The 'fiscal prudence' framing is euphemism (II.3), and eliminating the redundant compliance/regulatory backup concentrates administrative control into a single point of failure rather than widening participation, failing the II.4 direction test. The calldata (cancel + recoverTokens to treasury) is consistent with the prose, but the structural posture governs.",
+   "flags": [
+    "structural"
+   ],
+   "constitution_rev": "9cd2464",
+   "outcome": "VOTING",
+   "status": "scheduled",
+   "tx_hash": null,
+   "overridden": false,
+   "evaluated_at": "2026-07-05T18:23:47.093154+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.6,
+     "clauses": [
+      "II.1",
+      "II.3",
+      "II.5"
+     ],
+     "reason": "The proposal terminates a DUNA administrator engagement, which alters the DAO's entity/administrative structure \u2014 a structural matter under Article II.1, where the default is AGAINST absent extraordinary and explicit justification. The 'fiscal prudence' and 'capital preservation' framing is exactly the kind of euphemism Article II.3 warns against; capital preservation is not itself a mission value, and cutting compliance/administrative redundancy for the legal entity walls off rather than widens participation. The proposal offers no extraordinary justification for reducing the entity's compliance coverage, so it fails the Article II bar and requires human review per II.2.",
+     "constitution_rev": "2b163ba",
+     "evaluated_at": "2026-07-05T18:07:56.027294+00:00"
+    },
+    {
+     "vote": "AGAINST",
+     "confidence": 0.62,
+     "clauses": [
+      "II.1",
+      "II.4",
+      "II.3"
+     ],
+     "reason": "This proposal alters DUNA entity administration \u2014 terminating a backup administrator and making a single admin the sole point of contact for compliance and regulatory filings \u2014 which is an entity-structure change under Article II.1, defaulting AGAINST absent extraordinary justification. Framed as 'fiscal prudence' and 'efficiency,' the euphemism does not change classification (II.3); its effect concentrates administrative control and removes a redundancy safeguard rather than widening participation or restoring issuance, so it does not qualify for the II.4 reversal. Cost savings alone are not the extraordinary justification Article II requires.",
+     "constitution_rev": "a09d378",
+     "evaluated_at": "2026-07-05T18:18:05.034458+00:00"
+    }
+   ]
+  },
   {
    "prop_id": 980,
    "title": "Nouns Retro Grant Proposal: France Tour 2026",
