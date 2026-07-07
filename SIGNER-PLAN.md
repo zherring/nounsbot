@@ -241,7 +241,7 @@ answers an open question from the appendix.
 | `COLD_2` (optional second cold address) | both | Loss-redundancy, not a co-signer (threshold stays 1) |
 | Two fresh hot keys: `HOT_SAFE`, `HOT_SPLITS` | one each | Never reuse the production EOA (0xF6e7…6aA9) — it stays live and untouched throughout |
 | ~0.02 ETH test gas | both | ~0.01 Safe deploy+config, ~0.005 each for test calls |
-| Splits org + owner-scoped API key + passkey enrolled | Splits | `splits auth login`; passkey is the cold root on this side |
+| An email address (nothing else Splits-side) | Splits | **Deliberately no pre-work**: org creation, API-key mint, and passkey enrollment all happen inside Track B, on the clock — the test simulates a newcomer discovering Splits, who has none of these yet |
 | One ACTIVE Nouns prop id | both | The allowed-call target (any of 981–983 once voting opens) |
 
 Constants: governor `0x6f3E6272A167e8AcCb32072d08E0957F9c79223d`; allowed
@@ -284,12 +284,14 @@ Each setup gets the same three attempts from its hot key:
 
 ### Track B — Splits multisig (est. 20–30 min if the CLI is as smooth as it reads)
 
-0. 📸 Org bootstrap — partially web-bound by design: `splits org create
-   --email <you>` only fires a setup link ("complete org creation in the web
-   UI"), and there is **no CLI command to mint an API key** (`auth login`
-   saves one you already have). So: CLI kickoff → finish org in web → create
-   owner-scoped API key in web → then the CLI takes over. 🔬 Count the
-   web-required steps — same docs-feedback genre as the appendix.
+0. 📸 Org bootstrap, ON THE CLOCK (this simulates a newcomer's first contact —
+   do not pre-create anything): `splits org create --email <you>` only fires a
+   setup link ("complete org creation in the web UI"), and there is **no CLI
+   command to mint an API key** (`auth login` saves one you already have).
+   So: CLI kickoff → email → finish org in web → enroll passkey → create
+   owner-scoped API key in web → back to CLI. 🔬 Count every web-required
+   step and context switch — same docs-feedback genre as the appendix, and
+   it fills the scoring sheet's bootstrap-from-zero row.
 1. 📸 `splits auth login` → `splits auth whoami` (org, scopes).
 2. 📸 `splits auth create-key --register` on the Railway-side machine →
    this becomes `HOT_SPLITS`; note the returned signer id.
