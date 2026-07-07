@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-06T18:08:15+00:00",
+ "generated_at": "2026-07-07T01:31:02+00:00",
  "verdicts": [
   {
    "prop_id": 983,
@@ -13,7 +13,7 @@
    "reason": "This proposal adds a new CC0 accessory trait (Messi) to the Nouns art repository, directly proliferating Nouns artwork and the CC0 commons at zero treasury cost. It falls squarely under Article I.1 as mission spending well below the cap, and Article I.3's benefit-of-the-doubt for cheap, reversible contributions. The onchain action (addAccessories) matches the stated purpose of adding a trait.",
    "flags": [],
    "constitution_rev": "7f1af84",
-   "outcome": "PENDING",
+   "outcome": "VOTING",
    "status": "scheduled",
    "tx_hash": null,
    "overridden": false,
