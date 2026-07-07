@@ -315,6 +315,7 @@ Each setup gets the same three attempts from its hot key:
 
 | Dimension | Safe+Zodiac | Splits |
 |---|---|---|
+| Bootstrap from zero (accountless wallet-only vs org + email + web + API key) | | |
 | Setup time / #steps / gas | | |
 | P1 allowed call reached governor | | |
 | P2 disallowed call blocked? (R3) | | |
