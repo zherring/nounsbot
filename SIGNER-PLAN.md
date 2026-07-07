@@ -220,6 +220,19 @@ delegate address — and a live falsification test of the Appendix ambiguities.
 Every step marked 📸 is a screencap checkpoint; every step marked 🔬 directly
 answers an open question from the appendix.
 
+> **Session bootstrap (read first if you're a fresh chat).** Production is
+> LIVE and must not be touched by this test: the agent runs on Railway
+> (project `distinguished-surprise`, service `nounsbot`) casting from EOA
+> `0xF6e7501dFe7003299108020c5830C4c5B3CA6aA9`, which holds Noun 1251's
+> delegation. Rules: (1) never run `python -m bot.poller` locally — it fights
+> Railway for the Telegram queue; (2) never print private keys or API keys
+> into the transcript — pipe via stdin/env, suppress command output that
+> echoes secrets; (3) the production EOA and its delegation stay untouched —
+> all probes use fresh test keys; (4) casts from TEST accounts on live props
+> are safe only because they carry zero voting weight (a "reached-the-
+> governor" revert is a PASS for P1). Repo context: README (ops manual),
+> PRD §13 (current state), this file (the plan).
+
 ### Inputs needed before starting
 
 | Input | Used by | Notes |
