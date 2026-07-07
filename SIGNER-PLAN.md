@@ -284,6 +284,12 @@ Each setup gets the same three attempts from its hot key:
 
 ### Track B — Splits multisig (est. 20–30 min if the CLI is as smooth as it reads)
 
+0. 📸 Org bootstrap — partially web-bound by design: `splits org create
+   --email <you>` only fires a setup link ("complete org creation in the web
+   UI"), and there is **no CLI command to mint an API key** (`auth login`
+   saves one you already have). So: CLI kickoff → finish org in web → create
+   owner-scoped API key in web → then the CLI takes over. 🔬 Count the
+   web-required steps — same docs-feedback genre as the appendix.
 1. 📸 `splits auth login` → `splits auth whoami` (org, scopes).
 2. 📸 `splits auth create-key --register` on the Railway-side machine →
    this becomes `HOT_SPLITS`; note the returned signer id.
