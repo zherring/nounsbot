@@ -52,6 +52,7 @@ def spend_guard_alert(conn, key: str, message: str) -> None:
 from .evaluator import evaluate
 
 CAST_AT_FRACTION = 0.65  # through the voting window
+SIGNOFF = "\n\nmore @ nounsvote.com"  # every onchain reason is an ad for the constitution
 RATIFY_FLOOR_SECONDS = 24 * 3600
 VOTES = {"for": "FOR", "against": "AGAINST", "abstain": "ABSTAIN"}
 
@@ -215,7 +216,7 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         reason = v["reason"]
         if v.get("suggestions"):
             reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
-        tx = sponsor_candidate(fresh[0], reason)
+        tx = sponsor_candidate(fresh[0], reason + SIGNOFF)
         db.upsert_candidate(conn, row["cand_id"], sponsor_state="sponsored", sig_tx=tx)
         return (f"🌱 sponsored candidate c{row['num']} with our delegated weight\n"
                 f"tx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}\n"
@@ -271,7 +272,7 @@ def do_cast(conn, pid: int, forced: bool = False) -> str:
     from .executor import bot_address, cast_vote
 
     row = db.get_cast(conn, pid)
-    vote, reason = row["vote"], row["reason"]
+    vote, reason = row["vote"], (row["reason"] or "") + SIGNOFF
     if not bot_address():
         db.upsert_cast(conn, pid, state="skipped")
         return f"📝 paper mode: would cast {vote} on prop {pid} — no key configured"
