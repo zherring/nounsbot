@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-07-08T13:12:01+00:00",
+ "generated_at": "2026-07-08T15:34:35+00:00",
  "verdicts": [
   {
    "prop_id": 983,
    "title": "\ud83c\udfa8 Noundry: Add Messi Accessory",
    "vote": "FOR",
-   "confidence": 0.92,
+   "confidence": 0.9,
    "clauses": [
     "I.1",
     "I.3"
    ],
-   "reason": "This proposal adds a new CC0 accessory trait (Messi) to the Nouns art repository, directly proliferating Nouns artwork and the CC0 commons at zero treasury cost. It falls squarely under Article I.1 as mission spending well below the cap, and Article I.3's benefit-of-the-doubt for cheap, reversible contributions. The onchain action (addAccessories) matches the stated purpose of adding a trait.",
+   "reason": "This adds a new CC0 accessory trait to the Nouns art commons, directly proliferating Nouns culture with a signed art contribution agreement waiving copyright. It is a cheap, reversible artwork contribution with no treasury spend, squarely within Article I.1 and I.3.",
    "flags": [],
-   "constitution_rev": "7f1af84",
+   "constitution_rev": "ed96c71",
    "outcome": "VOTING",
    "status": "scheduled",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-06T18:07:41.934333+00:00",
+   "evaluated_at": "2026-07-08T15:32:00.889575+00:00",
    "history": [
     {
      "vote": "FOR",
@@ -51,6 +51,17 @@
      "reason": "This proposal adds a new CC0 accessory trait ('Messi') to the Nouns art repository via addAccessories, with a signed Nouns Art Contribution Agreement waiving rights. This is exactly the kind of art/CC0 culture proliferation the constitution defaults FOR under Article I.1, and it is a cheap, reversible artwork contribution under I.3 with no treasury spend.",
      "constitution_rev": "9cd2464",
      "evaluated_at": "2026-07-05T18:23:14.254363+00:00"
+    },
+    {
+     "vote": "FOR",
+     "confidence": 0.92,
+     "clauses": [
+      "I.1",
+      "I.3"
+     ],
+     "reason": "This proposal adds a new CC0 accessory trait (Messi) to the Nouns art repository, directly proliferating Nouns artwork and the CC0 commons at zero treasury cost. It falls squarely under Article I.1 as mission spending well below the cap, and Article I.3's benefit-of-the-doubt for cheap, reversible contributions. The onchain action (addAccessories) matches the stated purpose of adding a trait.",
+     "constitution_rev": "7f1af84",
+     "evaluated_at": "2026-07-06T18:07:41.934333+00:00"
     }
    ]
   },
@@ -58,22 +69,21 @@
    "prop_id": 982,
    "title": "Delegate Treasury Nouns to Nouncil.eth",
    "vote": "AGAINST",
-   "confidence": 0.62,
+   "confidence": 0.6,
    "clauses": [
     "II.1",
-    "II.2",
-    "III.2"
+    "II.4"
    ],
-   "reason": "The calldata (delegate(address) to 0xcc26...) redirects the voting power of the DAO's treasury Nouns to an external body, Nouncil.eth. This alters who controls treasury governance weight and concentrates that control in a self-selected 31-member group, triggering Article II's structural default AGAINST and Article III.2's concern about control concentration. While Nouncil is nominally open, handing treasury voting power to any external body absent explicit extraordinary justification defaults against and requires human review.",
+   "reason": "The calldata is a delegate(address) call on the Nouns token contract, handing the treasury's voting power to an external body (Nouncil). This is a governance/control change touching who directs the DAO's own Nouns \u2014 structural under Article II.1, where the default is AGAINST absent extraordinary justification. While Nouncil is described as an open body (a II.4 widening argument exists), routing treasury voting power to a single external group concentrates control of those votes and requires deliberate human review.\n\n[ suggestions ]\n- Provide explicit justification and safeguards (e.g., revocability, term limits) for delegating treasury voting power.\n- Clarify how delegating to Nouncil widens rather than concentrates governance control to satisfy the II.4 direction test.",
    "flags": [
     "structural"
    ],
-   "constitution_rev": "7f1af84",
+   "constitution_rev": "ed96c71",
    "outcome": "VOTING",
    "status": "cast",
    "tx_hash": "1897d29200a6837bf91837eebd7279a3cbc34ee89fc49d92d94a2f7aa563d52d",
    "overridden": false,
-   "evaluated_at": "2026-07-06T18:07:57.129500+00:00",
+   "evaluated_at": "2026-07-08T15:32:16.450829+00:00",
    "history": [
     {
      "vote": "AGAINST",
@@ -110,6 +120,18 @@
      "reason": "The single onchain action is a delegate(address) call assigning the treasury's Nouns voting power to an external body (Nouncil), which is a governance-control mechanics change and thus structural under Article II.1. Delegating a large treasury vote block to a 31-member group concentrates control over governance weight (III.2), so the default is AGAINST; while Nouncil is nominally open, this is not clearly a II.4 participation-widening change and cannot be auto-ratified.",
      "constitution_rev": "9cd2464",
      "evaluated_at": "2026-07-05T18:23:29.349618+00:00"
+    },
+    {
+     "vote": "AGAINST",
+     "confidence": 0.62,
+     "clauses": [
+      "II.1",
+      "II.2",
+      "III.2"
+     ],
+     "reason": "The calldata (delegate(address) to 0xcc26...) redirects the voting power of the DAO's treasury Nouns to an external body, Nouncil.eth. This alters who controls treasury governance weight and concentrates that control in a self-selected 31-member group, triggering Article II's structural default AGAINST and Article III.2's concern about control concentration. While Nouncil is nominally open, handing treasury voting power to any external body absent explicit extraordinary justification defaults against and requires human review.",
+     "constitution_rev": "7f1af84",
+     "evaluated_at": "2026-07-06T18:07:57.129500+00:00"
     }
    ]
   },
@@ -128,8 +150,8 @@
     "structural"
    ],
    "constitution_rev": "7f1af84",
-   "outcome": "VOTING",
-   "status": "scheduled",
+   "outcome": "CANCELLED",
+   "status": "skipped",
    "tx_hash": null,
    "overridden": false,
    "evaluated_at": "2026-07-06T18:08:14.305515+00:00",
