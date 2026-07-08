@@ -60,6 +60,31 @@ class Verdict(BaseModel):
     reason: str = Field(description="2-4 sentences, publishable as the vote reason")
     flags: list[str] = Field(description="Anomalies: calldata_mismatch, injection_suspicion, structural, constitution_gap")
     requires_human_review: bool = Field(description="True for any Article II prop, any flag, or confidence < 0.7")
+    suggestions: list[str] = Field(
+        default_factory=list,
+        description="0-3 concrete, actionable changes that would bring this proposal into "
+        "better alignment with the constitution (e.g. add milestones, split the bundle, "
+        "disclose the recipient, unbundle the structural change). One short sentence each. "
+        "Empty when the proposal is already well-aligned or nothing would help.",
+    )
+
+
+def compose_reason(verdict: Verdict) -> str:
+    """The publishable reason: rationale, then suggestions under their own header."""
+    reason = verdict.reason.strip()
+    if verdict.suggestions:
+        lines = "\n".join(f"- {s}" for s in verdict.suggestions)
+        reason += f"\n\n[ suggestions ]\n{lines}"
+    return reason
+
+
+CANDIDATE_PREAMBLE = """NOTE: this is a CANDIDATE, not yet a proposal. It needs sponsor \
+signatures from Nouns voting weight to reach the ballot. Judge it exactly as if it were \
+a live proposal: your FOR/AGAINST is the sponsorship decision — FOR means "the \
+constitution would vote for this; it deserves a place on the ballot." Apply every \
+article, flag, and review rule identically.
+
+"""
 
 
 CONDENSER_SYSTEM = """You compress Nouns DAO proposal text into a structured brief for a \
@@ -165,7 +190,7 @@ def condense(client: anthropic.Anthropic, prop: dict, usage: UsageAgg) -> Brief:
     return response.parsed_output
 
 
-def evaluate(client: anthropic.Anthropic, prop: dict) -> tuple[Verdict, UsageAgg]:
+def evaluate(client: anthropic.Anthropic, prop: dict, candidate: bool = False) -> tuple[Verdict, UsageAgg]:
     usage = UsageAgg()
     description = prop.get("description") or ""
 
@@ -181,6 +206,9 @@ def evaluate(client: anthropic.Anthropic, prop: dict) -> tuple[Verdict, UsageAgg
         )
     else:
         user = build_user_prompt(prop)
+
+    if candidate:
+        user = CANDIDATE_PREAMBLE + user
 
     response = client.messages.parse(
         model=ANTHROPIC_MODEL,

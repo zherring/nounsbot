@@ -143,3 +143,68 @@ def format_actions(prop: dict) -> str:
             line += f" calldata={data[:74]}{'…' if len(data) > 74 else ''}"
         lines.append(line)
     return "\n".join(lines) if lines else "  (no onchain actions)"
+
+
+CANDIDATE_FIELDS = """
+  id
+  proposer
+  slug
+  createdTimestamp
+  lastUpdatedTimestamp
+  canceled
+  latestVersion {
+    content {
+      title
+      description
+      targets
+      values
+      signatures
+      calldatas
+      proposalIdToUpdate
+      matchingProposalIds
+      contentSignatures { signer { id } canceled expirationTimestamp }
+    }
+  }
+"""
+
+
+def fetch_candidates(first: int = 10) -> list[dict]:
+    """Open candidates, newest activity first. Skips canceled and already-promoted."""
+    gql = f"""
+    query($first: Int!) {{
+      proposalCandidates(first: $first, orderBy: lastUpdatedTimestamp, orderDirection: desc,
+                         where: {{ canceled: false }}) {{
+        {CANDIDATE_FIELDS}
+      }}
+    }}"""
+    out = []
+    for c in query(gql, {"first": first})["proposalCandidates"]:
+        content = (c.get("latestVersion") or {}).get("content") or {}
+        if content.get("matchingProposalIds"):
+            continue  # already became a proposal
+        out.append(c)
+    return out
+
+
+def candidate_content_hash(cand: dict) -> str:
+    content = cand["latestVersion"]["content"]
+    material = json.dumps(
+        {k: content.get(k) for k in ("description", "targets", "values", "signatures", "calldatas")},
+        sort_keys=True,
+    )
+    return hashlib.sha256(material.encode()).hexdigest()[:16]
+
+
+def candidate_as_prop(cand: dict) -> dict:
+    """Adapt a candidate to the shape the evaluator expects."""
+    content = cand["latestVersion"]["content"]
+    return {
+        "id": f"candidate {cand['slug']}",
+        "proposer": {"id": cand["proposer"]},
+        "title": content.get("title") or cand["slug"],
+        "description": content.get("description"),
+        "targets": content.get("targets") or [],
+        "values": content.get("values") or [],
+        "signatures": content.get("signatures") or [],
+        "calldatas": content.get("calldatas") or [],
+    }

@@ -64,6 +64,7 @@ def connect() -> sqlite3.Connection:
     # one-time hygiene: rev-less verdicts (pre-fix Railway boots) re-evaluate cleanly
     conn.execute("DELETE FROM verdicts WHERE constitution_rev='unknown'")
     conn.commit()
+    migrate(conn)
     return conn
 
 
@@ -140,8 +141,8 @@ def save_verdict(conn, prop_id: int, chash: str, rev: str, model: str, verdict, 
     conn.execute(
         """INSERT OR IGNORE INTO verdicts
            (prop_id, content_hash, constitution_rev, model, vote, confidence, clauses, reason,
-            flags, requires_human_review, input_tokens, output_tokens, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            flags, requires_human_review, input_tokens, output_tokens, created_at, suggestions)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             prop_id,
             chash,
@@ -156,6 +157,54 @@ def save_verdict(conn, prop_id: int, chash: str, rev: str, model: str, verdict, 
             usage.input_tokens if usage else None,
             usage.output_tokens if usage else None,
             datetime.now(timezone.utc).isoformat(),
+            json.dumps(getattr(verdict, "suggestions", []) or []),
         ),
     )
     conn.commit()
+
+
+CANDIDATE_SCHEMA = """
+CREATE TABLE IF NOT EXISTS candidates (
+  num INTEGER PRIMARY KEY AUTOINCREMENT,
+  cand_id TEXT UNIQUE,           -- proposer-slug
+  title TEXT,
+  content_hash TEXT,
+  sponsor_state TEXT DEFAULT 'none',   -- none | sponsored | declined
+  sig_tx TEXT,
+  verdict_json TEXT,             -- latest verdict (vote/conf/clauses/reason/suggestions/flags)
+  constitution_rev TEXT,
+  raw TEXT,
+  updated_at TEXT
+);
+"""
+
+
+def migrate(conn) -> None:
+    conn.executescript(CANDIDATE_SCHEMA)
+    try:
+        conn.execute("ALTER TABLE verdicts ADD COLUMN suggestions TEXT")
+    except Exception:
+        pass  # column already exists
+    conn.commit()
+
+
+def get_candidate(conn, cand_id: str):
+    return conn.execute("SELECT * FROM candidates WHERE cand_id=?", (cand_id,)).fetchone()
+
+
+def get_candidate_by_num(conn, num: int):
+    return conn.execute("SELECT * FROM candidates WHERE num=?", (num,)).fetchone()
+
+
+def upsert_candidate(conn, cand_id: str, **fields):
+    fields["updated_at"] = datetime.now(timezone.utc).isoformat()
+    existing = get_candidate(conn, cand_id)
+    if existing:
+        sets = ", ".join(f"{k}=?" for k in fields)
+        conn.execute(f"UPDATE candidates SET {sets} WHERE cand_id=?", (*fields.values(), cand_id))
+    else:
+        cols = ", ".join(["cand_id", *fields])
+        marks = ", ".join("?" * (len(fields) + 1))
+        conn.execute(f"INSERT INTO candidates ({cols}) VALUES ({marks})", (cand_id, *fields.values()))
+    conn.commit()
+    return get_candidate(conn, cand_id)

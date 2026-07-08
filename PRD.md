@@ -205,14 +205,14 @@ Constitution v0.4. Two-speed loop: commands/casts/publish every 120s; ingest eve
 120s with spend guards. Verdict record: 22 paper + 3 live-rev verdicts (981 AGAINST⚑,
 982 AGAINST⚑ — both awaiting explicit human ratification; 983 FOR, auto-cast armed).
 
-**Awaiting first onchain cast:** prop 983, ~65% through its voting window, will be
+**First cast landed 2026-07-08:** prop 982, AGAINST (weight 1 — snapshot predated Winter's delegation of Noun 456; props with later snapshots carry weight 2). Verdicts now append a '[ suggestions ]' section — constructive alignment feedback published with every reason. Next: prop 983, ~65% through its voting window, will be
 the record's first "🗳 cast" row.
 
 **Near-term queue (M3), in priority order:**
 1. Calldata ABI decoding in the enricher — removes the "couldn't verify vs verified
    mismatch" ambiguity (the 957 flip-flop).
 2. Missed-cast dead-man alarm (healthchecks.io ping per tick).
-3. Candidate lane + pooled auto-sponsorship (§6.6) — the delegation pitch.
+3. ~~Candidate lane~~ — SHIPPED 2026-07-08: candidates evaluated like props, 🌿 cards, /sponsor signs the EIP-712 sponsorship (digest replica validated byte-exact against 3 real onchain signatures); never automatic, edits invalidate. Update-candidates (proposalIdToUpdate≠0) not yet supported.
 4. Tripwires: late-window vote-dump alerts, defeated→successful flip alerts,
    objection-window watch.
 5. Client ID registration (client incentives).

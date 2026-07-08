@@ -22,7 +22,7 @@ def build_payload(conn) -> dict:
     """The record as a dict — used by both the file exporter and the live web endpoint."""
     rows = conn.execute(
         """SELECT v.prop_id, v.vote, v.confidence, v.clauses, v.reason, v.flags,
-                  v.constitution_rev, v.created_at,
+                  v.suggestions, v.constitution_rev, v.created_at,
                   p.title, p.outcome,
                   c.state AS cast_state, c.tx_hash, c.vote AS cast_vote, c.override_by
            FROM verdicts v
@@ -50,8 +50,20 @@ def build_payload(conn) -> dict:
             }
         )
 
+    def display_reason(row) -> str:
+        reason = row["reason"] or ""
+        try:
+            suggestions = json.loads(row["suggestions"] or "[]")
+        except (KeyError, IndexError, TypeError, ValueError):
+            suggestions = []
+        if suggestions:
+            reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in suggestions)
+        return reason
+
     verdicts = []
     for r in rows:
+        if r["prop_id"] < 0:
+            continue  # synthetic candidate budget rows
         verdicts.append(
             {
                 "prop_id": r["prop_id"],
@@ -59,7 +71,7 @@ def build_payload(conn) -> dict:
                 "vote": r["cast_vote"] or r["vote"],
                 "confidence": r["confidence"],
                 "clauses": json.loads(r["clauses"]),
-                "reason": r["reason"],
+                "reason": display_reason(r),
                 "flags": json.loads(r["flags"]),
                 "constitution_rev": r["constitution_rev"],
                 "outcome": r["outcome"],

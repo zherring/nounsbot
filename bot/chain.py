@@ -72,3 +72,75 @@ def simulate_vote(web3: Web3, sender: str, prop_id: int, vote: str, reason: str)
     governor(web3).functions.castRefundableVoteWithReason(
         prop_id, SUPPORT[vote], reason, CLIENT_ID
     ).call({"from": Web3.to_checksum_address(sender)})
+
+
+# --- Candidate sponsorship (EIP-712 signatures the governor accepts in proposeBySigs) ---
+
+DATA_CONTRACT = Web3.to_checksum_address("0xf790A5f59678dd733fb3De93493A91f472ca1365")
+
+DATA_ABI = [
+    {
+        "name": "addSignature",
+        "type": "function",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {"name": "sig", "type": "bytes"},
+            {"name": "expirationTimestamp", "type": "uint256"},
+            {"name": "proposer", "type": "address"},
+            {"name": "slug", "type": "string"},
+            {"name": "proposalIdToUpdate", "type": "uint256"},
+            {"name": "encodedProp", "type": "bytes"},
+            {"name": "reason", "type": "string"},
+        ],
+        "outputs": [],
+    }
+]
+
+PROPOSAL_TYPEHASH = Web3.keccak(
+    text="Proposal(address proposer,address[] targets,uint256[] values,string[] signatures,bytes[] calldatas,string description,uint256 expiry)"
+)
+DOMAIN_TYPEHASH = Web3.keccak(text="EIP712Domain(string name,uint256 chainId,address verifyingContract)")
+
+
+def _pack32(items: list[bytes]) -> bytes:
+    return b"".join(items)
+
+
+def calc_proposal_encode_data(proposer: str, targets, values, signatures, calldatas, description: str) -> bytes:
+    """Byte-exact replica of NounsDAOV3Proposals.calcProposalEncodeData —
+    the signature commits to the candidate's exact content, so any edit
+    invalidates our sponsorship automatically."""
+    from eth_abi import encode as abi_encode
+
+    target_packed = _pack32([bytes(12) + bytes.fromhex(t[2:].lower()) for t in targets])
+    values_packed = _pack32([int(v).to_bytes(32, "big") for v in values])
+    sig_hashes = _pack32([Web3.keccak(text=s or "") for s in signatures])
+    calldata_hashes = _pack32([Web3.keccak(hexstr=c or "0x") for c in calldatas])
+    return abi_encode(
+        ["address", "bytes32", "bytes32", "bytes32", "bytes32", "bytes32"],
+        [
+            Web3.to_checksum_address(proposer),
+            Web3.keccak(target_packed),
+            Web3.keccak(values_packed),
+            Web3.keccak(sig_hashes),
+            Web3.keccak(calldata_hashes),
+            Web3.keccak(text=description),
+        ],
+    )
+
+
+def sponsorship_digest(encoded_prop: bytes, expiration: int) -> bytes:
+    from eth_abi import encode as abi_encode
+
+    struct_hash = Web3.keccak(PROPOSAL_TYPEHASH + encoded_prop + expiration.to_bytes(32, "big"))
+    domain = Web3.keccak(
+        abi_encode(
+            ["bytes32", "bytes32", "uint256", "address"],
+            [DOMAIN_TYPEHASH, Web3.keccak(text="Nouns DAO"), 1, GOVERNOR],
+        )
+    )
+    return Web3.keccak(b"\x19\x01" + domain + struct_hash)
+
+
+def data_contract(web3: Web3):
+    return web3.eth.contract(address=DATA_CONTRACT, abi=DATA_ABI)

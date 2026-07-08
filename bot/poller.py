@@ -16,7 +16,10 @@ from datetime import datetime, timezone
 
 import anthropic
 
+import json
+
 from . import db, publisher, subgraph, telegram
+from .evaluator import compose_reason
 from .config import (
     ANTHROPIC_MODEL,
     INGEST_INTERVAL_SECONDS,
@@ -59,6 +62,60 @@ def latest_verdict(conn, prop_id: int):
     ).fetchone()
 
 
+def ingest_candidates(client, conn) -> None:
+    """Evaluate open candidates. FOR = sponsor-worthy; sponsorship is NEVER
+    automatic — /sponsor c<num> signs and registers it."""
+    rev = db.constitution_rev()
+    for cand in subgraph.fetch_candidates(first=10):
+        cand_id = cand["id"]
+        chash = subgraph.candidate_content_hash(cand)
+        existing = db.get_candidate(conn, cand_id)
+        if existing and existing["content_hash"] == chash and existing["constitution_rev"] == rev:
+            continue  # already judged this exact content under this constitution
+        if evals_last_24h(conn) >= MAX_EVALS_PER_DAY:
+            spend_guard_alert(conn, "guard_global",
+                f"🛑 daily evaluation budget ({MAX_EVALS_PER_DAY}) exhausted — candidates queue until tomorrow")
+            return
+
+        as_prop = subgraph.candidate_as_prop(cand)
+        print(f"evaluating candidate {cand['slug'][:50]}…")
+        verdict, usage = evaluate(client, as_prop, candidate=True)
+        # candidate evals count against the daily budget via a synthetic verdict row
+        db.save_verdict(conn, -1, chash, rev, ANTHROPIC_MODEL, verdict, usage)
+        row = db.upsert_candidate(
+            conn, cand_id,
+            title=as_prop["title"][:120], content_hash=chash, constitution_rev=rev,
+            verdict_json=json.dumps({
+                "vote": verdict.vote, "confidence": verdict.confidence,
+                "clauses": verdict.clauses_cited, "reason": verdict.reason,
+                "suggestions": verdict.suggestions, "flags": verdict.flags,
+                "requires_human_review": verdict.requires_human_review,
+            }),
+            raw=json.dumps(cand),
+        )
+        sigs = [s for s in cand["latestVersion"]["content"]["contentSignatures"] if not s["canceled"]]
+        card = candidate_card(row["num"], cand, verdict, len(sigs))
+        print("\n" + card + "\n")
+        telegram.send_message(card)
+
+
+def candidate_card(num, cand, verdict, sig_count) -> str:
+    content = cand["latestVersion"]["content"]
+    flags = f"\n⚑ {', '.join(verdict.flags)}" if verdict.flags else ""
+    if verdict.vote == "FOR" and not verdict.requires_human_review:
+        action = f"🌱 SPONSOR-WORTHY — /sponsor c{num} to sign with our delegated weight"
+    elif verdict.vote == "FOR":
+        action = f"🌱 leans sponsor-worthy but ⚑flagged — review, then /sponsor c{num} if you agree"
+    else:
+        action = "not sponsor-worthy under the constitution (no action needed)"
+    return (
+        f"🌿 Candidate c{num}: {content.get('title') or cand['slug']}\n"
+        f"by {cand['proposer'][:10]}… · {sig_count} sponsor sig(s) so far\n"
+        f"verdict: {verdict.vote} (conf {verdict.confidence:.2f}) · clauses {', '.join(verdict.clauses_cited)}\n"
+        f"{compose_reason(verdict)}{flags}\n{action}"
+    )
+
+
 def verdict_card(prop, outcome, verdict, cast_target_block, head):
     blocks_away = max(0, cast_target_block - head)
     eta_h = blocks_away * 12 / 3600
@@ -71,7 +128,7 @@ def verdict_card(prop, outcome, verdict, cast_target_block, head):
         f"📜 Prop {prop['id']}: {prop.get('title', '(untitled)')}\n"
         f"state: {outcome}\n"
         f"verdict: {verdict.vote} (conf {verdict.confidence:.2f}) · clauses {', '.join(verdict.clauses_cited)}\n"
-        f"{verdict.reason}{flags}\n{firing}"
+        f"{compose_reason(verdict)}{flags}\n{firing}"
     )
 
 
@@ -79,13 +136,14 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
     rev = db.constitution_rev()
     for prop in subgraph.fetch_proposals(first=15):
         outcome = subgraph.derive_outcome(prop, head)
-        if outcome not in {"PENDING", "VOTING"}:
-            continue
         pid = int(prop["id"])
         chash = subgraph.content_hash(prop)
         prior = conn.execute("SELECT content_hash FROM proposals WHERE id=?", (pid,)).fetchone()
         edited = prior and prior["content_hash"] != chash
+        # always refresh status/outcome — cancellations must reach the scheduler
         db.upsert_proposal(conn, prop, chash, outcome)
+        if outcome not in {"PENDING", "VOTING"}:
+            continue
         if db.get_verdict(conn, pid, chash, rev, ANTHROPIC_MODEL):
             continue
 
@@ -111,7 +169,7 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
         state = existing["state"] if existing else "scheduled"
         if state not in {"held", "cast"}:  # edits don't un-hold, never re-cast
             db.upsert_cast(conn, pid, state="scheduled", vote=verdict.vote,
-                           reason=verdict.reason, cast_block_target=target)
+                           reason=compose_reason(verdict), cast_block_target=target)
         prefix = "✏️ PROPOSAL EDITED — re-evaluated:\n" if edited else ""
         card = prefix + verdict_card(prop, outcome, verdict, target, head)
         print("\n" + card + "\n")
@@ -136,19 +194,51 @@ def handle_commands(conn) -> None:
 
 
 def run_command(conn, cmd: str, args: list[str]) -> str:
+    if cmd == "sponsor":
+        if not args or not args[0].lstrip("c").isdigit():
+            return "usage: /sponsor c<num> (from the candidate card)"
+        row = db.get_candidate_by_num(conn, int(args[0].lstrip("c")))
+        if not row:
+            return f"candidate {args[0]}: unknown"
+        if row["sponsor_state"] == "sponsored":
+            return f"candidate c{row['num']} already sponsored ({row['sig_tx']})"
+        from .executor import sponsor_candidate
+
+        cand = json.loads(row["raw"])
+        v = json.loads(row["verdict_json"])
+        # re-check content: an edit since evaluation means we'd sign unseen content
+        fresh = [c for c in subgraph.fetch_candidates(first=20) if c["id"] == row["cand_id"]]
+        if not fresh:
+            return f"candidate c{row['num']} no longer open (canceled or promoted)"
+        if subgraph.candidate_content_hash(fresh[0]) != row["content_hash"]:
+            return f"candidate c{row['num']} was EDITED since evaluation — wait for the re-evaluation card"
+        reason = v["reason"]
+        if v.get("suggestions"):
+            reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+        tx = sponsor_candidate(fresh[0], reason)
+        db.upsert_candidate(conn, row["cand_id"], sponsor_state="sponsored", sig_tx=tx)
+        return (f"🌱 sponsored candidate c{row['num']} with our delegated weight\n"
+                f"tx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}\n"
+                f"(signature auto-invalidates if the proposer edits)")
+
     if cmd == "status":
         rows = conn.execute(
             "SELECT c.*, p.title, p.status FROM casts c JOIN proposals p ON p.id=c.prop_id "
             "WHERE c.state IN ('scheduled','held') ORDER BY c.prop_id"
         ).fetchall()
-        if not rows:
-            return "nothing pending — all quiet"
         lines = []
         for r in rows:
             v = latest_verdict(conn, r["prop_id"])
             flag = " ⚑review" if v and v["requires_human_review"] else ""
             lines.append(f"{r['prop_id']}: {r['vote']} [{r['state']}]{flag} → block {r['cast_block_target']} — {r['title'][:40]}")
-        return "\n".join(lines)
+        cands = conn.execute(
+            "SELECT * FROM candidates WHERE sponsor_state='none' ORDER BY num DESC LIMIT 8"
+        ).fetchall()
+        for c in cands:
+            v = json.loads(c["verdict_json"] or "{}")
+            if v.get("vote") == "FOR":
+                lines.append(f"c{c['num']}: 🌱 sponsor-worthy — /sponsor c{c['num']} — {c['title'][:40]}")
+        return "\n".join(lines) if lines else "nothing pending — all quiet"
 
     if cmd in {"hold", "release", "cast", "override"}:
         if not args:
@@ -174,7 +264,7 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             return f"prop {pid} overridden to {vote} — reason logged, casts on schedule."
         if cmd == "cast":
             return do_cast(conn, pid, forced=True)
-    return f"unknown command /{cmd} — try /status /hold /release /override /cast"
+    return f"unknown command /{cmd} — try /status /hold /release /override /cast /sponsor"
 
 
 def do_cast(conn, pid: int, forced: bool = False) -> str:
@@ -205,6 +295,12 @@ def check_schedule(conn, head: int) -> None:
         import json as _json
 
         prop = _json.loads(prop_row["raw"])
+        # a cancelled/vetoed prop must never reach a cast attempt
+        current = conn.execute("SELECT status FROM proposals WHERE id=?", (pid,)).fetchone()
+        if current and current["status"] in ("CANCELLED", "VETOED"):
+            db.upsert_cast(conn, pid, state="skipped")
+            telegram.send_message(f"⏹ prop {pid} was {current['status'].lower()} — cast cancelled, nothing to do")
+            continue
         end = int(prop["endBlock"])
         if head > end:
             db.upsert_cast(conn, pid, state="missed")
@@ -255,6 +351,7 @@ def main() -> None:
             head = subgraph.current_block()
             if time.time() - last_ingest >= INGEST_INTERVAL_SECONDS:
                 ingest_and_evaluate(client, conn, head)
+                ingest_candidates(client, conn)
                 last_ingest = time.time()
             handle_commands(conn)
             check_schedule(conn, head)

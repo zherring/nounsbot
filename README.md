@@ -14,8 +14,8 @@ their own.
 
 ```
 Railway loop (bot/poller.py)
- ├── every 120s ── subgraph ingest → new/edited props → evaluate → Telegram card
- │                 (spend-guarded: ≤3 evals/prop/day, ≤20/day global)
+ ├── every 120s ── subgraph ingest → new/edited props AND candidates →
+ │                 evaluate → Telegram card (spend-guarded: ≤3/prop/day, ≤20/day)
  ├── every 120s ── Telegram commands: /status /hold /release /override /cast
  ├── every 120s ── cast scheduler: auto-fire unflagged verdicts at 65% of the
  │                 voting window, ≥24h after the verdict; flagged props NEVER
@@ -48,6 +48,7 @@ cast time. Commands:
 | `/release <id>` | back on schedule |
 | `/override <id> <for\|against\|abstain> <reason>` | replace the verdict; reason mandatory + logged |
 | `/cast <id>` | cast now — also the explicit ratify for ⚑flagged props |
+| `/sponsor c<num>` | sign EIP-712 sponsorship for a candidate with our delegated weight (from its 🌿 card; never automatic) |
 
 **Never run `python -m bot.poller` locally while Railway is live** — two loops
 fight over the Telegram update queue.
