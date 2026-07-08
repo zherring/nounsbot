@@ -80,6 +80,18 @@ DATA_CONTRACT = Web3.to_checksum_address("0xf790A5f59678dd733fb3De93493A91f472ca
 
 DATA_ABI = [
     {
+        "name": "sendCandidateFeedback",
+        "type": "function",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {"name": "proposer", "type": "address"},
+            {"name": "slug", "type": "string"},
+            {"name": "support", "type": "uint8"},
+            {"name": "reason", "type": "string"},
+        ],
+        "outputs": [],
+    },
+    {
         "name": "addSignature",
         "type": "function",
         "stateMutability": "nonpayable",

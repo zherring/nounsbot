@@ -181,10 +181,15 @@ CREATE TABLE IF NOT EXISTS candidates (
 
 def migrate(conn) -> None:
     conn.executescript(CANDIDATE_SCHEMA)
-    try:
-        conn.execute("ALTER TABLE verdicts ADD COLUMN suggestions TEXT")
-    except Exception:
-        pass  # column already exists
+    for ddl in (
+        "ALTER TABLE verdicts ADD COLUMN suggestions TEXT",
+        "ALTER TABLE candidates ADD COLUMN signal_tx TEXT",
+        "ALTER TABLE candidates ADD COLUMN signal_stance TEXT",
+    ):
+        try:
+            conn.execute(ddl)
+        except Exception:
+            pass  # column already exists
     conn.commit()
 
 

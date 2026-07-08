@@ -104,11 +104,13 @@ def candidate_card(num, cand, verdict, sig_count) -> str:
     content = cand["latestVersion"]["content"]
     flags = f"\n⚑ {', '.join(verdict.flags)}" if verdict.flags else ""
     if verdict.vote == "FOR" and not verdict.requires_human_review:
-        action = f"🌱 SPONSOR-WORTHY — /sponsor c{num} to sign with our delegated weight"
+        action = (f"🌱 SPONSOR-WORTHY — /sponsor c{num} to sign toward the ballot, "
+                  f"or /signal c{num} to voice support without sponsoring")
     elif verdict.vote == "FOR":
-        action = f"🌱 leans sponsor-worthy but ⚑flagged — review, then /sponsor c{num} if you agree"
+        action = (f"🌱 leans sponsor-worthy but ⚑flagged — /sponsor c{num} if you agree, "
+                  f"or /signal c{num} for support-with-reservations (reasoning + suggestions go onchain)")
     else:
-        action = "not sponsor-worthy under the constitution (no action needed)"
+        action = f"not sponsor-worthy — /signal c{num} against puts the reasoning on the record (optional)"
     return (
         f"🌿 Candidate c{num}: {content.get('title') or cand['slug']}\n"
         f"by {cand['proposer'][:10]}… · {sig_count} sponsor sig(s) so far\n"
@@ -195,6 +197,37 @@ def handle_commands(conn) -> None:
 
 
 def run_command(conn, cmd: str, args: list[str]) -> str:
+    if cmd == "signal":
+        # /signal c<num> [for|against|abstain] [custom reason...]
+        if not args or not args[0].lstrip("c").isdigit():
+            return "usage: /signal c<num> [for|against|abstain] [reason — defaults to the verdict's]"
+        row = db.get_candidate_by_num(conn, int(args[0].lstrip("c")))
+        if not row:
+            return f"candidate {args[0]}: unknown"
+        if row["signal_tx"]:
+            return f"candidate c{row['num']} already signaled {row['signal_stance']} ({row['signal_tx']})"
+        from .executor import signal_candidate
+
+        v = json.loads(row["verdict_json"] or "{}")
+        stance = v.get("vote", "ABSTAIN")
+        rest = args[1:]
+        if rest and rest[0].lower() in VOTES:
+            stance = VOTES[rest[0].lower()]
+            rest = rest[1:]
+        if rest:
+            reason = " ".join(rest)
+        else:
+            reason = v.get("reason", "")
+            if v.get("suggestions"):
+                reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+        fresh = [c for c in subgraph.fetch_candidates(first=20) if c["id"] == row["cand_id"]]
+        if not fresh:
+            return f"candidate c{row['num']} no longer open (canceled or promoted)"
+        tx = signal_candidate(fresh[0], stance, reason + SIGNOFF)
+        db.upsert_candidate(conn, row["cand_id"], signal_tx=tx, signal_stance=stance)
+        return (f"📣 signaled {stance} on candidate c{row['num']} with reasoning "
+                f"(feedback, not sponsorship)\ntx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}")
+
     if cmd == "sponsor":
         if not args or not args[0].lstrip("c").isdigit():
             return "usage: /sponsor c<num> (from the candidate card)"
@@ -265,7 +298,7 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             return f"prop {pid} overridden to {vote} — reason logged, casts on schedule."
         if cmd == "cast":
             return do_cast(conn, pid, forced=True)
-    return f"unknown command /{cmd} — try /status /hold /release /override /cast /sponsor"
+    return f"unknown command /{cmd} — try /status /hold /release /override /cast /sponsor /signal"
 
 
 def do_cast(conn, pid: int, forced: bool = False) -> str:

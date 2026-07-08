@@ -84,3 +84,34 @@ def sponsor_candidate(cand: dict, reason: str) -> str:
     if receipt["status"] != 1:
         raise RuntimeError(f"sponsorship tx reverted: {tx_hash.hex()}")
     return tx_hash.hex()
+
+
+def signal_candidate(cand: dict, support: str, reason: str) -> str:
+    """Onchain feedback on a candidate (CandidateFeedbackSent) — voice + reasoning
+    with our delegated weight behind it, WITHOUT sponsoring toward the ballot.
+    Plain transaction, no EIP-712; gas is not refunded (feedback isn't a vote)."""
+    key = os.environ.get("BOT_PRIVATE_KEY")
+    if not key:
+        raise RuntimeError("BOT_PRIVATE_KEY not set — paper mode")
+    account = Account.from_key(key)
+    web3 = chain.w3()
+
+    fn = chain.data_contract(web3).functions.sendCandidateFeedback(
+        Web3.to_checksum_address(cand["proposer"]), cand["slug"], chain.SUPPORT[support], reason
+    )
+    fn.call({"from": account.address})  # simulate first
+
+    latest = web3.eth.get_block("latest")
+    tx = fn.build_transaction({
+        "from": account.address,
+        "nonce": web3.eth.get_transaction_count(account.address),
+        "maxFeePerGas": latest["baseFeePerGas"] * 2 + web3.to_wei(1, "gwei"),
+        "maxPriorityFeePerGas": web3.to_wei(1, "gwei"),
+        "chainId": 1,
+    })
+    signed = account.sign_transaction(tx)
+    tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction)
+    receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=180)
+    if receipt["status"] != 1:
+        raise RuntimeError(f"feedback tx reverted: {tx_hash.hex()}")
+    return tx_hash.hex()

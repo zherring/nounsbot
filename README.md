@@ -49,6 +49,7 @@ cast time. Commands:
 | `/override <id> <for\|against\|abstain> <reason>` | replace the verdict; reason mandatory + logged |
 | `/cast <id>` | cast now — also the explicit ratify for ⚑flagged props |
 | `/sponsor c<num>` | sign EIP-712 sponsorship for a candidate with our delegated weight (from its 🌿 card; never automatic) |
+| `/signal c<num> [stance] [reason]` | onchain candidate feedback with reasoning — support without sponsoring (defaults to the verdict's stance + reason) |
 
 **Never run `python -m bot.poller` locally while Railway is live** — two loops
 fight over the Telegram update queue.
