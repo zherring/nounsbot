@@ -67,12 +67,17 @@ def ingest_candidates(client, conn) -> None:
     """Evaluate open candidates. FOR = sponsor-worthy; sponsorship is NEVER
     automatic — /sponsor c<num> signs and registers it."""
     rev = db.constitution_rev()
+    fp = db.constitution_fingerprint()
     for cand in subgraph.fetch_candidates(first=10):
         cand_id = cand["id"]
         chash = subgraph.candidate_content_hash(cand)
         existing = db.get_candidate(conn, cand_id)
-        if existing and existing["content_hash"] == chash and existing["constitution_rev"] == rev:
-            continue  # already judged this exact content under this constitution
+        acted = existing and (existing["sponsor_state"] == "sponsored" or existing["signal_tx"])
+        edited = existing and existing["content_hash"] != chash
+        if acted and not edited:
+            continue  # you've already acted onchain; nothing a re-verdict could change
+        if existing and existing["content_hash"] == chash and existing["constitution_rev"] == fp:
+            continue  # same content, same constitution — already judged
         if evals_last_24h(conn) >= MAX_EVALS_PER_DAY:
             spend_guard_alert(conn, "guard_global",
                 f"🛑 daily evaluation budget ({MAX_EVALS_PER_DAY}) exhausted — candidates queue until tomorrow")
@@ -83,9 +88,8 @@ def ingest_candidates(client, conn) -> None:
         verdict, usage = evaluate(client, as_prop, candidate=True)
         # candidate evals count against the daily budget via a synthetic verdict row
         db.save_verdict(conn, -1, chash, rev, ANTHROPIC_MODEL, verdict, usage)
-        row = db.upsert_candidate(
-            conn, cand_id,
-            title=as_prop["title"][:120], content_hash=chash, constitution_rev=rev,
+        fields = dict(
+            title=as_prop["title"][:120], content_hash=chash, constitution_rev=fp,
             verdict_json=json.dumps({
                 "vote": verdict.vote, "confidence": verdict.confidence,
                 "clauses": verdict.clauses_cited, "reason": verdict.reason,
@@ -94,8 +98,19 @@ def ingest_candidates(client, conn) -> None:
             }),
             raw=json.dumps(cand),
         )
+        prefix = ""
+        if acted and edited:
+            # edits void a sponsorship signature; feedback can be re-sent
+            if existing["sponsor_state"] == "sponsored":
+                fields["sponsor_state"] = "none"
+                prefix = "⚠️ EDITED after you sponsored — your signature is now VOID. Fresh verdict below:\n"
+            else:
+                prefix = "⚠️ EDITED after you signaled — re-evaluated:\n"
+            fields["signal_tx"] = None
+            fields["signal_stance"] = None
+        row = db.upsert_candidate(conn, cand_id, **fields)
         sigs = [s for s in cand["latestVersion"]["content"]["contentSignatures"] if not s["canceled"]]
-        card = candidate_card(row["num"], cand, verdict, len(sigs))
+        card = prefix + candidate_card(row["num"], cand, verdict, len(sigs))
         print("\n" + card + "\n")
         telegram.send_message(card)
 
@@ -137,6 +152,7 @@ def verdict_card(prop, outcome, verdict, cast_target_block, head):
 
 def ingest_and_evaluate(client, conn, head: int) -> None:
     rev = db.constitution_rev()
+    fp = db.constitution_fingerprint()
     for prop in subgraph.fetch_proposals(first=15):
         outcome = subgraph.derive_outcome(prop, head)
         pid = int(prop["id"])
@@ -147,8 +163,11 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
         db.upsert_proposal(conn, prop, chash, outcome)
         if outcome not in {"PENDING", "VOTING"}:
             continue
-        if db.get_verdict(conn, pid, chash, rev, ANTHROPIC_MODEL):
+        if db.get_verdict(conn, pid, chash, fp, ANTHROPIC_MODEL):
             continue
+        cast_row = db.get_cast(conn, pid)
+        if cast_row and cast_row["state"] == "cast" and not edited:
+            continue  # vote is spent — a new constitution can't change it, don't re-ping
 
         # spend guards: edit-spam and global runaway protection
         if evals_last_24h(conn, pid) >= MAX_EVALS_PER_PROP_PER_DAY:

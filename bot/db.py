@@ -68,6 +68,17 @@ def connect() -> sqlite3.Connection:
     return conn
 
 
+def constitution_fingerprint() -> str:
+    """Hash of the constitution's CONTENT — the evaluation cache key. The git rev
+    changes on every deploy; the constitution doesn't. Re-judging should only
+    happen when the document itself changes."""
+    import hashlib
+
+    from .config import CONSTITUTION_PATH
+
+    return hashlib.sha256(CONSTITUTION_PATH.read_bytes()).hexdigest()[:12]
+
+
 def constitution_rev() -> str:
     """Verdicts cite the constitution version they were evaluated under (Art. VI.2).
     On Railway there is no .git — the platform injects the commit SHA instead."""
@@ -130,10 +141,11 @@ def upsert_cast(conn, prop_id: int, **fields) -> None:
     conn.commit()
 
 
-def get_verdict(conn: sqlite3.Connection, prop_id: int, chash: str, rev: str, model: str):
+def get_verdict(conn: sqlite3.Connection, prop_id: int, chash: str, fp: str, model: str):
+    """Cache hit = same prop content judged under the same constitution CONTENT."""
     return conn.execute(
-        "SELECT * FROM verdicts WHERE prop_id=? AND content_hash=? AND constitution_rev=? AND model=?",
-        (prop_id, chash, rev, model),
+        "SELECT * FROM verdicts WHERE prop_id=? AND content_hash=? AND constitution_fp=? AND model=?",
+        (prop_id, chash, fp, model),
     ).fetchone()
 
 
@@ -141,8 +153,9 @@ def save_verdict(conn, prop_id: int, chash: str, rev: str, model: str, verdict, 
     conn.execute(
         """INSERT OR IGNORE INTO verdicts
            (prop_id, content_hash, constitution_rev, model, vote, confidence, clauses, reason,
-            flags, requires_human_review, input_tokens, output_tokens, created_at, suggestions)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            flags, requires_human_review, input_tokens, output_tokens, created_at, suggestions,
+            constitution_fp)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             prop_id,
             chash,
@@ -158,6 +171,7 @@ def save_verdict(conn, prop_id: int, chash: str, rev: str, model: str, verdict, 
             usage.output_tokens if usage else None,
             datetime.now(timezone.utc).isoformat(),
             json.dumps(getattr(verdict, "suggestions", []) or []),
+            constitution_fingerprint(),
         ),
     )
     conn.commit()
@@ -185,11 +199,18 @@ def migrate(conn) -> None:
         "ALTER TABLE verdicts ADD COLUMN suggestions TEXT",
         "ALTER TABLE candidates ADD COLUMN signal_tx TEXT",
         "ALTER TABLE candidates ADD COLUMN signal_stance TEXT",
+        "ALTER TABLE verdicts ADD COLUMN constitution_fp TEXT",
     ):
         try:
             conn.execute(ddl)
         except Exception:
             pass  # column already exists
+    # backfill: rows predating the fp column key on the current constitution —
+    # correct for all current-era rows, irrelevant for finalized history
+    conn.execute(
+        "UPDATE verdicts SET constitution_fp=? WHERE constitution_fp IS NULL",
+        (constitution_fingerprint(),),
+    )
     conn.commit()
 
 
