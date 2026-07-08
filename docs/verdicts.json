@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-08T15:34:35+00:00",
+ "generated_at": "2026-07-08T16:35:07+00:00",
  "verdicts": [
   {
    "prop_id": 983,
@@ -10,14 +10,14 @@
     "I.1",
     "I.3"
    ],
-   "reason": "This adds a new CC0 accessory trait to the Nouns art commons, directly proliferating Nouns culture with a signed art contribution agreement waiving copyright. It is a cheap, reversible artwork contribution with no treasury spend, squarely within Article I.1 and I.3.",
+   "reason": "This proposal adds a new CC0 accessory trait (Messi) to the Nouns art repository via addAccessories, funding creation that spreads Nouns culture at zero treasury cost. It's a cheap, reversible art contribution with a signed Nouns Art Contribution Agreement, squarely within Article I.1 and the benefit-of-the-doubt posture of I.3.",
    "flags": [],
-   "constitution_rev": "ed96c71",
+   "constitution_rev": "0ce4491",
    "outcome": "VOTING",
    "status": "scheduled",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-08T15:32:00.889575+00:00",
+   "evaluated_at": "2026-07-08T16:33:12.454387+00:00",
    "history": [
     {
      "vote": "FOR",
@@ -62,6 +62,28 @@
      "reason": "This proposal adds a new CC0 accessory trait (Messi) to the Nouns art repository, directly proliferating Nouns artwork and the CC0 commons at zero treasury cost. It falls squarely under Article I.1 as mission spending well below the cap, and Article I.3's benefit-of-the-doubt for cheap, reversible contributions. The onchain action (addAccessories) matches the stated purpose of adding a trait.",
      "constitution_rev": "7f1af84",
      "evaluated_at": "2026-07-06T18:07:41.934333+00:00"
+    },
+    {
+     "vote": "FOR",
+     "confidence": 0.9,
+     "clauses": [
+      "I.1",
+      "I.3"
+     ],
+     "reason": "This adds a new CC0 accessory trait to the Nouns art commons, directly proliferating Nouns culture with a signed art contribution agreement waiving copyright. It is a cheap, reversible artwork contribution with no treasury spend, squarely within Article I.1 and I.3.",
+     "constitution_rev": "ed96c71",
+     "evaluated_at": "2026-07-08T15:32:00.889575+00:00"
+    },
+    {
+     "vote": "FOR",
+     "confidence": 0.9,
+     "clauses": [
+      "I.1",
+      "I.3"
+     ],
+     "reason": "This adds a new CC0 accessory trait (Messi) to the Nouns art pipeline with a signed art contribution agreement \u2014 creative work that proliferates Nouns culture at zero treasury cost. It is a cheap, reversible contribution that clearly fits Article I.1 and I.3, and calldata (addAccessories) matches the described artwork addition.",
+     "constitution_rev": "d754b8c",
+     "evaluated_at": "2026-07-08T16:31:51.913753+00:00"
     }
    ]
   },
@@ -69,21 +91,22 @@
    "prop_id": 982,
    "title": "Delegate Treasury Nouns to Nouncil.eth",
    "vote": "AGAINST",
-   "confidence": 0.6,
+   "confidence": 0.55,
    "clauses": [
     "II.1",
-    "II.4"
+    "II.4",
+    "II.2"
    ],
-   "reason": "The calldata is a delegate(address) call on the Nouns token contract, handing the treasury's voting power to an external body (Nouncil). This is a governance/control change touching who directs the DAO's own Nouns \u2014 structural under Article II.1, where the default is AGAINST absent extraordinary justification. While Nouncil is described as an open body (a II.4 widening argument exists), routing treasury voting power to a single external group concentrates control of those votes and requires deliberate human review.\n\n[ suggestions ]\n- Provide explicit justification and safeguards (e.g., revocability, term limits) for delegating treasury voting power.\n- Clarify how delegating to Nouncil widens rather than concentrates governance control to satisfy the II.4 direction test.",
+   "reason": "The calldata calls delegate() on the Nouns token, redirecting the treasury's substantial voting power to a single external body (Nouncil.eth). Concentrating the treasury's votes into one group is a change to governance control and is structural under Article II.1, which defaults AGAINST absent extraordinary justification. While Nouncil is described as an open body \u2014 a II.4 widening argument \u2014 delegating the treasury's bloc still concentrates decisive control and is not auto-ratifiable per II.2; this is escalated to human review.\n\n[ suggestions ]\n- Justify explicitly why delegating the treasury's voting bloc widens rather than concentrates control, with safeguards against capture.\n- Consider a revocable/time-bounded delegation so the treasury retains the ability to reclaim its votes.",
    "flags": [
     "structural"
    ],
-   "constitution_rev": "ed96c71",
+   "constitution_rev": "0ce4491",
    "outcome": "VOTING",
    "status": "cast",
    "tx_hash": "1897d29200a6837bf91837eebd7279a3cbc34ee89fc49d92d94a2f7aa563d52d",
    "overridden": false,
-   "evaluated_at": "2026-07-08T15:32:16.450829+00:00",
+   "evaluated_at": "2026-07-08T16:33:30.682136+00:00",
    "history": [
     {
      "vote": "AGAINST",
@@ -132,6 +155,29 @@
      "reason": "The calldata (delegate(address) to 0xcc26...) redirects the voting power of the DAO's treasury Nouns to an external body, Nouncil.eth. This alters who controls treasury governance weight and concentrates that control in a self-selected 31-member group, triggering Article II's structural default AGAINST and Article III.2's concern about control concentration. While Nouncil is nominally open, handing treasury voting power to any external body absent explicit extraordinary justification defaults against and requires human review.",
      "constitution_rev": "7f1af84",
      "evaluated_at": "2026-07-06T18:07:57.129500+00:00"
+    },
+    {
+     "vote": "AGAINST",
+     "confidence": 0.6,
+     "clauses": [
+      "II.1",
+      "II.4"
+     ],
+     "reason": "The calldata is a delegate(address) call on the Nouns token contract, handing the treasury's voting power to an external body (Nouncil). This is a governance/control change touching who directs the DAO's own Nouns \u2014 structural under Article II.1, where the default is AGAINST absent extraordinary justification. While Nouncil is described as an open body (a II.4 widening argument exists), routing treasury voting power to a single external group concentrates control of those votes and requires deliberate human review.",
+     "constitution_rev": "ed96c71",
+     "evaluated_at": "2026-07-08T15:32:16.450829+00:00"
+    },
+    {
+     "vote": "AGAINST",
+     "confidence": 0.6,
+     "clauses": [
+      "II.1",
+      "II.3",
+      "III.2"
+     ],
+     "reason": "The calldata is a delegate() call (0x5c19a95c) that redirects the treasury's Nouns voting power to a single external address (Nouncil.eth). This is a change to governance control mechanics \u2014 concentrating the treasury's substantial voting weight in one delegate \u2014 which is structural under Article II.1 and defaults AGAINST absent extraordinary justification. While Nouncil presents as an open, one-member-one-vote body (a II.4 widening argument), the onchain effect is to route large treasury voting weight through a single entity, and this class of proposal is never auto-ratified.",
+     "constitution_rev": "d754b8c",
+     "evaluated_at": "2026-07-08T16:32:11.492058+00:00"
     }
    ]
   },
