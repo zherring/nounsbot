@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-08T16:35:07+00:00",
+ "generated_at": "2026-07-09T16:35:03+00:00",
  "verdicts": [
   {
    "prop_id": 983,
@@ -14,8 +14,8 @@
    "flags": [],
    "constitution_rev": "0ce4491",
    "outcome": "VOTING",
-   "status": "scheduled",
-   "tx_hash": null,
+   "status": "cast",
+   "tx_hash": "418c8f1b144a6ccf0378862617d5f226ecf0d53bc75e1217247e07673f7e7c75",
    "overridden": false,
    "evaluated_at": "2026-07-08T16:33:12.454387+00:00",
    "history": [
