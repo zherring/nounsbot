@@ -27,7 +27,7 @@ def main() -> None:
     print()
     print("Next steps:")
     print(f"  1. Send ~0.02 ETH to {account.address} (gas float; votes are refunded)")
-    print(f"  2. Delegate your Noun to {account.address} (nouns.wtf -> your noun -> delegate)")
+    print(f"  2. Delegate your Noun to {account.address} (nouns.camp -> your noun -> delegate)")
     print(f"  3. Set DELEGATE_ADDRESS in docs/hero.js to {account.address.lower()}")
     print("  4. Add BOT_PRIVATE_KEY to the Railway env when deploying")
 

@@ -83,7 +83,7 @@ const MAX_SIDE = 4; // side-column cards before the +N overflow kicks in
 function makeCard(noun, cls, rot) {
   const a = document.createElement("a");
   a.className = `noun-card ${cls}`;
-  a.href = `https://nouns.wtf/noun/${noun.id}`;
+  a.href = `https://www.nouns.camp/nouns/${noun.id}`;
   a.dataset.label = noun.owner
     ? `Noun ${noun.id} — delegated by ${short(noun.owner)}`
     : `Noun ${noun.id}`;

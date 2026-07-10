@@ -44,7 +44,7 @@ async function loadRecord() {
       ? `Full rationale + ${historyCount} earlier verdict${historyCount > 1 ? "s" : ""} →`
       : "Full rationale →";
     tr.innerHTML = `
-      <td><a href="https://nouns.wtf/vote/${v.prop_id}">${v.prop_id}</a><br>
+      <td><a href="https://www.nouns.camp/proposals/${v.prop_id}">${v.prop_id}</a><br>
           <span class="muted" style="font-size:0.85rem">${esc(v.title || "")}</span></td>
       <td><span class="pill ${pill}">${v.vote}</span><br>
           <span class="muted" style="font-size:0.8rem">${status} · ${ver}${tx}${override}</span></td>
@@ -92,7 +92,7 @@ function renderCandidates(cands) {
     const tr = document.createElement("tr");
     const flags = c.flags?.length ? ` ⚑ ${c.flags.join(", ")}` : "";
     tr.innerHTML = `
-      <td><a href="https://nouns.wtf/candidates/${encodeURIComponent(c.cand_id)}">c${c.num}</a><br>
+      <td><a href="https://www.nouns.camp/candidates/${encodeURIComponent(c.cand_id)}">c${c.num}</a><br>
           <span class="muted" style="font-size:0.85rem">${esc(c.title || "")}</span></td>
       <td><span class="pill ${pillClass(c.vote)}">${esc(c.vote || "")}</span><br>
           <span class="muted" style="font-size:0.8rem">${c.vote === "FOR" ? "sponsor-worthy" : "not sponsor-worthy"}</span></td>
@@ -191,7 +191,7 @@ function openVerdictModal(v) {
 
   overlay.querySelector("#verdict-modal-title").textContent = `Prop ${v.prop_id} — ${v.title || ""}`;
   overlay.querySelector(".modal-meta").innerHTML =
-    `<a href="https://nouns.wtf/vote/${v.prop_id}" target="_blank" rel="noopener">View on nouns.wtf ↗</a> · ` +
+    `<a href="https://www.nouns.camp/proposals/${v.prop_id}" target="_blank" rel="noopener">View on nouns.camp ↗</a> · ` +
     `<span class="pill ${pillClass(v.vote)}">${esc(v.vote || "")}</span> · clauses ${esc(clauses)} · ` +
     `${status} · rev ${esc(ver)}${confidence}${tx}${override} · ${esc(v.outcome || "")}${flags}`;
   overlay.querySelector(".modal-reason").textContent = v.reason || "";
@@ -232,7 +232,7 @@ function openCandidateModal(c) {
 
   overlay.querySelector("#verdict-modal-title").textContent = `Candidate c${c.num} — ${c.title || ""}`;
   overlay.querySelector(".modal-meta").innerHTML =
-    `<a href="https://nouns.wtf/candidates/${encodeURIComponent(c.cand_id)}" target="_blank" rel="noopener">View on nouns.wtf ↗</a> · ` +
+    `<a href="https://www.nouns.camp/candidates/${encodeURIComponent(c.cand_id)}" target="_blank" rel="noopener">View on nouns.camp ↗</a> · ` +
     `<span class="pill ${pillClass(c.vote)}">${esc(c.vote || "")}</span> · clauses ${esc(clauses)}` +
     `${confidence} · ${candAction(c)}${flags}`;
   overlay.querySelector(".modal-reason").textContent = c.reason || "";
