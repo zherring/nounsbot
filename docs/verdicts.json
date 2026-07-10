@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-10T15:35:54+00:00",
+ "generated_at": "2026-07-10T15:58:15+00:00",
  "verdicts": [
   {
    "prop_id": 983,
@@ -1011,9 +1011,9 @@
    ],
    "sponsor_state": "none",
    "sponsor_tx": null,
-   "signal_stance": null,
-   "signal_tx": null,
-   "evaluated_at": "2026-07-09T15:32:40.999976+00:00"
+   "signal_stance": "AGAINST",
+   "signal_tx": "84571d3d76013a92bf7b4ebec7759422db47ba5c2fbcb38278228ee99e3ea4d5",
+   "evaluated_at": "2026-07-10T15:58:14.721275+00:00"
   },
   {
    "num": 7,
