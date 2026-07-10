@@ -83,9 +83,43 @@ def build_payload(conn) -> dict:
             }
         )
 
+    # candidates: proposals-in-waiting the agent has judged. FOR = sponsor-worthy;
+    # the Action column shows what actually happened onchain (sponsor/signal txs).
+    candidates = []
+    for r in conn.execute(
+        """SELECT num, cand_id, title, sponsor_state, sig_tx, signal_tx, signal_stance,
+                  verdict_json, updated_at
+           FROM candidates ORDER BY num DESC"""
+    ):
+        try:
+            v = json.loads(r["verdict_json"] or "{}")
+        except ValueError:
+            v = {}
+        reason = v.get("reason") or ""
+        if v.get("suggestions"):
+            reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+        candidates.append(
+            {
+                "num": r["num"],
+                "cand_id": r["cand_id"],
+                "title": r["title"],
+                "vote": v.get("vote"),
+                "confidence": v.get("confidence"),
+                "clauses": v.get("clauses", []),
+                "reason": reason,
+                "flags": v.get("flags", []),
+                "sponsor_state": r["sponsor_state"],
+                "sponsor_tx": r["sig_tx"],
+                "signal_stance": r["signal_stance"],
+                "signal_tx": r["signal_tx"],
+                "evaluated_at": r["updated_at"],
+            }
+        )
+
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "verdicts": verdicts,
+        "candidates": candidates,
     }
 
 

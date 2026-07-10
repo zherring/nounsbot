@@ -266,6 +266,28 @@ p + p { margin-top: 0.9rem; }
   white-space: nowrap;
 }
 
+/* ---- record tabs ---- */
+.record-tabs { display: flex; gap: 0.5rem; margin-top: 1.5rem; }
+.record-tab {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--gray-border);
+  background: #fff;
+  color: var(--gray-light);
+  cursor: pointer;
+}
+.record-tab:hover { color: var(--black); }
+.record-tab.active {
+  background: var(--gray-dark);
+  border-color: var(--gray-dark);
+  color: #fff;
+}
+
 /* ---- tables ---- */
 .table-wrap { overflow-x: auto; margin-top: 1.25rem; }
 table {

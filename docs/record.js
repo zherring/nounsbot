@@ -57,12 +57,68 @@ async function loadRecord() {
     tr.querySelector(".reason-toggle").addEventListener("click", () => openVerdictModal(v));
     tbody.appendChild(tr);
   }
+  renderCandidates(data.candidates || []);
+
   const note = document.getElementById("record-note");
   if (note) {
     note.textContent =
       `Every verdict publishes here — vote, clauses cited, overrides with reasons. ` +
       `Append-only. Updated ${new Date(data.generated_at).toLocaleString()}.`;
   }
+}
+
+function txLink(hash) {
+  return hash
+    ? ` · <a href="https://etherscan.io/tx/0x${hash.replace(/^0x/, "")}">tx</a>`
+    : "";
+}
+
+// What the agent actually DID about a candidate — sponsoring and signaling
+// are onchain acts, everything else is a verdict awaiting a human.
+function candAction(c) {
+  if (c.sponsor_state === "sponsored") return `🌱 sponsored${txLink(c.sponsor_tx)}`;
+  if (c.signal_tx) return `📣 signaled ${c.signal_stance || ""}${txLink(c.signal_tx)}`;
+  if (c.vote === "FOR") return "🌱 sponsor-worthy — awaiting human sign-off";
+  return "👀 watching";
+}
+
+function renderCandidates(cands) {
+  const tab = document.getElementById("cand-tab");
+  if (tab && cands.length) tab.textContent = `Candidates (${cands.length})`;
+  const tbody = document.getElementById("cand-body");
+  if (!tbody || !cands.length) return;
+  tbody.innerHTML = "";
+  for (const c of cands) {
+    const tr = document.createElement("tr");
+    const flags = c.flags?.length ? ` ⚑ ${c.flags.join(", ")}` : "";
+    tr.innerHTML = `
+      <td><a href="https://nouns.wtf/candidates/${encodeURIComponent(c.cand_id)}">c${c.num}</a><br>
+          <span class="muted" style="font-size:0.85rem">${esc(c.title || "")}</span></td>
+      <td><span class="pill ${pillClass(c.vote)}">${esc(c.vote || "")}</span><br>
+          <span class="muted" style="font-size:0.8rem">${c.vote === "FOR" ? "sponsor-worthy" : "not sponsor-worthy"}</span></td>
+      <td>${(c.clauses || []).join(", ")}</td>
+      <td class="reason-cell" style="max-width:26rem">
+        <span class="reason-text">${esc(c.reason || "")}<span class="muted">${esc(flags)}</span></span>
+        <button type="button" class="reason-toggle">Full rationale →</button>
+      </td>
+      <td>${candAction(c)}</td>`;
+    tr.querySelector(".reason-toggle").addEventListener("click", () => openCandidateModal(c));
+    tbody.appendChild(tr);
+  }
+}
+
+function initRecordTabs() {
+  const tabs = document.querySelectorAll(".record-tab");
+  if (!tabs.length) return;
+  tabs.forEach((btn) =>
+    btn.addEventListener("click", () => {
+      tabs.forEach((b) => b.classList.toggle("active", b === btn));
+      const props = document.getElementById("tab-props");
+      const cands = document.getElementById("tab-cands");
+      if (props) props.hidden = btn.dataset.tab !== "props";
+      if (cands) cands.hidden = btn.dataset.tab !== "cands";
+    })
+  );
 }
 
 function pillClass(vote) {
@@ -168,6 +224,27 @@ function openVerdictModal(v) {
   overlay.querySelector(".modal-close").focus();
 }
 
+function openCandidateModal(c) {
+  const overlay = ensureModal();
+  const clauses = (c.clauses || []).join(", ") || "—";
+  const confidence = c.confidence != null ? ` · confidence ${c.confidence.toFixed(2)}` : "";
+  const flags = c.flags?.length ? ` · ⚑ ${esc(c.flags.join(", "))}` : "";
+
+  overlay.querySelector("#verdict-modal-title").textContent = `Candidate c${c.num} — ${c.title || ""}`;
+  overlay.querySelector(".modal-meta").innerHTML =
+    `<a href="https://nouns.wtf/candidates/${encodeURIComponent(c.cand_id)}" target="_blank" rel="noopener">View on nouns.wtf ↗</a> · ` +
+    `<span class="pill ${pillClass(c.vote)}">${esc(c.vote || "")}</span> · clauses ${esc(clauses)}` +
+    `${confidence} · ${candAction(c)}${flags}`;
+  overlay.querySelector(".modal-reason").textContent = c.reason || "";
+
+  overlay.querySelector(".modal-history-list").innerHTML = "";
+  overlay.querySelector(".modal-history").hidden = true;
+
+  overlay.hidden = false;
+  document.body.style.overflow = "hidden";
+  overlay.querySelector(".modal-close").focus();
+}
+
 function closeVerdictModal() {
   const overlay = document.getElementById("verdict-modal");
   if (!overlay) return;
@@ -181,4 +258,5 @@ function esc(s) {
   return d.innerHTML;
 }
 
+initRecordTabs();
 loadRecord();

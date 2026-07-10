@@ -37,7 +37,7 @@
         </p>
         <div class="btn-row">
           <a class="btn btn-dark btn-delegate" href="#">Delegate your Noun</a>
-          <a class="btn btn-outline" href="constitution.html">Read the constitution</a>
+          <a class="btn btn-outline" href="https://github.com/zherring/nounsbot">Fork the agent</a>
         </div>
         <p class="muted" style="margin-top:1rem; font-size:0.9rem;">
           One transaction, no custody, reversible any time.
@@ -109,7 +109,11 @@
       <h2>The record</h2>
       <p class="muted" id="record-note">Every verdict publishes here — vote, clauses cited, overrides
       with reasons. Append-only.</p>
-      <div class="table-wrap">
+      <div class="record-tabs" role="tablist">
+        <button type="button" class="record-tab active" data-tab="props" role="tab">Proposals</button>
+        <button type="button" class="record-tab" data-tab="cands" id="cand-tab" role="tab">Candidates</button>
+      </div>
+      <div class="table-wrap" id="tab-props">
         <table>
           <thead>
             <tr><th>Prop</th><th>Verdict</th><th>Clauses</th><th>Reason</th><th>Outcome</th></tr>
@@ -120,6 +124,22 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <div class="table-wrap" id="tab-cands" hidden>
+        <table>
+          <thead>
+            <tr><th>Candidate</th><th>Verdict</th><th>Clauses</th><th>Reason</th><th>Action</th></tr>
+          </thead>
+          <tbody id="cand-body">
+            <tr>
+              <td class="muted" colspan="5">No open candidates evaluated yet.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="muted" style="margin-top:0.75rem; font-size:0.9rem;">
+          Candidates are proposals-in-waiting. FOR means sponsor-worthy under the
+          constitution — sponsorship itself is never automatic; a human signs.
+        </p>
       </div>
     </div>
   </section>
