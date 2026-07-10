@@ -247,6 +247,53 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         return (f"📣 signaled {stance} on candidate c{row['num']} with reasoning "
                 f"(feedback, not sponsorship)\ntx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}")
 
+    if cmd == "candidates":
+        # /candidates → every candidate we've judged; /candidates c<num> → replay its card
+        if args and args[0].lstrip("c").isdigit():
+            row = db.get_candidate_by_num(conn, int(args[0].lstrip("c")))
+            if not row:
+                return f"candidate {args[0]}: unknown"
+            from types import SimpleNamespace
+
+            cand = json.loads(row["raw"])
+            v = json.loads(row["verdict_json"] or "{}")
+            verdict = SimpleNamespace(
+                vote=v.get("vote", "?"),
+                confidence=v.get("confidence") or 0.0,
+                clauses_cited=v.get("clauses", []),
+                reason=v.get("reason", ""),
+                suggestions=v.get("suggestions", []),
+                flags=v.get("flags", []),
+                requires_human_review=v.get("requires_human_review", False),
+            )
+            sigs = [s for s in cand["latestVersion"]["content"]["contentSignatures"] if not s["canceled"]]
+            card = candidate_card(row["num"], cand, verdict, len(sigs))
+            if row["sponsor_state"] == "sponsored":
+                card += f"\n(already sponsored: {row['sig_tx']})"
+            elif row["signal_tx"]:
+                card += f"\n(already signaled {row['signal_stance']}: {row['signal_tx']})"
+            return card
+        rows = conn.execute("SELECT * FROM candidates ORDER BY num DESC LIMIT 15").fetchall()
+        if not rows:
+            return "no candidates seen yet"
+        open_ids = {c["id"] for c in subgraph.fetch_candidates(first=20)}
+        lines = []
+        for r in rows:
+            v = json.loads(r["verdict_json"] or "{}")
+            conf = f" ({v['confidence']:.2f})" if v.get("confidence") is not None else ""
+            if r["sponsor_state"] == "sponsored":
+                did = "🌱 sponsored"
+            elif r["signal_tx"]:
+                did = f"📣 signaled {r['signal_stance']}"
+            elif r["cand_id"] not in open_ids:
+                did = "closed"
+            else:
+                did = "open"
+            lines.append(f"c{r['num']}: {v.get('vote', '?')}{conf} [{did}] — {(r['title'] or '')[:45]}")
+        return ("\n".join(lines)
+                + "\n\n/candidates c<num> replays the full verdict card · "
+                  "/signal c<num> [for|against|abstain] [reason] · /sponsor c<num>")
+
     if cmd == "sponsor":
         if not args or not args[0].lstrip("c").isdigit():
             return "usage: /sponsor c<num> (from the candidate card)"
@@ -317,7 +364,7 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             return f"prop {pid} overridden to {vote} — reason logged, casts on schedule."
         if cmd == "cast":
             return do_cast(conn, pid, forced=True)
-    return f"unknown command /{cmd} — try /status /hold /release /override /cast /sponsor /signal"
+    return f"unknown command /{cmd} — try /status /candidates /hold /release /override /cast /sponsor /signal"
 
 
 def do_cast(conn, pid: int, forced: bool = False) -> str:
