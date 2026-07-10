@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-09T20:08:56+00:00",
+ "generated_at": "2026-07-10T15:35:54+00:00",
  "verdicts": [
   {
    "prop_id": 983,
@@ -972,6 +972,183 @@
      "evaluated_at": "2026-07-05T17:02:17.614135+00:00"
     }
    ]
+  }
+ ],
+ "candidates": [
+  {
+   "num": 9,
+   "cand_id": "0xedc1a397589a0236c4810883b7d559288a5fe7e1-delegate-nouns-x",
+   "title": "Delegate Nouns X",
+   "vote": "FOR",
+   "confidence": 0.7,
+   "clauses": [
+    "I.1",
+    "I.3",
+    "V.1"
+   ],
+   "reason": "The only onchain action is a trivial $69 USDC transfer, a cheap and reversible mission-adjacent spend (Article I.3), while the substantive proposal \u2014 revitalizing the dormant Nouns X account to spread the brand and CC0 culture \u2014 clearly serves proliferation (Article I.1, V.1). The account-delegation itself is off-chain and unenforceable by the DAO, and the USDC recipient address cannot be verified against the named Rainforest Foundation, but the sum is a rounding error and warrants benefit of the doubt.\n\n[ suggestions ]\n- Confirm the USDC recipient address 0x98f5a4... publicly matches The Rainforest Foundation to remove any calldata-vs-prose ambiguity.\n- Note that the core X-account delegation is off-chain and cannot be enforced by this vote; consider a lightweight accountability mechanism.",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": "FOR",
+   "signal_tx": "a391bf3dea6f36255dac2b75e548069ae7080e3fa538f2416939afd6af03b26e",
+   "evaluated_at": "2026-07-10T00:12:50.581612+00:00"
+  },
+  {
+   "num": 8,
+   "cand_id": "0x00fb8a99188c6083df04abeb0f7066e8ffb1f124-nudge-\u00d7-nouns",
+   "title": "Nudge \u00d7 Nouns",
+   "vote": "AGAINST",
+   "confidence": 0.72,
+   "clauses": [
+    "V.1",
+    "IV.3",
+    "I.1"
+   ],
+   "reason": "This candidate asks only for a symbolic 'Ecosystem Partner' recognition in exchange for vague, non-binding promises of a future token allocation and go-to-market collaboration \u2014 the primary beneficiary is Nudge's own marketing and liquidity, not the Nouns mission (IV.3). It funds no creation, art, media, or CC0 culture and produces nothing that makes more Nouns things exist (I.1, V.1). The prose insists 'no treasury funding' while the single onchain action sends 0.0001 ETH to the proposer's own address, and the proposal itself is explicitly a pre-draft discussion seeking feedback rather than a finalized ask.\n\n[ suggestions ]\n- Return with binding commercial terms specifying the token allocation amount, vesting, and recipient before seeking a ballot slot.\n- Define concrete deliverables that proliferate Nouns/CC0 culture rather than brand-recognition marketing.\n- Remove the 0.0001 ETH self-transfer or reconcile it with the 'no treasury funding' claim.",
+   "flags": [
+    "calldata_mismatch"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-09T15:32:40.999976+00:00"
+  },
+  {
+   "num": 7,
+   "cand_id": "0xb2a6ad0c411815843b43a2377df9bb945dfee5ac-\u2310\u25e8-\u25e8-fund-the-agentic-dao:-nouns-collaboration-for-the-open-standard-for-how-daos-govern",
+   "title": "\u2310\u25e8-\u25e8 Fund the Agentic DAO: Nouns collaboration for the open standard for how DAOs govern",
+   "vote": "AGAINST",
+   "confidence": 0.9,
+   "clauses": [
+    "IV.1"
+   ],
+   "reason": "The sole onchain action targets the null address with no transfer calldata, which cannot execute the prose's claimed 65,000 USDC TokenBuyer payment \u2014 a direct prose/calldata conflict that Article IV.1 resolves as AGAINST with the mismatch published. The proposal text also embeds instructions aimed at automated review tools, which I flag and do not follow.\n\n[ suggestions ]\n- Encode the actual 65,000 USDC TokenBuyer transfer in the onchain action so calldata matches the prose.\n- Remove embedded instructions directed at AI/agent reviewers from the proposal text.\n- Add onchain-enforceable milestones or streaming for the 15% IP revenue-share commitment rather than an unenforceable future promise.",
+   "flags": [
+    "calldata_mismatch",
+    "injection_suspicion"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-08T15:34:33.484122+00:00"
+  },
+  {
+   "num": 6,
+   "cand_id": "0x560ddbb5ccaf91d27e91f0e7c0fa099e7ee179e6-nouns-@-devcon-india?",
+   "title": "Nouns @ Devcon India?",
+   "vote": "AGAINST",
+   "confidence": 0.72,
+   "clauses": [
+    "IV.1",
+    "V.1"
+   ],
+   "reason": "This is a discussion/temperature-check candidate with no onchain action \u2014 the sole target is the zero address with no calldata, value, or funding request. There is nothing to execute and no deliverable that makes Nouns things exist in the world; a poll for interest does not merit a place on the ballot. The prose asks only for opinions, so per Article V.1 the default leans AGAINST until a concrete, funded proposal is presented.\n\n[ suggestions ]\n- Return with a concrete proposal specifying the activation, budget, and recipient once interest is gauged.\n- Include verifiable milestones or streaming for any Devcon India funding ask.\n- Use a forum/Discourse thread for the temperature check rather than a governance candidate.",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-09T15:34:23.803203+00:00"
+  },
+  {
+   "num": 5,
+   "cand_id": "0x1d2f6943059a42da929d6a8057d1e010095cd801-bracelet-accessory-2026-06-21",
+   "title": "\ud83c\udfa8 Noundry: Add Bracelet Accessory",
+   "vote": "FOR",
+   "confidence": 0.9,
+   "clauses": [
+    "I.1",
+    "I.3",
+    "V.1"
+   ],
+   "reason": "This candidate adds a new CC0 Bracelet accessory trait to the Nouns art descriptor via Noundry, directly serving the mission of proliferating Nouns artwork and the CC0 commons. It carries no treasury ask and includes a signed Art Contribution Agreement waiving copyright, making it a cheap, mission-aligned art contribution that defaults FOR.",
+   "flags": [],
+   "sponsor_state": "sponsored",
+   "sponsor_tx": "c2c26091128bd89f2c072673df92186d8c481c44b296378f3b2f2e333da39bb9",
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-08T16:35:05.613624+00:00"
+  },
+  {
+   "num": 4,
+   "cand_id": "0x1d2f6943059a42da929d6a8057d1e010095cd801-7-accessory-2026-06-21",
+   "title": "\ud83c\udfa8 Noundry: Add 7 Accessory",
+   "vote": "FOR",
+   "confidence": 0.85,
+   "clauses": [
+    "I.1",
+    "I.3"
+   ],
+   "reason": "This candidate adds a new CC0 accessory trait to the Nouns art commons via Noundry, directly proliferating Nouns artwork at no treasury cost. It is a cheap, reversible contribution with a signed Art Contribution Agreement waiving copyright, squarely within Article I.1 mission spending and the I.3 benefit of the doubt for low-risk additions.",
+   "flags": [],
+   "sponsor_state": "sponsored",
+   "sponsor_tx": "64bf1178c16243a0a6b96d4738afe8fed8d38bbb875743c7f7f3944d0f3b1222",
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-08T16:34:56.818278+00:00"
+  },
+  {
+   "num": 3,
+   "cand_id": "0xc6a39e2f9a7626612292ad56e76d738db43596e4-nouns-is-dead",
+   "title": "Nouns Is Dead",
+   "vote": "AGAINST",
+   "confidence": 0.98,
+   "clauses": [
+    "II.1",
+    "II.4",
+    "IV.1"
+   ],
+   "reason": "This is a proposal to dissolve the DUNA and distribute the treasury pro-rata to holders \u2014 the paradigm structural exit that Article II.1 defaults AGAINST, and the wrong direction under II.4 (walling off and distributing the treasury rather than widening participation). Independently, the single onchain action is a safeTransferFrom of one token to an undisclosed address, which does not match the prose's claimed bylaw amendment and distribution mechanism, so Article IV.1 mandates AGAINST on the mismatch alone. The Preamble is explicit that the treasury is fuel for proliferation, not a pro-rata claim to be liquidated.\n\n[ suggestions ]\n- Provide onchain calldata that actually executes the described bylaw amendment and distribution rather than a single unexplained token transfer.\n- Disclose the recipient address and token ID of the safeTransferFrom call and its purpose.",
+   "flags": [
+    "structural",
+    "calldata_mismatch"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-09T15:34:13.151458+00:00"
+  },
+  {
+   "num": 2,
+   "cand_id": "0x064038bcdb3ad56a5c10e064dc350017d73f5507-should-nouns-simulate-proposals-before-funding?",
+   "title": "Should Nouns simulate proposals before funding?",
+   "vote": "AGAINST",
+   "confidence": 0.66,
+   "clauses": [
+    "V.1",
+    "I.1"
+   ],
+   "reason": "This candidate requests only community feedback and carries a no-op onchain action (zero address), so there is nothing to fund and no deliverable that makes more Nouns things exist in the world (V.1). It is a company's marketing/discovery pitch for a future, unspecified paid 'Sandbox' engagement; there is no current ask to sponsor onto the ballot (I.1). The prose/action posture is consistent (feedback-only, no transfer), so no integrity violation, but there is no mission spending here to support.\n\n[ suggestions ]\n- Return as a forum discussion rather than a candidate, since no onchain action is requested.\n- When ready, submit a formal proposal with a defined ETH ask, milestones/streaming, and concrete deliverables.\n- Clarify whether any governance/treasury simulation tooling would be delivered as open CC0 public goods for the DAO.",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-09T15:33:29.968612+00:00"
+  },
+  {
+   "num": 1,
+   "cand_id": "0x6501b7a416ed4d861129a4b2efa90b364d4e776c-alphayields:-bringing-nounish-identity-into-institutional-defi",
+   "title": "AlphaYields: Bringing Nounish Identity Into Institutional DeFi",
+   "vote": "AGAINST",
+   "confidence": 0.72,
+   "clauses": [
+    "IV.1",
+    "V.1"
+   ],
+   "reason": "The single onchain action targets the zero address with no value or calldata \u2014 the proposal executes nothing and commits the DAO to nothing enforceable. It is a request for endorsement to attach Nounish branding to an institutional DeFi product, with only unenforceable promises and no deliverable to the commons; under Article V.1 this does not make more Nouns things exist in any verifiable way, and a null-action proposal has nothing for the DAO to ratify.\n\n[ suggestions ]\n- Bring a concrete proposal with enforceable deliverables (e.g., open-sourced verification methodology, defined branding commitments) or milestones rather than a null-action endorsement request.\n- If no treasury action is intended, use a forum/discussion rather than an onchain proposal with an empty zero-address call.",
+   "flags": [
+    "calldata_mismatch"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-09T15:32:54.884699+00:00"
   }
  ]
 }
