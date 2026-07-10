@@ -4,8 +4,6 @@
     "builder": "NIXPACKS",
     "watchPatterns": [
       "bot/**",
-      "docs/**",
-      "!docs/verdicts.json",
       "constitution.md",
       "requirements.txt",
       "railway.json"
