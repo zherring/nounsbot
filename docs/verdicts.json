@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-11T01:51:34+00:00",
+ "generated_at": "2026-07-11T18:43:12+00:00",
  "verdicts": [
   {
    "prop_id": 983,
@@ -975,6 +975,28 @@
   }
  ],
  "candidates": [
+  {
+   "num": 10,
+   "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6---growlympics-noggles-at-the-biggest-tree-planting-day-in-history",
+   "title": "\ud83c\udf33\u2310\u25e8-\u25e8 Growlympics: Noggles at the Biggest Tree Planting Day in History",
+   "vote": "FOR",
+   "confidence": 0.68,
+   "clauses": [
+    "I.1",
+    "I.3",
+    "IV.1"
+   ],
+   "reason": "This is mission spending: ~14,900 USDC (far below the 100 ETH cap) to embed noggles branding \u2014 trophies, mic, app integration, and a Nounish News episode with mint proceeds pledged back to the treasury \u2014 into a large, globally covered climate event. Under Article I.1 and I.3 this is a cheap, proliferation-oriented experiment that defaults FOR. However, the calldata is truncated so the recipient and exact amount cannot be verified against the stated ask, and per Article IV.1 the calldata is the proposal; this must be reconciled before sponsorship.\n\n[ suggestions ]\n- Publish the full decoded sendOrRegisterDebt calldata so recipient and 14,900 USDC amount can be verified against the prose.\n- Directly link the country-partnership documentation rather than 'available on request'.\n- Consider milestone or streaming disbursement tied to delivery of the physical noggles items and Nounish News episode.",
+   "flags": [
+    "calldata_mismatch",
+    "injection_suspicion"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-11T18:43:11.877904+00:00"
+  },
   {
    "num": 9,
    "cand_id": "0xedc1a397589a0236c4810883b7d559288a5fe7e1-delegate-nouns-x",
