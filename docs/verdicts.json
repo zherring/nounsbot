@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-11T18:43:12+00:00",
+ "generated_at": "2026-07-12T22:57:13+00:00",
  "verdicts": [
   {
    "prop_id": 983,
@@ -975,6 +975,25 @@
   }
  ],
  "candidates": [
+  {
+   "num": 11,
+   "cand_id": "0x2117bf88b4cb0186eaa87500a045fc998290e42a-nouns-x-ai",
+   "title": "Nouns x AI",
+   "vote": "FOR",
+   "confidence": 0.62,
+   "clauses": [
+    "I.1",
+    "I.3",
+    "V.1"
+   ],
+   "reason": "This candidate contains no onchain action (single zero-address target), requests no funds, and makes no structural change \u2014 it is an informational write-up plus a public, verifiable Hugging Face tool, dataset, and model card exploring AI x Nouns. As a cost-free, reversible public good that proliferates Nouns/CC0 culture, it leans FOR under Article I.1/I.3 and the V.1 'more Nouns things exist' test. The meta-commentary flagged in the brief is directed at human readers, not this evaluator, so it does not rise to injection.\n\n[ suggestions ]\n- State explicitly that the artifacts are released CC0 to align with the commons mission.\n- If any future ask is intended, specify concrete deliverables so it can be judged as mission spending rather than a null-action signal.",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-12T22:57:12.015853+00:00"
+  },
   {
    "num": 10,
    "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6---growlympics-noggles-at-the-biggest-tree-planting-day-in-history",
