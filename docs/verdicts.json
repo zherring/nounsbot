@@ -1,6 +1,28 @@
 {
- "generated_at": "2026-07-15T06:28:18+00:00",
+ "generated_at": "2026-07-15T08:31:38+00:00",
  "verdicts": [
+  {
+   "prop_id": 985,
+   "title": "Nudge \u00d7 Nouns",
+   "vote": "AGAINST",
+   "confidence": 0.72,
+   "clauses": [
+    "V.1",
+    "IV.3",
+    "IV.1"
+   ],
+   "reason": "The proposal delivers no concrete Nouns artifact \u2014 it asks the DAO to ratify a vague, unenforceable 'partnership' whose primary beneficiary is Nudge's own go-to-market and credibility, not the Nouns mission (IV.3). Under V.1 it does not clearly make more Nouns things exist in the world. The prose insists 'no treasury funding,' yet the sole onchain action sends 0.0001 ETH to the proposer's own address, a minor prose/calldata mismatch (IV.1).\n\n[ suggestions ]\n- Deliver the promised Nudge token allocation to the treasury via enforceable onchain transfer rather than a prose commitment.\n- Remove the self-directed 0.0001 ETH transfer so the calldata matches the 'no treasury funding' claim.\n- Define concrete, verifiable Nouns/CC0 deliverables the partnership will produce.",
+   "flags": [
+    "calldata_mismatch"
+   ],
+   "constitution_rev": "4c30b80",
+   "outcome": "PENDING",
+   "status": "scheduled",
+   "tx_hash": null,
+   "overridden": false,
+   "evaluated_at": "2026-07-15T08:31:36.677317+00:00",
+   "history": []
+  },
   {
    "prop_id": 984,
    "title": "\ud83c\udf33\u2310\u25e8-\u25e8 Growlympics: Noggles at the Biggest Tree Planting Day in History",
