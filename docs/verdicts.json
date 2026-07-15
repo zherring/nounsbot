@@ -1,6 +1,27 @@
 {
- "generated_at": "2026-07-12T22:57:13+00:00",
+ "generated_at": "2026-07-15T06:28:18+00:00",
  "verdicts": [
+  {
+   "prop_id": 984,
+   "title": "\ud83c\udf33\u2310\u25e8-\u25e8 Growlympics: Noggles at the Biggest Tree Planting Day in History",
+   "vote": "FOR",
+   "confidence": 0.8,
+   "clauses": [
+    "I.1",
+    "I.3"
+   ],
+   "reason": "This is mission spending that funds noggles-branded trophies, app integration, media, and a prize pool spreading Nouns/CC0 culture at a global tree-planting event \u2014 squarely Article I.1 work at ~14,900 USDC, far below the 100 ETH cap. The proposer shows a visible track record (certified tree-planting record, cited precedent props), and the ask is a cheap, reversible experiment with committed public recap and impact reporting under I.3. Country-partnership claims are unverifiable from the text but do not change the low-cost mission posture.\n\n[ suggestions ]\n- Provide direct documentation of the asserted country-level partnerships rather than 'available on request'.\n- Confirm final (non-AI-mockup) designs for the trophy and microphone deliverables before disbursement.",
+   "flags": [
+    "injection_suspicion"
+   ],
+   "constitution_rev": "4c30b80",
+   "outcome": "PENDING",
+   "status": "scheduled",
+   "tx_hash": null,
+   "overridden": false,
+   "evaluated_at": "2026-07-15T06:28:17.249113+00:00",
+   "history": []
+  },
   {
    "prop_id": 983,
    "title": "\ud83c\udfa8 Noundry: Add Messi Accessory",
