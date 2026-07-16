@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-16T19:33:40+00:00",
+ "generated_at": "2026-07-16T19:48:22+00:00",
  "verdicts": [
   {
    "prop_id": 985,
@@ -1018,6 +1018,24 @@
   }
  ],
  "candidates": [
+  {
+   "num": 15,
+   "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6---growlympics-noggles-at-the-biggest-tree-planting-day-in-history-update-mrnwxl2o-3h5g631o",
+   "title": "\ud83c\udf33\u2310\u25e8-\u25e8 Growlympics: Noggles at the Biggest Tree Planting Day in History",
+   "vote": "FOR",
+   "confidence": 0.8,
+   "clauses": [
+    "I.1",
+    "I.3"
+   ],
+   "reason": "This is mission spending: 14,900 USDC (~well below the 100 ETH cap) for Nounish-branded artifacts, media, and event integration that spread the noggles brand and CC0 culture at a large public event. Article I.1 defaults FOR for creation/media/events below cap, and I.3 grants a cheap, reversible experiment the benefit of the doubt; the line-item budget, mint-proceeds-to-treasury commitment, and follow-up reporting further support it. Verifiability of the claimed country partnerships is weak, but the small, capped ask does not trigger the Article I.2 track-record/milestone bar.\n\n[ suggestions ]\n- Provide direct, verifiable links to the claimed 13-country partnership documentation rather than 'available on request'.\n- Attach final (non-AI-mockup) designs for the trophy and microphone before disbursement.",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-16T19:48:20.880183+00:00"
+  },
   {
    "num": 14,
    "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6-\ud83c\udf33\u2310\u25e8-\u25e8-growlympics:-noggles-at-the-biggest-tree-planting-day-in-history-update",
