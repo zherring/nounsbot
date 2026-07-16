@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-15T08:31:38+00:00",
+ "generated_at": "2026-07-16T19:33:40+00:00",
  "verdicts": [
   {
    "prop_id": 985,
@@ -1018,6 +1018,63 @@
   }
  ],
  "candidates": [
+  {
+   "num": 14,
+   "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6-\ud83c\udf33\u2310\u25e8-\u25e8-growlympics:-noggles-at-the-biggest-tree-planting-day-in-history-update",
+   "title": "\ud83c\udf33\u2310\u25e8-\u25e8 Growlympics: Noggles at the Biggest Tree Planting Day in History",
+   "vote": "FOR",
+   "confidence": 0.72,
+   "clauses": [
+    "I.1",
+    "I.3"
+   ],
+   "reason": "This is mission spending \u2014 Nounish branding (noggles on trophies, microphone, app, shirts, a minted news episode) attached to a large global tree-planting event, squarely proliferation of the brand and CC0 culture. At ~14,900 USDC the ask is far below the 100 ETH cap, so Article I.1 defaults FOR, and a cheap, reversible experiment gets the benefit of the doubt under I.3. The single-address debt/payment action is a normal USDC disbursement mechanism rather than a genuine conflict with the prose, so no calldata mismatch is triggered; unverifiable partnership claims and speculative AI-rendered deliverables are noted but do not outweigh the low-cost mission fit.\n\n[ suggestions ]\n- Provide the country-partnership documentation on-chain/in-proposal rather than 'available on request'.\n- Add milestone or streaming release tied to the 6/12/18-month survival reports to protect against non-delivery.",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-16T19:33:39.344168+00:00"
+  },
+  {
+   "num": 13,
+   "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6-\ud83c\udf33\u2310\u25e8-\u25e8-growlympics:-noggles-at-the-biggest-tree-planting-day-in-history-update-1",
+   "title": "\ud83c\udf33\u2310\u25e8-\u25e8 Growlympics: Noggles at the Biggest Tree Planting Day in History",
+   "vote": "FOR",
+   "confidence": 0.68,
+   "clauses": [
+    "I.1",
+    "I.3",
+    "IV.1"
+   ],
+   "reason": "At 14,900 USDC the ask sits well below the [CAP: 100 ETH] threshold and funds Nounish-branded media, art, and event content that spread noggles and CC0 culture \u2014 default FOR mission spending under Article I.1, and a cheap, reversible experiment under I.3 with a plausible track record (Treegens, Prop 1/960 lineage). However, the sendOrRegisterDebt calldata is truncated so the actual recipient (0x7fe8c28f\u2026) and exact amount cannot be reconciled against the named recipients or the stated 14,900 USDC; per Article IV.1 this must be verified before sponsorship.\n\n[ suggestions ]\n- Provide the full decoded calldata so the recipient address and USDC amount can be confirmed against the 14,900 USDC figure.\n- Consider milestone-based or streamed disbursement tied to the promised 3/6/12-month tree-survival reporting.",
+   "flags": [
+    "calldata_mismatch"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-16T19:30:30.152999+00:00"
+  },
+  {
+   "num": 12,
+   "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6-\ud83c\udf33\u2310\u25e8-\u25e8-growlympics:-noggles-at-the-biggest-tree-planting-day-in-history-update-2",
+   "title": "\ud83c\udf33\u2310\u25e8-\u25e8 Growlympics: Noggles at the Biggest Tree Planting Day in History",
+   "vote": "FOR",
+   "confidence": 0.76,
+   "clauses": [
+    "I.1",
+    "I.3"
+   ],
+   "reason": "This is mission spending that puts noggles and Nouns branding on a large-scale, high-visibility global tree-planting event, with a 14,900 USDC ask well below the 100 ETH cap \u2014 a cheap, brand-proliferating experiment that defaults FOR under Article I.1 and I.3. The proposer cites a visible track record (Guinness mangrove record, prior ecological props) and the minted episode returns proceeds to the treasury. The calldata uses the standard USDC sendOrRegisterDebt mechanism consistent with the stated ask.\n\n[ suggestions ]\n- Provide onchain or third-party links verifying the claimed country partnerships, Guinness record, and media coverage rather than 'available on request'\n- Replace AI-generated placeholder designs with committed final deliverable specs for the fabricated items",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-16T19:29:47.835754+00:00"
+  },
   {
    "num": 11,
    "cand_id": "0x2117bf88b4cb0186eaa87500a045fc998290e42a-nouns-x-ai",
