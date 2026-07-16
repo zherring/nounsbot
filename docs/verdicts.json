@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-16T19:48:22+00:00",
+ "generated_at": "2026-07-16T20:07:03+00:00",
  "verdicts": [
   {
    "prop_id": 985,
@@ -1018,6 +1018,24 @@
   }
  ],
  "candidates": [
+  {
+   "num": 16,
+   "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6---growlympics-noggles-at-the-biggest-tree-planting-day-in-history-update-mrnxtov5-4o1i6073",
+   "title": "\ud83c\udf33\u2310\u25e8-\u25e8 Growlympics: Noggles at the Biggest Tree Planting Day in History",
+   "vote": "FOR",
+   "confidence": 0.76,
+   "clauses": [
+    "I.1",
+    "I.3"
+   ],
+   "reason": "This is mission spending well under the 100 ETH cap: ~14,900 USDC to fund Nounish-branded deliverables (noggles trophies, mic, app integration, a treasury-returning Nounish News episode) at a large public tree-planting event, spreading the brand and CC0 culture. The proposer shows a visible track record (Guinness-record planter, Treegens), general overhead is sponsor-funded separately, and the ask is a cheap, reversible experiment deserving benefit of the doubt under I.3. The USDC transfer uses the standard Nouns payer/debt mechanism, consistent with the prose budget.\n\n[ suggestions ]\n- Add onchain enforcement or a streaming/clawback tie for the 1,900 USDC Nounish News proceeds pledged to return to the treasury\n- Link verifiable country-partnership documentation rather than 'available on request'",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-16T20:07:01.894882+00:00"
+  },
   {
    "num": 15,
    "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6---growlympics-noggles-at-the-biggest-tree-planting-day-in-history-update-mrnwxl2o-3h5g631o",
