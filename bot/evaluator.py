@@ -95,10 +95,26 @@ def first_sentence(reason: str, max_length: int = 180) -> str:
     return sentence[: max_length - 1].rstrip() + "…"
 
 
+def format_posted_reason(reason: str, tldr: str = "") -> str:
+    """Put a one-sentence summary before any onchain rationale."""
+    rationale = (reason or "").strip()
+    summary = first_sentence(tldr or rationale)
+    return f"TL;DR: {summary}\n\n{rationale}" if rationale else f"TL;DR: {summary}"
+
+
+def split_posted_reason(posted_reason: str) -> tuple[str, str]:
+    """Separate a formatted TLDR from its rationale, with legacy fallback."""
+    posted = (posted_reason or "").strip()
+    if posted.startswith("TL;DR:"):
+        header, separator, rationale = posted.partition("\n\n")
+        tldr = first_sentence(header.removeprefix("TL;DR:").strip())
+        return tldr, rationale.strip() if separator else ""
+    return first_sentence(posted), posted
+
+
 def compose_vote_reason(verdict: Verdict) -> str:
     """The onchain reason, with a one-line summary before the full rationale."""
-    tldr = first_sentence(getattr(verdict, "tldr", "") or verdict.reason)
-    return f"TL;DR: {tldr}\n\n{compose_reason(verdict)}"
+    return format_posted_reason(compose_reason(verdict), getattr(verdict, "tldr", ""))
 
 
 CANDIDATE_PREAMBLE = """NOTE: this is a CANDIDATE, not yet a proposal. It needs sponsor \

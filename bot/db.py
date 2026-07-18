@@ -189,6 +189,7 @@ CREATE TABLE IF NOT EXISTS candidates (
   sig_tx TEXT,
   verdict_json TEXT,             -- latest verdict (vote/conf/clauses/tldr/reason/suggestions/flags)
   constitution_rev TEXT,
+  signal_reason TEXT,
   raw TEXT,
   updated_at TEXT
 );
@@ -202,6 +203,7 @@ def migrate(conn) -> None:
         "ALTER TABLE verdicts ADD COLUMN tldr TEXT",
         "ALTER TABLE candidates ADD COLUMN signal_tx TEXT",
         "ALTER TABLE candidates ADD COLUMN signal_stance TEXT",
+        "ALTER TABLE candidates ADD COLUMN signal_reason TEXT",
         "ALTER TABLE verdicts ADD COLUMN constitution_fp TEXT",
     ):
         try:

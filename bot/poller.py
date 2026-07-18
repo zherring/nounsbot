@@ -19,7 +19,7 @@ import anthropic
 import json
 
 from . import db, publisher, subgraph, telegram
-from .evaluator import compose_vote_reason, first_sentence
+from .evaluator import compose_vote_reason, first_sentence, format_posted_reason
 from .config import (
     ANTHROPIC_MODEL,
     INGEST_INTERVAL_SECONDS,
@@ -190,8 +190,8 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
         target = start + int((end - start) * CAST_AT_FRACTION)
         existing = db.get_cast(conn, pid)
         state = existing["state"] if existing else "scheduled"
-        if state not in {"held", "cast"}:  # edits don't un-hold, never re-cast
-            db.upsert_cast(conn, pid, state="scheduled", vote=verdict.vote,
+        if state != "cast":  # refresh held casts without releasing them; never re-cast
+            db.upsert_cast(conn, pid, state=state, vote=verdict.vote,
                            reason=compose_vote_reason(verdict), cast_block_target=target)
         prefix = "✏️ PROPOSAL EDITED — re-evaluated:\n" if edited else ""
         card = prefix + verdict_card(prop, outcome, verdict, target, head)
@@ -235,17 +235,20 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             stance = VOTES[rest[0].lower()]
             rest = rest[1:]
         if rest:
-            reason = " ".join(rest)
+            reason = format_posted_reason(" ".join(rest))
         else:
             tldr = v.get("tldr") or first_sentence(v.get("reason", ""))
-            reason = f"TL;DR: {tldr}\n\n{v.get('reason', '')}"
+            rationale = v.get("reason", "")
             if v.get("suggestions"):
-                reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+                rationale += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+            reason = format_posted_reason(rationale, tldr)
         fresh = [c for c in subgraph.fetch_candidates(first=20) if c["id"] == row["cand_id"]]
         if not fresh:
             return f"candidate c{row['num']} no longer open (canceled or promoted)"
         tx = signal_candidate(fresh[0], stance, reason + SIGNOFF)
-        db.upsert_candidate(conn, row["cand_id"], signal_tx=tx, signal_stance=stance)
+        db.upsert_candidate(
+            conn, row["cand_id"], signal_tx=tx, signal_stance=stance, signal_reason=reason
+        )
         return (f"📣 signaled {stance} on candidate c{row['num']} with reasoning "
                 f"(feedback, not sponsorship)\ntx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}")
 
@@ -316,9 +319,10 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         if subgraph.candidate_content_hash(fresh[0]) != row["content_hash"]:
             return f"candidate c{row['num']} was EDITED since evaluation — wait for the re-evaluation card"
         tldr = v.get("tldr") or first_sentence(v["reason"])
-        reason = f"TL;DR: {tldr}\n\n{v['reason']}"
+        rationale = v["reason"]
         if v.get("suggestions"):
-            reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+            rationale += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+        reason = format_posted_reason(rationale, tldr)
         tx = sponsor_candidate(fresh[0], reason + SIGNOFF)
         db.upsert_candidate(conn, row["cand_id"], sponsor_state="sponsored", sig_tx=tx)
         return (f"🌱 sponsored candidate c{row['num']} with our delegated weight\n"
@@ -363,7 +367,8 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         if cmd == "override":
             if len(args) < 3 or args[1].lower() not in VOTES:
                 return "usage: /override <prop> <for|against|abstain> <reason — mandatory>"
-            vote, reason = VOTES[args[1].lower()], " ".join(args[2:])
+            vote = VOTES[args[1].lower()]
+            reason = format_posted_reason(" ".join(args[2:]))
             db.upsert_cast(conn, pid, vote=vote, reason=reason, override_by="human", state="scheduled")
             return f"prop {pid} overridden to {vote} — reason logged, casts on schedule."
         if cmd == "cast":

@@ -221,6 +221,7 @@ function openVerdictModal(v) {
         return `<div class="history-entry">
           <p class="history-meta"><b>${esc(hVer)}</b>${hConf} · ${esc((h.clauses || []).join(", "))} ·
             <span class="pill ${pillClass(h.vote)}">${esc(h.vote || "")}</span></p>
+          <p><b>TL;DR:</b> ${esc(tldr(h))}</p>
           <p class="muted">${esc(h.reason || "")}</p>
         </div>`;
       })

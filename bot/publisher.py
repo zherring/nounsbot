@@ -14,7 +14,7 @@ import subprocess
 from datetime import datetime, timezone
 
 from .config import REPO_ROOT
-from .evaluator import first_sentence
+from .evaluator import first_sentence, split_posted_reason
 
 VERDICTS_PATH = REPO_ROOT / "docs" / "verdicts.json"
 
@@ -25,7 +25,8 @@ def build_payload(conn) -> dict:
         """SELECT v.prop_id, v.vote, v.confidence, v.clauses, v.tldr, v.reason, v.flags,
                   v.suggestions, v.constitution_rev, v.created_at,
                   p.title, p.outcome,
-                  c.state AS cast_state, c.tx_hash, c.vote AS cast_vote, c.override_by
+                  c.state AS cast_state, c.tx_hash, c.vote AS cast_vote, c.reason AS cast_reason,
+                  c.override_by
            FROM verdicts v
            JOIN proposals p ON p.id = v.prop_id
            LEFT JOIN casts c ON c.prop_id = v.prop_id
@@ -66,6 +67,10 @@ def build_payload(conn) -> dict:
     for r in rows:
         if r["prop_id"] < 0:
             continue  # synthetic candidate budget rows
+        tldr = first_sentence(r["tldr"] or r["reason"])
+        reason = display_reason(r)
+        if r["override_by"] and r["cast_reason"]:
+            tldr, reason = split_posted_reason(r["cast_reason"])
         verdicts.append(
             {
                 "prop_id": r["prop_id"],
@@ -73,8 +78,8 @@ def build_payload(conn) -> dict:
                 "vote": r["cast_vote"] or r["vote"],
                 "confidence": r["confidence"],
                 "clauses": json.loads(r["clauses"]),
-                "tldr": first_sentence(r["tldr"] or r["reason"]),
-                "reason": display_reason(r),
+                "tldr": tldr,
+                "reason": reason,
                 "flags": json.loads(r["flags"]),
                 "constitution_rev": r["constitution_rev"],
                 "outcome": r["outcome"],
@@ -91,7 +96,7 @@ def build_payload(conn) -> dict:
     candidates = []
     for r in conn.execute(
         """SELECT num, cand_id, title, sponsor_state, sig_tx, signal_tx, signal_stance,
-                  verdict_json, updated_at
+                  signal_reason, verdict_json, updated_at
            FROM candidates ORDER BY num DESC"""
     ):
         try:
@@ -101,6 +106,9 @@ def build_payload(conn) -> dict:
         reason = v.get("reason") or ""
         if v.get("suggestions"):
             reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+        tldr = first_sentence(v.get("tldr") or reason)
+        if r["signal_reason"]:
+            tldr, reason = split_posted_reason(r["signal_reason"])
         candidates.append(
             {
                 "num": r["num"],
@@ -109,7 +117,7 @@ def build_payload(conn) -> dict:
                 "vote": v.get("vote"),
                 "confidence": v.get("confidence"),
                 "clauses": v.get("clauses", []),
-                "tldr": first_sentence(v.get("tldr") or reason),
+                "tldr": tldr,
                 "reason": reason,
                 "flags": v.get("flags", []),
                 "sponsor_state": r["sponsor_state"],
