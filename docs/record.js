@@ -50,7 +50,7 @@ async function loadRecord() {
           <span class="muted" style="font-size:0.8rem">${status} · ${ver}${tx}${override}</span></td>
       <td>${(v.clauses || []).join(", ")}</td>
       <td class="reason-cell" style="max-width:26rem">
-        <span class="reason-text">${esc(v.reason || "")}<span class="muted">${esc(flags)}</span></span>
+        <span class="reason-text">${esc(tldr(v))}<span class="muted">${esc(flags)}</span></span>
         <button type="button" class="reason-toggle">${detailsLabel}</button>
       </td>
       <td>${esc(v.outcome || "")}</td>`;
@@ -71,6 +71,13 @@ function txLink(hash) {
   return hash
     ? ` · <a href="https://etherscan.io/tx/0x${hash.replace(/^0x/, "")}">tx</a>`
     : "";
+}
+
+function tldr(verdict) {
+  const source = verdict.tldr || (verdict.reason || "").trim().split(/\n/, 1)[0];
+  const normalized = source.replace(/\s+/g, " ").trim();
+  const sentence = normalized.match(/^.*?[.!?](?:\s|$)/);
+  return (sentence ? sentence[0] : normalized).trim();
 }
 
 // What the agent actually DID about a candidate — sponsoring and signaling
@@ -98,7 +105,7 @@ function renderCandidates(cands) {
           <span class="muted" style="font-size:0.8rem">${c.vote === "FOR" ? "sponsor-worthy" : "not sponsor-worthy"}</span></td>
       <td>${(c.clauses || []).join(", ")}</td>
       <td class="reason-cell" style="max-width:26rem">
-        <span class="reason-text">${esc(c.reason || "")}<span class="muted">${esc(flags)}</span></span>
+        <span class="reason-text">${esc(tldr(c))}<span class="muted">${esc(flags)}</span></span>
         <button type="button" class="reason-toggle">Full rationale →</button>
       </td>
       <td>${candAction(c)}</td>`;
@@ -158,6 +165,10 @@ function ensureModal() {
       <h3 id="verdict-modal-title"></h3>
       <p class="muted modal-meta"></p>
       <div class="modal-section">
+        <h4>TL;DR</h4>
+        <p class="modal-tldr"></p>
+      </div>
+      <div class="modal-section">
         <h4>Rationale</h4>
         <p class="modal-reason"></p>
       </div>
@@ -194,6 +205,7 @@ function openVerdictModal(v) {
     `<a href="https://www.nouns.camp/proposals/${v.prop_id}" target="_blank" rel="noopener">View on nouns.camp ↗</a> · ` +
     `<span class="pill ${pillClass(v.vote)}">${esc(v.vote || "")}</span> · clauses ${esc(clauses)} · ` +
     `${status} · rev ${esc(ver)}${confidence}${tx}${override} · ${esc(v.outcome || "")}${flags}`;
+  overlay.querySelector(".modal-tldr").textContent = tldr(v);
   overlay.querySelector(".modal-reason").textContent = v.reason || "";
 
   const historySection = overlay.querySelector(".modal-history");
@@ -235,6 +247,7 @@ function openCandidateModal(c) {
     `<a href="https://www.nouns.camp/candidates/${encodeURIComponent(c.cand_id)}" target="_blank" rel="noopener">View on nouns.camp ↗</a> · ` +
     `<span class="pill ${pillClass(c.vote)}">${esc(c.vote || "")}</span> · clauses ${esc(clauses)}` +
     `${confidence} · ${candAction(c)}${flags}`;
+  overlay.querySelector(".modal-tldr").textContent = tldr(c);
   overlay.querySelector(".modal-reason").textContent = c.reason || "";
 
   overlay.querySelector(".modal-history-list").innerHTML = "";

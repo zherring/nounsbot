@@ -14,6 +14,7 @@ import subprocess
 from datetime import datetime, timezone
 
 from .config import REPO_ROOT
+from .evaluator import first_sentence
 
 VERDICTS_PATH = REPO_ROOT / "docs" / "verdicts.json"
 
@@ -21,7 +22,7 @@ VERDICTS_PATH = REPO_ROOT / "docs" / "verdicts.json"
 def build_payload(conn) -> dict:
     """The record as a dict — used by both the file exporter and the live web endpoint."""
     rows = conn.execute(
-        """SELECT v.prop_id, v.vote, v.confidence, v.clauses, v.reason, v.flags,
+        """SELECT v.prop_id, v.vote, v.confidence, v.clauses, v.tldr, v.reason, v.flags,
                   v.suggestions, v.constitution_rev, v.created_at,
                   p.title, p.outcome,
                   c.state AS cast_state, c.tx_hash, c.vote AS cast_vote, c.override_by
@@ -36,7 +37,7 @@ def build_payload(conn) -> dict:
     # so they publish too (prior verdicts under earlier constitution revs)
     history: dict[int, list[dict]] = {}
     for h in conn.execute(
-        "SELECT prop_id, vote, confidence, clauses, reason, constitution_rev, created_at "
+        "SELECT prop_id, vote, confidence, clauses, tldr, reason, constitution_rev, created_at "
         "FROM verdicts ORDER BY prop_id, created_at"
     ):
         history.setdefault(h["prop_id"], []).append(
@@ -44,6 +45,7 @@ def build_payload(conn) -> dict:
                 "vote": h["vote"],
                 "confidence": h["confidence"],
                 "clauses": json.loads(h["clauses"]),
+                "tldr": first_sentence(h["tldr"] or h["reason"]),
                 "reason": h["reason"],
                 "constitution_rev": h["constitution_rev"],
                 "evaluated_at": h["created_at"],
@@ -71,6 +73,7 @@ def build_payload(conn) -> dict:
                 "vote": r["cast_vote"] or r["vote"],
                 "confidence": r["confidence"],
                 "clauses": json.loads(r["clauses"]),
+                "tldr": first_sentence(r["tldr"] or r["reason"]),
                 "reason": display_reason(r),
                 "flags": json.loads(r["flags"]),
                 "constitution_rev": r["constitution_rev"],
@@ -106,6 +109,7 @@ def build_payload(conn) -> dict:
                 "vote": v.get("vote"),
                 "confidence": v.get("confidence"),
                 "clauses": v.get("clauses", []),
+                "tldr": first_sentence(v.get("tldr") or reason),
                 "reason": reason,
                 "flags": v.get("flags", []),
                 "sponsor_state": r["sponsor_state"],

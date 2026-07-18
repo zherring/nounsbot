@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS verdicts (
   vote TEXT,
   confidence REAL,
   clauses TEXT,
+  tldr TEXT,
   reason TEXT,
   flags TEXT,
   requires_human_review INTEGER,
@@ -152,10 +153,10 @@ def get_verdict(conn: sqlite3.Connection, prop_id: int, chash: str, fp: str, mod
 def save_verdict(conn, prop_id: int, chash: str, rev: str, model: str, verdict, usage) -> None:
     conn.execute(
         """INSERT OR IGNORE INTO verdicts
-           (prop_id, content_hash, constitution_rev, model, vote, confidence, clauses, reason,
-            flags, requires_human_review, input_tokens, output_tokens, created_at, suggestions,
-            constitution_fp)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           (prop_id, content_hash, constitution_rev, model, vote, confidence, clauses, tldr,
+            reason, flags, requires_human_review, input_tokens, output_tokens, created_at,
+            suggestions, constitution_fp)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             prop_id,
             chash,
@@ -164,6 +165,7 @@ def save_verdict(conn, prop_id: int, chash: str, rev: str, model: str, verdict, 
             verdict.vote,
             verdict.confidence,
             json.dumps(verdict.clauses_cited),
+            verdict.tldr,
             verdict.reason,
             json.dumps(verdict.flags),
             int(verdict.requires_human_review),
@@ -185,7 +187,7 @@ CREATE TABLE IF NOT EXISTS candidates (
   content_hash TEXT,
   sponsor_state TEXT DEFAULT 'none',   -- none | sponsored | declined
   sig_tx TEXT,
-  verdict_json TEXT,             -- latest verdict (vote/conf/clauses/reason/suggestions/flags)
+  verdict_json TEXT,             -- latest verdict (vote/conf/clauses/tldr/reason/suggestions/flags)
   constitution_rev TEXT,
   raw TEXT,
   updated_at TEXT
@@ -197,6 +199,7 @@ def migrate(conn) -> None:
     conn.executescript(CANDIDATE_SCHEMA)
     for ddl in (
         "ALTER TABLE verdicts ADD COLUMN suggestions TEXT",
+        "ALTER TABLE verdicts ADD COLUMN tldr TEXT",
         "ALTER TABLE candidates ADD COLUMN signal_tx TEXT",
         "ALTER TABLE candidates ADD COLUMN signal_stance TEXT",
         "ALTER TABLE verdicts ADD COLUMN constitution_fp TEXT",

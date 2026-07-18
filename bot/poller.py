@@ -19,7 +19,7 @@ import anthropic
 import json
 
 from . import db, publisher, subgraph, telegram
-from .evaluator import compose_reason
+from .evaluator import compose_vote_reason, first_sentence
 from .config import (
     ANTHROPIC_MODEL,
     INGEST_INTERVAL_SECONDS,
@@ -92,7 +92,8 @@ def ingest_candidates(client, conn) -> None:
             title=as_prop["title"][:120], content_hash=chash, constitution_rev=fp,
             verdict_json=json.dumps({
                 "vote": verdict.vote, "confidence": verdict.confidence,
-                "clauses": verdict.clauses_cited, "reason": verdict.reason,
+                "clauses": verdict.clauses_cited, "tldr": first_sentence(verdict.tldr),
+                "reason": verdict.reason,
                 "suggestions": verdict.suggestions, "flags": verdict.flags,
                 "requires_human_review": verdict.requires_human_review,
             }),
@@ -130,7 +131,7 @@ def candidate_card(num, cand, verdict, sig_count) -> str:
         f"🌿 Candidate c{num}: {content.get('title') or cand['slug']}\n"
         f"by {cand['proposer'][:10]}… · {sig_count} sponsor sig(s) so far\n"
         f"verdict: {verdict.vote} (conf {verdict.confidence:.2f}) · clauses {', '.join(verdict.clauses_cited)}\n"
-        f"{compose_reason(verdict)}{flags}\n{action}"
+        f"{compose_vote_reason(verdict)}{flags}\n{action}"
     )
 
 
@@ -146,7 +147,7 @@ def verdict_card(prop, outcome, verdict, cast_target_block, head):
         f"📜 Prop {prop['id']}: {prop.get('title', '(untitled)')}\n"
         f"state: {outcome}\n"
         f"verdict: {verdict.vote} (conf {verdict.confidence:.2f}) · clauses {', '.join(verdict.clauses_cited)}\n"
-        f"{compose_reason(verdict)}{flags}\n{firing}"
+        f"{compose_vote_reason(verdict)}{flags}\n{firing}"
     )
 
 
@@ -191,7 +192,7 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
         state = existing["state"] if existing else "scheduled"
         if state not in {"held", "cast"}:  # edits don't un-hold, never re-cast
             db.upsert_cast(conn, pid, state="scheduled", vote=verdict.vote,
-                           reason=compose_reason(verdict), cast_block_target=target)
+                           reason=compose_vote_reason(verdict), cast_block_target=target)
         prefix = "✏️ PROPOSAL EDITED — re-evaluated:\n" if edited else ""
         card = prefix + verdict_card(prop, outcome, verdict, target, head)
         print("\n" + card + "\n")
@@ -236,7 +237,8 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         if rest:
             reason = " ".join(rest)
         else:
-            reason = v.get("reason", "")
+            tldr = v.get("tldr") or first_sentence(v.get("reason", ""))
+            reason = f"TL;DR: {tldr}\n\n{v.get('reason', '')}"
             if v.get("suggestions"):
                 reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
         fresh = [c for c in subgraph.fetch_candidates(first=20) if c["id"] == row["cand_id"]]
@@ -261,6 +263,7 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
                 vote=v.get("vote", "?"),
                 confidence=v.get("confidence") or 0.0,
                 clauses_cited=v.get("clauses", []),
+                tldr=v.get("tldr", ""),
                 reason=v.get("reason", ""),
                 suggestions=v.get("suggestions", []),
                 flags=v.get("flags", []),
@@ -312,7 +315,8 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             return f"candidate c{row['num']} no longer open (canceled or promoted)"
         if subgraph.candidate_content_hash(fresh[0]) != row["content_hash"]:
             return f"candidate c{row['num']} was EDITED since evaluation — wait for the re-evaluation card"
-        reason = v["reason"]
+        tldr = v.get("tldr") or first_sentence(v["reason"])
+        reason = f"TL;DR: {tldr}\n\n{v['reason']}"
         if v.get("suggestions"):
             reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
         tx = sponsor_candidate(fresh[0], reason + SIGNOFF)

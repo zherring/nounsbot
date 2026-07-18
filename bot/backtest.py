@@ -21,7 +21,7 @@ import anthropic
 
 from . import db, subgraph
 from .config import ANTHROPIC_MODEL, REPO_ROOT
-from .evaluator import Verdict, build_system_prompt, build_user_prompt, evaluate
+from .evaluator import Verdict, build_system_prompt, build_user_prompt, evaluate, first_sentence
 
 FINAL_OUTCOMES = {"EXECUTED", "DEFEATED", "VETOED", "QUEUED", "SUCCEEDED_NOT_QUEUED"}
 PASSED = {"EXECUTED", "QUEUED", "SUCCEEDED_NOT_QUEUED"}
@@ -108,9 +108,12 @@ def main() -> None:
         if cached:
             verdict = Verdict(
                 vote=cached["vote"], confidence=cached["confidence"],
-                clauses_cited=json.loads(cached["clauses"]), reason=cached["reason"],
+                clauses_cited=json.loads(cached["clauses"]),
+                tldr=cached["tldr"] or first_sentence(cached["reason"]),
+                reason=cached["reason"],
                 flags=json.loads(cached["flags"]),
                 requires_human_review=bool(cached["requires_human_review"]),
+                suggestions=json.loads(cached["suggestions"] or "[]"),
             )
             print(f"prop {p['id']:>4}  [cached]  {verdict.vote:<7} vs {outcome}")
         else:
