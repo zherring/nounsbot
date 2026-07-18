@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-16T20:07:03+00:00",
+ "generated_at": "2026-07-18T06:40:57+00:00",
  "verdicts": [
   {
    "prop_id": 985,
@@ -37,7 +37,7 @@
     "injection_suspicion"
    ],
    "constitution_rev": "4c30b80",
-   "outcome": "PENDING",
+   "outcome": "VOTING",
    "status": "scheduled",
    "tx_hash": null,
    "overridden": false,
