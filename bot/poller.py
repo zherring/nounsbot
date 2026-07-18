@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 import anthropic
 
 import json
+from types import SimpleNamespace
 
 from . import db, publisher, subgraph, telegram
 from .evaluator import compose_reason
@@ -63,20 +64,77 @@ def latest_verdict(conn, prop_id: int):
     ).fetchone()
 
 
-def ingest_candidates(client, conn) -> None:
+def candidate_target_map(candidates: list[dict]) -> dict[int, dict]:
+    ids = {
+        int(
+            (((c.get("latestVersion") or {}).get("content") or {}).get("proposalIdToUpdate"))
+            or 0
+        )
+        for c in candidates
+    }
+    ids.discard(0)
+    return {int(p["id"]): p for p in subgraph.fetch_proposals_by_ids(sorted(ids))}
+
+
+def update_candidate_actionable(target: dict | None, head: int) -> bool:
+    return bool(
+        target
+        and target.get("status") not in {"CANCELLED", "VETOED", "EXECUTED", "QUEUED"}
+        and subgraph.derive_phase(target, head) == "UPDATABLE"
+    )
+
+
+def update_sponsorship_status(cand: dict, target: dict | None, head: int, signer: str | None) -> tuple[bool, str]:
+    proposal_id = int(cand["latestVersion"]["content"].get("proposalIdToUpdate") or 0)
+    if not proposal_id:
+        return True, ""
+    if not target:
+        return False, f"target prop {proposal_id} was not found"
+    if not update_candidate_actionable(target, head):
+        return False, f"prop {proposal_id}'s update window has closed"
+    target_proposer = str((target.get("proposer") or {}).get("id") or "").lower()
+    if str(cand.get("proposer") or "").lower() != target_proposer:
+        return False, (
+            f"posted by someone other than prop {proposal_id}'s proposer — "
+            "its signature could never be consumed"
+        )
+    original_signers = {s["id"].lower() for s in target.get("signers") or []}
+    if not signer or signer.lower() not in original_signers:
+        return False, f"only prop {proposal_id}'s original signer(s) can re-sign an update"
+    return True, ""
+
+
+def ingest_candidates(client, conn, head: int) -> None:
     """Evaluate open candidates. FOR = sponsor-worthy; sponsorship is NEVER
     automatic — /sponsor c<num> signs and registers it."""
     rev = db.constitution_rev()
     fp = db.constitution_fingerprint()
-    for cand in subgraph.fetch_candidates(first=10):
+    candidates = subgraph.fetch_candidates(first=10)
+    targets = candidate_target_map(candidates)
+    from .executor import bot_address
+
+    signer = bot_address()
+    for cand in candidates:
         cand_id = cand["id"]
+        logical_id = subgraph.candidate_logical_id(cand)
+        proposal_id = int(cand["latestVersion"]["content"].get("proposalIdToUpdate") or 0)
+        target = targets.get(proposal_id)
+        can_sponsor, sponsor_note = update_sponsorship_status(cand, target, head, signer)
+        if proposal_id and not update_candidate_actionable(target, head):
+            continue  # stale update candidates remain in the subgraph after their window closes
         chash = subgraph.candidate_content_hash(cand)
-        existing = db.get_candidate(conn, cand_id)
+        existing = db.get_candidate_by_logical_id(conn, logical_id)
         acted = existing and (existing["sponsor_state"] == "sponsored" or existing["signal_tx"])
         edited = existing and existing["content_hash"] != chash
         if acted and not edited:
-            continue  # you've already acted onchain; nothing a re-verdict could change
+            continue  # preserve the exact slug where the onchain action was recorded
         if existing and existing["content_hash"] == chash and existing["constitution_rev"] == fp:
+            if existing["cand_id"] != cand_id:
+                db.upsert_candidate(
+                    conn, cand_id, logical_id=logical_id, title=existing["title"],
+                    content_hash=chash, constitution_rev=fp,
+                    verdict_json=existing["verdict_json"], raw=json.dumps(cand),
+                )
             continue  # same content, same constitution — already judged
         if evals_last_24h(conn) >= MAX_EVALS_PER_DAY:
             spend_guard_alert(conn, "guard_global",
@@ -84,8 +142,16 @@ def ingest_candidates(client, conn) -> None:
             return
 
         as_prop = subgraph.candidate_as_prop(cand)
+        previous_prop = None
+        if existing and edited:
+            try:
+                previous_prop = subgraph.candidate_as_prop(json.loads(existing["raw"]))
+            except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+                previous_prop = None
         print(f"evaluating candidate {cand['slug'][:50]}…")
-        verdict, usage = evaluate(client, as_prop, candidate=True)
+        verdict, usage = evaluate(
+            client, as_prop, candidate=True, previous_prop=previous_prop
+        )
         # candidate evals count against the daily budget via a synthetic verdict row
         db.save_verdict(conn, -1, chash, rev, ANTHROPIC_MODEL, verdict, usage)
         fields = dict(
@@ -95,30 +161,64 @@ def ingest_candidates(client, conn) -> None:
                 "clauses": verdict.clauses_cited, "reason": verdict.reason,
                 "suggestions": verdict.suggestions, "flags": verdict.flags,
                 "requires_human_review": verdict.requires_human_review,
+                "tldr": getattr(verdict, "tldr", verdict.reason),
+                "change_summary": getattr(verdict, "change_summary", ""),
+                "change_materiality": getattr(verdict, "change_materiality", "initial"),
             }),
             raw=json.dumps(cand),
         )
         prefix = ""
         if acted and edited:
-            # edits void a sponsorship signature; feedback can be re-sent
+            # The old signature cannot authorize this version, but can still
+            # authorize the old content until explicitly canceled onchain.
             if existing["sponsor_state"] == "sponsored":
-                fields["sponsor_state"] = "none"
-                prefix = "⚠️ EDITED after you sponsored — your signature is now VOID. Fresh verdict below:\n"
+                fields["sponsor_state"] = "stale"
+                prefix = (
+                    "⚠️ UPDATED after sponsorship — the old signature does not cover "
+                    "this version, but remains valid for the old content.\n"
+                )
             else:
                 prefix = "⚠️ EDITED after you signaled — re-evaluated:\n"
             fields["signal_tx"] = None
             fields["signal_stance"] = None
-        row = db.upsert_candidate(conn, cand_id, **fields)
+        row = db.upsert_candidate(conn, cand_id, logical_id=logical_id, **fields)
         sigs = [s for s in cand["latestVersion"]["content"]["contentSignatures"] if not s["canceled"]]
-        card = prefix + candidate_card(row["num"], cand, verdict, len(sigs))
+        card = prefix + candidate_card(
+            row["num"],
+            cand,
+            verdict,
+            len(sigs),
+            can_sponsor,
+            sponsor_note,
+            is_update=bool(existing and edited),
+            revoke_available=row["sponsor_state"] == "stale" and bool(row["sig_bytes"]),
+        )
         print("\n" + card + "\n")
         telegram.send_message(card)
 
 
-def candidate_card(num, cand, verdict, sig_count) -> str:
+def candidate_card(
+    num,
+    cand,
+    verdict,
+    sig_count,
+    can_sponsor: bool = True,
+    sponsor_note: str = "",
+    actionable: bool = True,
+    is_update: bool = False,
+    revoke_available: bool = False,
+) -> str:
     content = cand["latestVersion"]["content"]
+    proposal_id = int(content.get("proposalIdToUpdate") or 0)
     flags = f"\n⚑ {', '.join(verdict.flags)}" if verdict.flags else ""
-    if verdict.vote == "FOR" and not verdict.requires_human_review:
+    if proposal_id and not actionable:
+        action = f"🔒 update to prop {proposal_id} — {sponsor_note}; update window closed"
+    elif proposal_id and not can_sponsor:
+        action = (
+            f"🔄 update to prop {proposal_id} — {sponsor_note}; "
+            f"/signal c{num} can still put feedback onchain"
+        )
+    elif verdict.vote == "FOR" and not verdict.requires_human_review:
         action = (f"🌱 SPONSOR-WORTHY — /sponsor c{num} to sign toward the ballot, "
                   f"or /signal c{num} to voice support without sponsoring")
     elif verdict.vote == "FOR":
@@ -126,20 +226,68 @@ def candidate_card(num, cand, verdict, sig_count) -> str:
                   f"or /signal c{num} for support-with-reservations (reasoning + suggestions go onchain)")
     else:
         action = f"not sponsor-worthy — /signal c{num} against puts the reasoning on the record (optional)"
+    if revoke_available:
+        action += f"\n🛑 If this update is misaligned: /revoke c{num} invalidates the old sponsorship"
+    tldr = (getattr(verdict, "tldr", "") or verdict.reason).strip()
+    if len(tldr) > 220:
+        tldr = tldr[:217].rstrip() + "…"
+    change = (getattr(verdict, "change_summary", "") or "").strip()
+    materiality = getattr(verdict, "change_materiality", "material")
+    change_line = (
+        f"\nchanged ({materiality}): {change[:217].rstrip()}{'…' if len(change) > 217 else ''}"
+        if is_update and change
+        else ""
+    )
+    explanation = compose_reason(verdict)
+    if is_update and materiality == "minor" and len(explanation) > 280:
+        explanation = explanation[:277].rstrip() + "…"
     return (
         f"🌿 Candidate c{num}: {content.get('title') or cand['slug']}\n"
         f"by {cand['proposer'][:10]}… · {sig_count} sponsor sig(s) so far\n"
+        f"TL;DR: {tldr}{change_line}\n"
         f"verdict: {verdict.vote} (conf {verdict.confidence:.2f}) · clauses {', '.join(verdict.clauses_cited)}\n"
-        f"{compose_reason(verdict)}{flags}\n{action}"
+        f"{explanation}{flags}\n{action}"
     )
+
+
+def verdict_from_row(row):
+    return SimpleNamespace(
+        vote=row["vote"],
+        confidence=row["confidence"],
+        clauses_cited=json.loads(row["clauses"] or "[]"),
+        reason=row["reason"] or "",
+        suggestions=json.loads(row["suggestions"] or "[]"),
+        flags=json.loads(row["flags"] or "[]"),
+        requires_human_review=bool(row["requires_human_review"]),
+    )
+
+
+def vote_eligibility(prop: dict, head: int, vote: str) -> tuple[bool, str]:
+    status = prop.get("status")
+    if status in {"CANCELLED", "VETOED", "EXECUTED", "QUEUED"}:
+        return False, f"the proposal is {status.lower()}"
+    phase = subgraph.derive_phase(prop, head)
+    if phase == "ACTIVE":
+        return True, ""
+    if phase == "OBJECTION":
+        if vote == "AGAINST":
+            return True, ""
+        return False, "the objection period only accepts AGAINST votes"
+    if phase in {"UPDATABLE", "PENDING"}:
+        opens = int(prop["startBlock"]) + 1
+        return False, f"voting opens at block {opens} (currently {phase.lower()})"
+    return False, "the voting window is closed"
 
 
 def verdict_card(prop, outcome, verdict, cast_target_block, head):
     blocks_away = max(0, cast_target_block - head)
     eta_h = blocks_away * 12 / 3600
     flags = f"\n⚑ {', '.join(verdict.flags)}" if verdict.flags else ""
-    if verdict.requires_human_review:
+    eligible, why_not = vote_eligibility(prop, head, verdict.vote)
+    if verdict.requires_human_review and eligible:
         firing = f"⏸ WILL NOT auto-cast (flagged) — /cast {prop['id']} to ratify, /override to change"
+    elif verdict.requires_human_review:
+        firing = f"⏳ {why_not}; flagged verdict will need ratification once voting opens"
     else:
         firing = f"🕒 auto-casts in ~{eta_h:.0f}h (block {cast_target_block}) — /hold {prop['id']} to stop"
     return (
@@ -157,13 +305,31 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
         outcome = subgraph.derive_outcome(prop, head)
         pid = int(prop["id"])
         chash = subgraph.content_hash(prop)
-        prior = conn.execute("SELECT content_hash FROM proposals WHERE id=?", (pid,)).fetchone()
+        prior = conn.execute(
+            "SELECT content_hash, vote_open_notified_hash FROM proposals WHERE id=?", (pid,)
+        ).fetchone()
         edited = prior and prior["content_hash"] != chash
         # always refresh status/outcome — cancellations must reach the scheduler
         db.upsert_proposal(conn, prop, chash, outcome)
-        if outcome not in {"PENDING", "VOTING"}:
+        if outcome not in {"UPDATABLE", "PENDING", "VOTING"}:
             continue
-        if db.get_verdict(conn, pid, chash, fp, ANTHROPIC_MODEL):
+        start, end = int(prop["startBlock"]), int(prop["endBlock"])
+        target = start + int((end - start) * CAST_AT_FRACTION)
+        cached = db.get_verdict(conn, pid, chash, fp, ANTHROPIC_MODEL)
+        if cached:
+            notified_hash = prior["vote_open_notified_hash"] if prior else None
+            if outcome == "VOTING" and notified_hash != chash:
+                cast_row = db.get_cast(conn, pid)
+                if cast_row and cast_row["state"] in {"cast", "missed", "skipped"}:
+                    # nothing actionable to announce — the vote is already spent
+                    db.mark_vote_open_notified(conn, pid, chash)
+                else:
+                    card = "🟢 VOTING OPEN —\n" + verdict_card(
+                        prop, outcome, verdict_from_row(cached), target, head
+                    )
+                    print("\n" + card + "\n")
+                    if telegram.send_message(card):
+                        db.mark_vote_open_notified(conn, pid, chash)
             continue
         cast_row = db.get_cast(conn, pid)
         if cast_row and cast_row["state"] == "cast" and not edited:
@@ -185,17 +351,22 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
         verdict, usage = evaluate(client, prop)
         db.save_verdict(conn, pid, chash, rev, ANTHROPIC_MODEL, verdict, usage)
 
-        start, end = int(prop["startBlock"]), int(prop["endBlock"])
-        target = start + int((end - start) * CAST_AT_FRACTION)
         existing = db.get_cast(conn, pid)
         state = existing["state"] if existing else "scheduled"
         if state not in {"held", "cast"}:  # edits don't un-hold, never re-cast
             db.upsert_cast(conn, pid, state="scheduled", vote=verdict.vote,
                            reason=compose_reason(verdict), cast_block_target=target)
-        prefix = "✏️ PROPOSAL EDITED — re-evaluated:\n" if edited else ""
+        if edited:
+            prefix = "✏️ PROPOSAL EDITED — re-evaluated:\n"
+        elif outcome == "VOTING":
+            prefix = "🟢 VOTING OPEN —\n"
+        else:
+            prefix = ""
         card = prefix + verdict_card(prop, outcome, verdict, target, head)
         print("\n" + card + "\n")
-        telegram.send_message(card)
+        delivered = telegram.send_message(card)
+        if outcome == "VOTING" and delivered:
+            db.mark_vote_open_notified(conn, pid, chash)
 
 
 def handle_commands(conn) -> None:
@@ -253,8 +424,6 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             row = db.get_candidate_by_num(conn, int(args[0].lstrip("c")))
             if not row:
                 return f"candidate {args[0]}: unknown"
-            from types import SimpleNamespace
-
             cand = json.loads(row["raw"])
             v = json.loads(row["verdict_json"] or "{}")
             verdict = SimpleNamespace(
@@ -265,24 +434,83 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
                 suggestions=v.get("suggestions", []),
                 flags=v.get("flags", []),
                 requires_human_review=v.get("requires_human_review", False),
+                tldr=v.get("tldr", ""),
+                change_summary=v.get("change_summary", ""),
+                change_materiality=v.get("change_materiality", "initial"),
             )
             sigs = [s for s in cand["latestVersion"]["content"]["contentSignatures"] if not s["canceled"]]
-            card = candidate_card(row["num"], cand, verdict, len(sigs))
+            targets = candidate_target_map([cand])
+            proposal_id = int(cand["latestVersion"]["content"].get("proposalIdToUpdate") or 0)
+            from .executor import bot_address
+
+            head = subgraph.current_block()
+            can_sponsor, sponsor_note = update_sponsorship_status(
+                cand, targets.get(proposal_id), head, bot_address()
+            )
+            target = targets.get(proposal_id)
+            actionable = (
+                not proposal_id
+                or update_candidate_actionable(target, head)
+            )
+            card = candidate_card(
+                row["num"],
+                cand,
+                verdict,
+                len(sigs),
+                can_sponsor,
+                sponsor_note,
+                actionable,
+                is_update=bool(v.get("change_summary")),
+                revoke_available=(
+                    row["sponsor_state"] in {"sponsored", "stale"} and bool(row["sig_bytes"])
+                ),
+            )
             if row["sponsor_state"] == "sponsored":
                 card += f"\n(already sponsored: {row['sig_tx']})"
+            elif row["sponsor_state"] == "stale":
+                card += "\n(old sponsorship is still revocable)"
+            elif row["sponsor_state"] == "revoked":
+                card += f"\n(sponsorship revoked: {row['revoke_tx']})"
+            elif row["sponsor_state"] == "expired":
+                card += "\n(sponsorship signature expired)"
             elif row["signal_tx"]:
                 card += f"\n(already signaled {row['signal_stance']}: {row['signal_tx']})"
             return card
-        rows = conn.execute("SELECT * FROM candidates ORDER BY num DESC LIMIT 15").fetchall()
+        rows = conn.execute(
+            "SELECT * FROM candidates WHERE superseded=0 ORDER BY num DESC LIMIT 15"
+        ).fetchall()
         if not rows:
             return "no candidates seen yet"
-        open_ids = {c["id"] for c in subgraph.fetch_candidates(first=20)}
+        open_candidates = subgraph.fetch_candidates(first=20)
+        open_targets = candidate_target_map(open_candidates)
+        head = subgraph.current_block()
+        open_ids = {
+            c["id"]
+            for c in open_candidates
+            if not int(c["latestVersion"]["content"].get("proposalIdToUpdate") or 0)
+            or (
+                int(c["latestVersion"]["content"].get("proposalIdToUpdate") or 0)
+                in open_targets
+                and update_candidate_actionable(
+                    open_targets[
+                        int(c["latestVersion"]["content"].get("proposalIdToUpdate") or 0)
+                    ],
+                    head,
+                )
+            )
+        }
         lines = []
         for r in rows:
             v = json.loads(r["verdict_json"] or "{}")
             conf = f" ({v['confidence']:.2f})" if v.get("confidence") is not None else ""
             if r["sponsor_state"] == "sponsored":
                 did = "🌱 sponsored"
+            elif r["sponsor_state"] == "stale":
+                did = f"⚠️ updated · /revoke c{r['num']}"
+            elif r["sponsor_state"] == "revoked":
+                did = "🛑 sponsorship revoked"
+            elif r["sponsor_state"] == "expired":
+                did = "⌛ sponsorship expired"
             elif r["signal_tx"]:
                 did = f"📣 signaled {r['signal_stance']}"
             elif r["cand_id"] not in open_ids:
@@ -292,7 +520,8 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             lines.append(f"c{r['num']}: {v.get('vote', '?')}{conf} [{did}] — {(r['title'] or '')[:45]}")
         return ("\n".join(lines)
                 + "\n\n/candidates c<num> replays the full verdict card · "
-                  "/signal c<num> [for|against|abstain] [reason] · /sponsor c<num>")
+                  "/signal c<num> [for|against|abstain] [reason] · "
+                  "/sponsor c<num> · /revoke c<num>")
 
     if cmd == "sponsor":
         if not args or not args[0].lstrip("c").isdigit():
@@ -302,7 +531,12 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             return f"candidate {args[0]}: unknown"
         if row["sponsor_state"] == "sponsored":
             return f"candidate c{row['num']} already sponsored ({row['sig_tx']})"
-        from .executor import sponsor_candidate
+        if row["sponsor_state"] == "stale":
+            return (
+                f"candidate c{row['num']} has an older sponsorship still active — "
+                f"/revoke c{row['num']} before signing the updated version"
+            )
+        from .executor import bot_address, sponsor_candidate
 
         cand = json.loads(row["raw"])
         v = json.loads(row["verdict_json"])
@@ -315,11 +549,83 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         reason = v["reason"]
         if v.get("suggestions"):
             reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
-        tx = sponsor_candidate(fresh[0], reason + SIGNOFF)
-        db.upsert_candidate(conn, row["cand_id"], sponsor_state="sponsored", sig_tx=tx)
+        cand = fresh[0]
+        proposal_id = int(cand["latestVersion"]["content"].get("proposalIdToUpdate") or 0)
+        target = None
+        if proposal_id:
+            targets = subgraph.fetch_proposals_by_ids([proposal_id])
+            target = targets[0] if targets else None
+            can_sponsor, sponsor_note = update_sponsorship_status(
+                cand, target, subgraph.current_block(), bot_address()
+            )
+            if not can_sponsor:
+                return f"candidate c{row['num']} cannot be sponsored: {sponsor_note}"
+        def record_signature(sent):
+            # Runs right after broadcast, before the receipt wait: a mined-but-
+            # timed-out tx must never leave a live signature the DB can't revoke.
+            db.upsert_candidate(
+                conn,
+                row["cand_id"],
+                sponsor_state="sponsored",
+                sig_tx=sent.tx_hash,
+                sig_bytes=sent.signature,
+                sig_expiration=sent.expiration,
+                signed_content_hash=row["content_hash"],
+                revoke_tx=None,
+            )
+
+        result = sponsor_candidate(
+            cand, reason + SIGNOFF, target_prop=target, on_sent=record_signature
+        )
         return (f"🌱 sponsored candidate c{row['num']} with our delegated weight\n"
-                f"tx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}\n"
-                f"(signature auto-invalidates if the proposer edits)")
+                f"tx: https://etherscan.io/tx/0x{result.tx_hash.removeprefix('0x')}\n"
+                f"(if the candidate changes, /revoke c{row['num']} invalidates this exact signature)")
+
+    if cmd == "revoke":
+        if not args or not args[0].lstrip("c").isdigit():
+            return "usage: /revoke c<num>"
+        row = db.get_candidate_by_num(conn, int(args[0].lstrip("c")))
+        if not row:
+            return f"candidate {args[0]}: unknown"
+        if row["sponsor_state"] == "revoked":
+            return f"candidate c{row['num']} sponsorship already revoked ({row['revoke_tx']})"
+        if row["sponsor_state"] == "expired":
+            return f"candidate c{row['num']} sponsorship signature already expired"
+        if row["sponsor_state"] not in {"sponsored", "stale"}:
+            return f"candidate c{row['num']} has no active sponsorship to revoke"
+        signature = row["sig_bytes"]
+        expiration = row["sig_expiration"]
+        if not signature and row["sig_tx"]:
+            from .executor import recover_candidate_signature
+
+            try:
+                signature, expiration = recover_candidate_signature(row["sig_tx"])
+            except Exception as exc:
+                return f"candidate c{row['num']}: could not recover legacy signature: {exc}"
+            db.upsert_candidate(
+                conn,
+                row["cand_id"],
+                sig_bytes=signature,
+                sig_expiration=expiration,
+            )
+        if not signature:
+            return f"candidate c{row['num']} has no stored signature to revoke"
+        if expiration and int(expiration) <= int(time.time()):
+            db.upsert_candidate(conn, row["cand_id"], sponsor_state="expired")
+            return (
+                f"candidate c{row['num']} sponsorship already expired; "
+                "no revocation transaction needed"
+            )
+        from .executor import revoke_candidate_signature
+
+        tx = revoke_candidate_signature(signature)
+        db.upsert_candidate(
+            conn, row["cand_id"], sponsor_state="revoked", revoke_tx=tx
+        )
+        return (
+            f"🛑 revoked sponsorship for candidate c{row['num']}\n"
+            f"tx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}"
+        )
 
     if cmd == "status":
         rows = conn.execute(
@@ -332,12 +638,42 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             flag = " ⚑review" if v and v["requires_human_review"] else ""
             lines.append(f"{r['prop_id']}: {r['vote']} [{r['state']}]{flag} → block {r['cast_block_target']} — {r['title'][:40]}")
         cands = conn.execute(
-            "SELECT * FROM candidates WHERE sponsor_state='none' ORDER BY num DESC LIMIT 8"
+            """SELECT * FROM candidates
+               WHERE sponsor_state IN ('none','stale') AND superseded=0
+               ORDER BY num DESC LIMIT 8"""
         ).fetchall()
+        candidate_raw = [json.loads(c["raw"] or "{}") for c in cands]
+        targets = candidate_target_map(candidate_raw)
+        head = subgraph.current_block()
+        from .executor import bot_address
+
+        signer = bot_address()
         for c in cands:
+            if c["sponsor_state"] == "stale":
+                lines.append(
+                    f"c{c['num']}: ⚠️ updated after sponsorship — /revoke c{c['num']} — "
+                    f"{c['title'][:40]}"
+                )
+                continue
             v = json.loads(c["verdict_json"] or "{}")
             if v.get("vote") == "FOR":
-                lines.append(f"c{c['num']}: 🌱 sponsor-worthy — /sponsor c{c['num']} — {c['title'][:40]}")
+                raw = json.loads(c["raw"] or "{}")
+                proposal_id = int(
+                    ((raw.get("latestVersion") or {}).get("content") or {}).get("proposalIdToUpdate") or 0
+                )
+                if proposal_id:
+                    target = targets.get(proposal_id)
+                    can_sponsor, note = update_sponsorship_status(raw, target, head, signer)
+                    if not update_candidate_actionable(target, head):
+                        continue
+                    action = f"/sponsor c{c['num']}" if can_sponsor else "feedback review"
+                    lines.append(
+                        f"c{c['num']}: 🔄 update to prop {proposal_id} — {action} — {c['title'][:40]}"
+                    )
+                else:
+                    lines.append(
+                        f"c{c['num']}: 🌱 sponsor-worthy — /sponsor c{c['num']} — {c['title'][:40]}"
+                    )
         return "\n".join(lines) if lines else "nothing pending — all quiet"
 
     if cmd in {"hold", "release", "cast", "override"}:
@@ -364,14 +700,25 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             return f"prop {pid} overridden to {vote} — reason logged, casts on schedule."
         if cmd == "cast":
             return do_cast(conn, pid, forced=True)
-    return f"unknown command /{cmd} — try /status /candidates /hold /release /override /cast /sponsor /signal"
+    return (
+        f"unknown command /{cmd} — try /status /candidates /hold /release "
+        "/override /cast /sponsor /revoke /signal"
+    )
 
 
-def do_cast(conn, pid: int, forced: bool = False) -> str:
+def do_cast(conn, pid: int, forced: bool = False, head: int | None = None) -> str:
     from .executor import bot_address, cast_vote
 
     row = db.get_cast(conn, pid)
     vote, reason = row["vote"], (row["reason"] or "") + SIGNOFF
+    prop_row = conn.execute("SELECT raw FROM proposals WHERE id=?", (pid,)).fetchone()
+    if not prop_row:
+        return f"prop {pid}: proposal data unavailable; cannot verify the voting window"
+    prop = json.loads(prop_row["raw"])
+    current_head = subgraph.current_block() if head is None else head
+    eligible, why_not = vote_eligibility(prop, current_head, vote)
+    if not eligible:
+        return f"⏳ prop {pid}: {why_not}; no vote sent"
     if not bot_address():
         db.upsert_cast(conn, pid, state="skipped")
         return f"📝 paper mode: would cast {vote} on prop {pid} — no key configured"
@@ -402,7 +749,24 @@ def check_schedule(conn, head: int) -> None:
             telegram.send_message(f"⏹ prop {pid} was {current['status'].lower()} — cast cancelled, nothing to do")
             continue
         end = int(prop["endBlock"])
-        if head > end:
+        objection_end = int(prop.get("objectionPeriodEndBlock") or 0)
+        deadline = objection_end if row["vote"] == "AGAINST" and objection_end > end else end
+        if head > deadline and row["vote"] == "AGAINST" and objection_end <= end:
+            # The cached raw is up to one ingest interval stale — a last-minute
+            # flip can open an objection window we haven't seen yet. Re-fetch
+            # before declaring a terminal miss.
+            try:
+                fresh = subgraph.fetch_proposals_by_ids([pid])
+            except Exception:
+                fresh = []
+            if fresh:
+                prop = fresh[0]
+                db.upsert_proposal(conn, prop, subgraph.content_hash(prop),
+                                   subgraph.derive_outcome(prop, head))
+                objection_end = int(prop.get("objectionPeriodEndBlock") or 0)
+                if objection_end > end:
+                    deadline = objection_end
+        if head > deadline:
             db.upsert_cast(conn, pid, state="missed")
             telegram.send_message(
                 f"⏹ prop {pid} window closed without a cast "
@@ -424,7 +788,7 @@ def check_schedule(conn, head: int) -> None:
             continue
         if verdict_age < RATIFY_FLOOR_SECONDS:
             continue  # 24h floor: too fresh to default-fire
-        msg = do_cast(conn, pid)
+        msg = do_cast(conn, pid, head=head)
         telegram.send_message(msg)
         print(msg)
 
@@ -451,7 +815,7 @@ def main() -> None:
             head = subgraph.current_block()
             if time.time() - last_ingest >= INGEST_INTERVAL_SECONDS:
                 ingest_and_evaluate(client, conn, head)
-                ingest_candidates(client, conn)
+                ingest_candidates(client, conn, head)
                 last_ingest = time.time()
             handle_commands(conn)
             check_schedule(conn, head)

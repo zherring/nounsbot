@@ -33,6 +33,13 @@ GOVERNOR_ABI = [
         "inputs": [{"name": "proposalId", "type": "uint256"}],
         "outputs": [{"name": "", "type": "uint8"}],
     },
+    {
+        "name": "cancelSig",
+        "type": "function",
+        "stateMutability": "nonpayable",
+        "inputs": [{"name": "sig", "type": "bytes"}],
+        "outputs": [],
+    },
 ]
 
 SUPPORT = {"AGAINST": 0, "FOR": 1, "ABSTAIN": 2}
@@ -105,11 +112,30 @@ DATA_ABI = [
             {"name": "reason", "type": "string"},
         ],
         "outputs": [],
-    }
+    },
+    {
+        "name": "SignatureAdded",
+        "type": "event",
+        "anonymous": False,
+        "inputs": [
+            {"name": "signer", "type": "address", "indexed": True},
+            {"name": "sig", "type": "bytes", "indexed": False},
+            {"name": "expirationTimestamp", "type": "uint256", "indexed": False},
+            {"name": "proposer", "type": "address", "indexed": False},
+            {"name": "slug", "type": "string", "indexed": False},
+            {"name": "proposalIdToUpdate", "type": "uint256", "indexed": False},
+            {"name": "encodedPropHash", "type": "bytes32", "indexed": False},
+            {"name": "sigDigest", "type": "bytes32", "indexed": False},
+            {"name": "reason", "type": "string", "indexed": False},
+        ],
+    },
 ]
 
 PROPOSAL_TYPEHASH = Web3.keccak(
     text="Proposal(address proposer,address[] targets,uint256[] values,string[] signatures,bytes[] calldatas,string description,uint256 expiry)"
+)
+UPDATE_PROPOSAL_TYPEHASH = Web3.keccak(
+    text="UpdateProposal(uint256 proposalId,address proposer,address[] targets,uint256[] values,string[] signatures,bytes[] calldatas,string description,uint256 expiry)"
 )
 DOMAIN_TYPEHASH = Web3.keccak(text="EIP712Domain(string name,uint256 chainId,address verifyingContract)")
 
@@ -141,10 +167,11 @@ def calc_proposal_encode_data(proposer: str, targets, values, signatures, callda
     )
 
 
-def sponsorship_digest(encoded_prop: bytes, expiration: int) -> bytes:
+def sponsorship_digest(encoded_prop: bytes, expiration: int, proposal_id_to_update: int = 0) -> bytes:
     from eth_abi import encode as abi_encode
 
-    struct_hash = Web3.keccak(PROPOSAL_TYPEHASH + encoded_prop + expiration.to_bytes(32, "big"))
+    typehash = UPDATE_PROPOSAL_TYPEHASH if proposal_id_to_update else PROPOSAL_TYPEHASH
+    struct_hash = Web3.keccak(typehash + encoded_prop + expiration.to_bytes(32, "big"))
     domain = Web3.keccak(
         abi_encode(
             ["bytes32", "bytes32", "uint256", "address"],
@@ -156,3 +183,8 @@ def sponsorship_digest(encoded_prop: bytes, expiration: int) -> bytes:
 
 def data_contract(web3: Web3):
     return web3.eth.contract(address=DATA_CONTRACT, abi=DATA_ABI)
+
+
+def proposal_state(web3: Web3, prop_id: int) -> int:
+    """Raw NounsDAOTypes.ProposalState enum from the governor."""
+    return int(governor(web3).functions.state(prop_id).call())

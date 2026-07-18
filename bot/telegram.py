@@ -6,6 +6,7 @@ Commands (PRD §6.4):
   /release <prop>              resume the scheduled cast
   /override <prop> <for|against|abstain> <reason...>   replace verdict (reason mandatory)
   /cast <prop>                 cast immediately (also the explicit ratify for flagged props)
+  /revoke c<num>               invalidate a previously published candidate signature
 
 Discover your channel id with: python -m bot.telegram (posts nothing; prints chats it can see)
 """
@@ -19,17 +20,19 @@ from .config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 API = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
 
-def send_message(text: str) -> None:
+def send_message(text: str) -> bool:
     if not (TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID):
-        return
+        return True
     try:
         requests.post(
             f"{API}/sendMessage",
             json={"chat_id": TELEGRAM_CHAT_ID, "text": text},
             timeout=10,
         ).raise_for_status()
+        return True
     except Exception as exc:  # notification failure must never kill the loop
         print(f"telegram send failed: {exc}")
+        return False
 
 
 def get_updates(offset: int) -> list[dict]:

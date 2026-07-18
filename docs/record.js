@@ -77,6 +77,13 @@ function txLink(hash) {
 // are onchain acts, everything else is a verdict awaiting a human.
 function candAction(c) {
   if (c.sponsor_state === "sponsored") return `🌱 sponsored${txLink(c.sponsor_tx)}`;
+  if (c.sponsor_state === "stale") {
+    return c.revoke_available
+      ? "⚠️ updated after sponsorship · revocation available"
+      : "⚠️ updated after sponsorship";
+  }
+  if (c.sponsor_state === "revoked") return `🛑 sponsorship revoked${txLink(c.revoke_tx)}`;
+  if (c.sponsor_state === "expired") return "⌛ sponsorship expired";
   if (c.signal_tx) return `📣 signaled ${c.signal_stance || ""}${txLink(c.signal_tx)}`;
   if (c.vote === "FOR") return "🌱 sponsor-worthy — awaiting human sign-off";
   return "👀 watching";
@@ -91,6 +98,10 @@ function renderCandidates(cands) {
   for (const c of cands) {
     const tr = document.createElement("tr");
     const flags = c.flags?.length ? ` ⚑ ${c.flags.join(", ")}` : "";
+    const update = c.change_summary
+      ? `Changed (${c.change_materiality || "material"}): ${c.change_summary}\n\n`
+      : "";
+    const summary = c.tldr ? `TL;DR: ${c.tldr}\n\n${update}` : update;
     tr.innerHTML = `
       <td><a href="https://www.nouns.camp/candidates/${encodeURIComponent(c.cand_id)}">c${c.num}</a><br>
           <span class="muted" style="font-size:0.85rem">${esc(c.title || "")}</span></td>
@@ -98,7 +109,7 @@ function renderCandidates(cands) {
           <span class="muted" style="font-size:0.8rem">${c.vote === "FOR" ? "sponsor-worthy" : "not sponsor-worthy"}</span></td>
       <td>${(c.clauses || []).join(", ")}</td>
       <td class="reason-cell" style="max-width:26rem">
-        <span class="reason-text">${esc(c.reason || "")}<span class="muted">${esc(flags)}</span></span>
+        <span class="reason-text">${esc(summary + (c.reason || ""))}<span class="muted">${esc(flags)}</span></span>
         <button type="button" class="reason-toggle">Full rationale →</button>
       </td>
       <td>${candAction(c)}</td>`;

@@ -47,8 +47,9 @@ cast time. Commands:
 | `/hold <id>` | freeze the cast; hold wins at the deadline (no vote, public miss) |
 | `/release <id>` | back on schedule |
 | `/override <id> <for\|against\|abstain> <reason>` | replace the verdict; reason mandatory + logged |
-| `/cast <id>` | cast now — also the explicit ratify for ⚑flagged props |
-| `/sponsor c<num>` | sign EIP-712 sponsorship for a candidate with our delegated weight (from its 🌿 card; never automatic) |
+| `/cast <id>` | cast now once voting is open — also the explicit ratify for ⚑flagged props |
+| `/sponsor c<num>` | sign EIP-712 sponsorship for a candidate (proposal updates can only be re-signed by their original signers; never automatic) |
+| `/revoke c<num>` | invalidate the exact candidate signature previously published by this bot |
 | `/signal c<num> [stance] [reason]` | onchain candidate feedback with reasoning — support without sponsoring (defaults to the verdict's stance + reason) |
 
 **Never run `python -m bot.poller` locally while Railway is live** — two loops
