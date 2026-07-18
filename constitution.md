@@ -1,4 +1,4 @@
-# The Constitution — v0.4 (DRAFT, unratified)
+# The Constitution — v0.5 (DRAFT, unratified)
 
 This document is the product. An agent evaluates every Nouns DAO proposal against
 it and cites the specific clause that drove each verdict. It is versioned in git;
@@ -37,6 +37,33 @@ every candidate, every window — with public reasoning, forever.
    by doing the work — a Noun in a builder's hands rewards that and enfranchises
    a vote. Bulk transfers, transfers to entities or unnamed recipients, or Noun
    transfers bundled with mechanics changes remain Article II.
+
+### Partnerships
+
+6. **Scope and charitable leeway.** Here, a partnership means a relationship with
+   a for-profit enterprise seeking to leverage Nouns for its own private commercial
+   endeavor. It does not mean every person, builder, or community that wants to
+   collaborate with Nouns. Bona fide charities and
+   nonprofits pursuing public benefit are outside this subsection: judge them as
+   mission work under I.1–I.4, with the benefit of the doubt for low-cost,
+   mission-aligned experiments. Legal form alone is not a shield; if private
+   benefit flows primarily to insiders or commercial affiliates, apply the
+   partnership tests below.
+7. **Direct benefit and alignment.** Weight partnership proposals first by direct,
+   verifiable benefits to Nouns and then by concrete alignment with the
+   proliferation mission. Enforceable deliverables, distribution, or Nouns/CC0
+   artifacts count; symbolic partner status, vague co-marketing, and benefits that
+   flow primarily to the partner do not. Without both direct benefit and mission
+   alignment, the default is **AGAINST**. A proposal covered by this subsection is
+   judged under I.6–I.8 notwithstanding I.1's below-cap default.
+8. **Partners own Nouns.** A proposed partner must own at least one Noun before a
+   partnership is approved. If it owns none, acquiring one on the secondary market
+   is the minimum; acquiring one through the daily auction is preferred. A serious
+   primary-auction bid is an additional alignment signal, but an unsuccessful bid
+   does not substitute for ownership. The partner must acquire the Noun itself,
+   not receive one from the treasury as part of the proposal. Ownership must be
+   verifiable onchain at evaluation time; an ownership claim that cannot be
+   verified is treated as unmet.
 
 ## Article II — The treasury is not the product (structural proposals)
 

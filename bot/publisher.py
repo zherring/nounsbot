@@ -14,6 +14,7 @@ import subprocess
 from datetime import datetime, timezone
 
 from .config import REPO_ROOT
+from .evaluator import first_sentence, split_posted_reason
 
 VERDICTS_PATH = REPO_ROOT / "docs" / "verdicts.json"
 
@@ -21,10 +22,11 @@ VERDICTS_PATH = REPO_ROOT / "docs" / "verdicts.json"
 def build_payload(conn) -> dict:
     """The record as a dict — used by both the file exporter and the live web endpoint."""
     rows = conn.execute(
-        """SELECT v.prop_id, v.vote, v.confidence, v.clauses, v.reason, v.flags,
+        """SELECT v.prop_id, v.vote, v.confidence, v.clauses, v.tldr, v.reason, v.flags,
                   v.suggestions, v.constitution_rev, v.created_at,
                   p.title, p.outcome,
-                  c.state AS cast_state, c.tx_hash, c.vote AS cast_vote, c.override_by
+                  c.state AS cast_state, c.tx_hash, c.vote AS cast_vote, c.reason AS cast_reason,
+                  c.override_by
            FROM verdicts v
            JOIN proposals p ON p.id = v.prop_id
            LEFT JOIN casts c ON c.prop_id = v.prop_id
@@ -36,7 +38,7 @@ def build_payload(conn) -> dict:
     # so they publish too (prior verdicts under earlier constitution revs)
     history: dict[int, list[dict]] = {}
     for h in conn.execute(
-        "SELECT prop_id, vote, confidence, clauses, reason, constitution_rev, created_at "
+        "SELECT prop_id, vote, confidence, clauses, tldr, reason, constitution_rev, created_at "
         "FROM verdicts ORDER BY prop_id, created_at"
     ):
         history.setdefault(h["prop_id"], []).append(
@@ -44,6 +46,7 @@ def build_payload(conn) -> dict:
                 "vote": h["vote"],
                 "confidence": h["confidence"],
                 "clauses": json.loads(h["clauses"]),
+                "tldr": first_sentence(h["tldr"] or h["reason"]),
                 "reason": h["reason"],
                 "constitution_rev": h["constitution_rev"],
                 "evaluated_at": h["created_at"],
@@ -64,6 +67,10 @@ def build_payload(conn) -> dict:
     for r in rows:
         if r["prop_id"] < 0:
             continue  # synthetic candidate budget rows
+        tldr = first_sentence(r["tldr"] or r["reason"])
+        reason = display_reason(r)
+        if r["override_by"] and r["cast_reason"]:
+            tldr, reason = split_posted_reason(r["cast_reason"])
         verdicts.append(
             {
                 "prop_id": r["prop_id"],
@@ -71,7 +78,8 @@ def build_payload(conn) -> dict:
                 "vote": r["cast_vote"] or r["vote"],
                 "confidence": r["confidence"],
                 "clauses": json.loads(r["clauses"]),
-                "reason": display_reason(r),
+                "tldr": tldr,
+                "reason": reason,
                 "flags": json.loads(r["flags"]),
                 "constitution_rev": r["constitution_rev"],
                 "outcome": r["outcome"],
@@ -88,7 +96,7 @@ def build_payload(conn) -> dict:
     candidates = []
     for r in conn.execute(
         """SELECT num, cand_id, title, sponsor_state, sig_tx, sig_bytes, revoke_tx,
-                  signal_tx, signal_stance, verdict_json, updated_at
+                  signal_tx, signal_stance, signal_reason, verdict_json, updated_at
            FROM candidates WHERE superseded=0 ORDER BY num DESC"""
     ):
         try:
@@ -98,6 +106,9 @@ def build_payload(conn) -> dict:
         reason = v.get("reason") or ""
         if v.get("suggestions"):
             reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+        tldr = first_sentence(v.get("tldr") or reason)
+        if r["signal_reason"]:
+            tldr, reason = split_posted_reason(r["signal_reason"])
         candidates.append(
             {
                 "num": r["num"],
@@ -106,8 +117,8 @@ def build_payload(conn) -> dict:
                 "vote": v.get("vote"),
                 "confidence": v.get("confidence"),
                 "clauses": v.get("clauses", []),
+                "tldr": tldr,
                 "reason": reason,
-                "tldr": v.get("tldr"),
                 "change_summary": v.get("change_summary"),
                 "change_materiality": v.get("change_materiality"),
                 "flags": v.get("flags", []),

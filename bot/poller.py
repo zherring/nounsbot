@@ -20,7 +20,7 @@ import json
 from types import SimpleNamespace
 
 from . import db, publisher, subgraph, telegram
-from .evaluator import compose_reason
+from .evaluator import compose_reason, compose_vote_reason, first_sentence, format_posted_reason
 from .config import (
     ANTHROPIC_MODEL,
     INGEST_INTERVAL_SECONDS,
@@ -149,19 +149,25 @@ def ingest_candidates(client, conn, head: int) -> None:
             except (KeyError, TypeError, ValueError, json.JSONDecodeError):
                 previous_prop = None
         print(f"evaluating candidate {cand['slug'][:50]}…")
-        verdict, usage = evaluate(
-            client, as_prop, candidate=True, previous_prop=previous_prop
-        )
+        try:
+            verdict, usage = evaluate(
+                client, as_prop, candidate=True, previous_prop=previous_prop
+            )
+        except Exception as exc:
+            spend_guard_alert(conn, f"eval_fail_cand_{cand_id}",
+                f"⚠️ evaluation failed for candidate {cand['slug'][:50]}: {exc}")
+            continue
         # candidate evals count against the daily budget via a synthetic verdict row
         db.save_verdict(conn, -1, chash, rev, ANTHROPIC_MODEL, verdict, usage)
         fields = dict(
             title=as_prop["title"][:120], content_hash=chash, constitution_rev=fp,
             verdict_json=json.dumps({
                 "vote": verdict.vote, "confidence": verdict.confidence,
-                "clauses": verdict.clauses_cited, "reason": verdict.reason,
+                "clauses": verdict.clauses_cited,
+                "tldr": first_sentence(getattr(verdict, "tldr", "") or verdict.reason, 220),
+                "reason": verdict.reason,
                 "suggestions": verdict.suggestions, "flags": verdict.flags,
                 "requires_human_review": verdict.requires_human_review,
-                "tldr": getattr(verdict, "tldr", verdict.reason),
                 "change_summary": getattr(verdict, "change_summary", ""),
                 "change_materiality": getattr(verdict, "change_materiality", "initial"),
             }),
@@ -181,6 +187,7 @@ def ingest_candidates(client, conn, head: int) -> None:
                 prefix = "⚠️ EDITED after you signaled — re-evaluated:\n"
             fields["signal_tx"] = None
             fields["signal_stance"] = None
+            fields["signal_reason"] = None
         row = db.upsert_candidate(conn, cand_id, logical_id=logical_id, **fields)
         sigs = [s for s in cand["latestVersion"]["content"]["contentSignatures"] if not s["canceled"]]
         card = prefix + candidate_card(
@@ -255,6 +262,7 @@ def verdict_from_row(row):
         vote=row["vote"],
         confidence=row["confidence"],
         clauses_cited=json.loads(row["clauses"] or "[]"),
+        tldr=row["tldr"] or "",
         reason=row["reason"] or "",
         suggestions=json.loads(row["suggestions"] or "[]"),
         flags=json.loads(row["flags"] or "[]"),
@@ -294,7 +302,7 @@ def verdict_card(prop, outcome, verdict, cast_target_block, head):
         f"📜 Prop {prop['id']}: {prop.get('title', '(untitled)')}\n"
         f"state: {outcome}\n"
         f"verdict: {verdict.vote} (conf {verdict.confidence:.2f}) · clauses {', '.join(verdict.clauses_cited)}\n"
-        f"{compose_reason(verdict)}{flags}\n{firing}"
+        f"{compose_vote_reason(verdict)}{flags}\n{firing}"
     )
 
 
@@ -348,20 +356,36 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
             continue
 
         print(f"evaluating prop {pid} ({prop.get('title', '')[:60]})…")
-        verdict, usage = evaluate(client, prop)
+        try:
+            verdict, usage = evaluate(client, prop)
+        except Exception as exc:
+            # one bad prop (API error, unparseable output) must not stall the
+            # tick or silently retry-bill every cycle
+            spend_guard_alert(conn, f"eval_fail_{pid}",
+                f"⚠️ evaluation failed for prop {pid}: {exc}")
+            continue
         db.save_verdict(conn, pid, chash, rev, ANTHROPIC_MODEL, verdict, usage)
 
         existing = db.get_cast(conn, pid)
         state = existing["state"] if existing else "scheduled"
-        if state not in {"held", "cast"}:  # edits don't un-hold, never re-cast
-            db.upsert_cast(conn, pid, state="scheduled", vote=verdict.vote,
-                           reason=compose_reason(verdict), cast_block_target=target)
+        overridden = bool(existing and existing["override_by"])
+        if state != "cast":  # refresh held casts without releasing them; never re-cast
+            if overridden:
+                # A human /override stands until a human changes it — a re-eval
+                # (edit or amendment) refreshes the schedule, never the decision.
+                db.upsert_cast(conn, pid, state=state, cast_block_target=target)
+            else:
+                db.upsert_cast(conn, pid, state=state, vote=verdict.vote,
+                               reason=compose_vote_reason(verdict), cast_block_target=target)
         if edited:
             prefix = "✏️ PROPOSAL EDITED — re-evaluated:\n"
         elif outcome == "VOTING":
             prefix = "🟢 VOTING OPEN —\n"
         else:
             prefix = ""
+        if overridden:
+            prefix += (f"ℹ️ your /override ({existing['vote']}) still stands — the fresh "
+                       f"verdict below is informational; /override again to change it\n")
         card = prefix + verdict_card(prop, outcome, verdict, target, head)
         print("\n" + card + "\n")
         delivered = telegram.send_message(card)
@@ -405,16 +429,22 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             stance = VOTES[rest[0].lower()]
             rest = rest[1:]
         if rest:
+            # human-authored text goes onchain as written — no TL;DR wrapper,
+            # which would just duplicate its own first sentence
             reason = " ".join(rest)
         else:
-            reason = v.get("reason", "")
+            tldr = v.get("tldr") or first_sentence(v.get("reason", ""))
+            rationale = v.get("reason", "")
             if v.get("suggestions"):
-                reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+                rationale += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+            reason = format_posted_reason(rationale, tldr)
         fresh = [c for c in subgraph.fetch_candidates(first=20) if c["id"] == row["cand_id"]]
         if not fresh:
             return f"candidate c{row['num']} no longer open (canceled or promoted)"
         tx = signal_candidate(fresh[0], stance, reason + SIGNOFF)
-        db.upsert_candidate(conn, row["cand_id"], signal_tx=tx, signal_stance=stance)
+        db.upsert_candidate(
+            conn, row["cand_id"], signal_tx=tx, signal_stance=stance, signal_reason=reason
+        )
         return (f"📣 signaled {stance} on candidate c{row['num']} with reasoning "
                 f"(feedback, not sponsorship)\ntx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}")
 
@@ -430,11 +460,11 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
                 vote=v.get("vote", "?"),
                 confidence=v.get("confidence") or 0.0,
                 clauses_cited=v.get("clauses", []),
+                tldr=v.get("tldr", ""),
                 reason=v.get("reason", ""),
                 suggestions=v.get("suggestions", []),
                 flags=v.get("flags", []),
                 requires_human_review=v.get("requires_human_review", False),
-                tldr=v.get("tldr", ""),
                 change_summary=v.get("change_summary", ""),
                 change_materiality=v.get("change_materiality", "initial"),
             )
@@ -546,9 +576,11 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             return f"candidate c{row['num']} no longer open (canceled or promoted)"
         if subgraph.candidate_content_hash(fresh[0]) != row["content_hash"]:
             return f"candidate c{row['num']} was EDITED since evaluation — wait for the re-evaluation card"
-        reason = v["reason"]
+        tldr = v.get("tldr") or first_sentence(v["reason"])
+        rationale = v["reason"]
         if v.get("suggestions"):
-            reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+            rationale += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
+        reason = format_posted_reason(rationale, tldr)
         cand = fresh[0]
         proposal_id = int(cand["latestVersion"]["content"].get("proposalIdToUpdate") or 0)
         target = None
@@ -695,7 +727,9 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         if cmd == "override":
             if len(args) < 3 or args[1].lower() not in VOTES:
                 return "usage: /override <prop> <for|against|abstain> <reason — mandatory>"
-            vote, reason = VOTES[args[1].lower()], " ".join(args[2:])
+            vote = VOTES[args[1].lower()]
+            # human-authored override reason posts as written — no TL;DR wrapper
+            reason = " ".join(args[2:])
             db.upsert_cast(conn, pid, vote=vote, reason=reason, override_by="human", state="scheduled")
             return f"prop {pid} overridden to {vote} — reason logged, casts on schedule."
         if cmd == "cast":

@@ -377,6 +377,7 @@ tr:last-child td { border-bottom: none; }
 .modal-card h3 { padding-right: 2.5rem; font-size: 1.5rem; }
 .modal-meta { margin-top: 0.6rem; font-size: 0.9rem; line-height: 1.6; }
 .modal-section { margin-top: 1.5rem; }
+.modal-tldr { font-weight: 700; }
 .modal-section h4 {
   font-family: var(--font-body);
   font-size: 0.78rem;

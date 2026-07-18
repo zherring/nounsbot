@@ -3,7 +3,9 @@
     "401a716": "v0.1",
     "5f6222b": "v0.2",
     "58d6f7d": "v0.3",
-    "10086dd": "v0.4"
+    "10086dd": "v0.4",
+    "4c30b80": "v0.4",
+    "4914cad": "v0.5"
   },
   "amendments": [
     {
@@ -28,6 +30,12 @@
       "date": "2026-07-05",
       "trigger": "Prop 962 (501c3 Study) leaned FOR — classify-by-calldata let entity-conversion groundwork read as a small grant.",
       "summary": "II.5 'Reconnaissance is part of the invasion': spending whose deliverable is groundwork for a structural change inherits Article II's default AGAINST, even when the calldata only spends."
+    },
+    {
+      "version": "v0.5",
+      "date": "2026-07-18",
+      "trigger": "Prop 985 (Nudge × Nouns) exposed that symbolic partnership status could be proposed without direct Nouns deliverables or partner Noun ownership.",
+      "summary": "I.6–I.8 'Partnerships': limit the commercial-partnership test to for-profit enterprises leveraging Nouns for private endeavors, give bona fide charities and nonprofits separate mission-spend leeway, require direct benefit and alignment, and require commercial partners to acquire and own a Noun."
     }
   ]
 }

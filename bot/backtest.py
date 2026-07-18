@@ -21,7 +21,7 @@ import anthropic
 
 from . import db, subgraph
 from .config import ANTHROPIC_MODEL, REPO_ROOT
-from .evaluator import Verdict, build_system_prompt, build_user_prompt, evaluate
+from .evaluator import Verdict, build_system_prompt, build_user_prompt, evaluate, first_sentence
 
 FINAL_OUTCOMES = {"EXECUTED", "DEFEATED", "VETOED", "QUEUED", "SUCCEEDED_NOT_QUEUED"}
 PASSED = {"EXECUTED", "QUEUED", "SUCCEEDED_NOT_QUEUED"}
@@ -104,13 +104,16 @@ def main() -> None:
     for p, outcome in rows:
         chash = subgraph.content_hash(p)
         db.upsert_proposal(conn, p, chash, outcome)
-        cached = db.get_verdict(conn, int(p["id"]), chash, rev, ANTHROPIC_MODEL)
+        cached = db.get_verdict(conn, int(p["id"]), chash, db.constitution_fingerprint(), ANTHROPIC_MODEL)
         if cached:
             verdict = Verdict(
                 vote=cached["vote"], confidence=cached["confidence"],
-                clauses_cited=json.loads(cached["clauses"]), reason=cached["reason"],
+                clauses_cited=json.loads(cached["clauses"]),
+                tldr=cached["tldr"] or first_sentence(cached["reason"]),
+                reason=cached["reason"],
                 flags=json.loads(cached["flags"]),
                 requires_human_review=bool(cached["requires_human_review"]),
+                suggestions=json.loads(cached["suggestions"] or "[]"),
             )
             print(f"prop {p['id']:>4}  [cached]  {verdict.vote:<7} vs {outcome}")
         else:

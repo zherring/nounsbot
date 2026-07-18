@@ -450,6 +450,46 @@ class CandidateDedupeTests(unittest.TestCase):
         self.assertIn("window has closed", note)
 
 
+class TldrAndOverrideTests(unittest.TestCase):
+    def test_tldr_is_normalized_never_rejected(self):
+        long_tldr = "word " * 100 + "end. Second sentence here."
+        verdict = evaluator.Verdict(
+            vote="FOR", confidence=0.9, clauses_cited=["I.1"],
+            tldr=long_tldr, reason="Reason.", flags=[], requires_human_review=False,
+        )
+        self.assertLessEqual(len(verdict.tldr), 180)
+        cand_verdict = evaluator.CandidateVerdict(
+            vote="FOR", confidence=0.9, clauses_cited=["I.1"],
+            tldr=long_tldr, reason="Reason.", flags=[], requires_human_review=False,
+            change_summary="First change. Second sentence dropped.",
+            change_materiality="minor",
+        )
+        self.assertLessEqual(len(cand_verdict.tldr), 220)
+        self.assertEqual(cand_verdict.change_summary, "First change.")
+
+    def test_reevaluation_preserves_human_override(self):
+        conn = memory_db()
+        prop = proposal()
+        db.upsert_proposal(conn, prop, "old-hash", "VOTING")
+        db.upsert_cast(conn, 984, state="scheduled", vote="AGAINST",
+                       reason="human said no", override_by="human", cast_block_target=160)
+        verdict = SimpleNamespace(
+            vote="FOR", confidence=0.9, clauses_cited=["I.1"], tldr="Fresh verdict.",
+            reason="Reason.", suggestions=[], flags=[], requires_human_review=False,
+        )
+        with (
+            patch.object(subgraph, "fetch_proposals", return_value=[prop]),
+            patch.object(poller, "evaluate", return_value=(verdict, None)),
+            patch.object(poller.telegram, "send_message") as send,
+        ):
+            poller.ingest_and_evaluate(None, conn, head=150)
+        row = db.get_cast(conn, 984)
+        self.assertEqual(row["vote"], "AGAINST")
+        self.assertEqual(row["reason"], "human said no")
+        self.assertEqual(row["override_by"], "human")
+        self.assertIn("override", send.call_args.args[0])
+
+
 class UpdateSignatureTests(unittest.TestCase):
     def test_update_digest_uses_update_typehash(self):
         encoded = bytes.fromhex("11" * 32)
