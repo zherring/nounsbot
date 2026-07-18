@@ -54,13 +54,16 @@ every candidate, every window — with public reasoning, forever.
    proliferation mission. Enforceable deliverables, distribution, or Nouns/CC0
    artifacts count; symbolic partner status, vague co-marketing, and benefits that
    flow primarily to the partner do not. Without both direct benefit and mission
-   alignment, the default is **AGAINST**.
+   alignment, the default is **AGAINST**. A proposal covered by this subsection is
+   judged under I.6–I.8 notwithstanding I.1's below-cap default.
 8. **Partners own Nouns.** A proposed partner must own at least one Noun before a
    partnership is approved. If it owns none, acquiring one on the secondary market
    is the minimum; acquiring one through the daily auction is preferred. A serious
    primary-auction bid is an additional alignment signal, but an unsuccessful bid
    does not substitute for ownership. The partner must acquire the Noun itself,
-   not receive one from the treasury as part of the proposal.
+   not receive one from the treasury as part of the proposal. Ownership must be
+   verifiable onchain at evaluation time; an ownership claim that cannot be
+   verified is treated as unmet.
 
 ## Article II — The treasury is not the product (structural proposals)
 

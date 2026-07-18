@@ -107,17 +107,40 @@ def derive_outcome(prop: dict, chain_head: int) -> str:
         return "VETOED"
     if status == "QUEUED":
         return "QUEUED"
-    end_block = int(prop["endBlock"])
-    objection_end = int(prop.get("objectionPeriodEndBlock") or 0)
-    voting_over = chain_head > max(end_block, objection_end)
-    if not voting_over:
-        return "VOTING" if chain_head >= int(prop["startBlock"]) else "PENDING"
+    phase = derive_phase(prop, chain_head)
+    if phase == "UPDATABLE":
+        return "UPDATABLE"
+    if phase == "PENDING":
+        return "PENDING"
+    if phase == "ACTIVE":
+        return "VOTING"
+    if phase == "OBJECTION":
+        return "OBJECTION"
     for_votes = int(prop["forVotes"])
     against = int(prop["againstVotes"])
     quorum = int(prop["quorumVotes"])
     if for_votes <= against or for_votes < quorum:
         return "DEFEATED"
     return "SUCCEEDED_NOT_QUEUED"  # passed the vote but expired/never queued
+
+
+def derive_phase(prop: dict, chain_head: int) -> str:
+    """Mirror NounsDAOProposals.stateInternal block boundaries.
+
+    In particular, startBlock is still Pending; voting opens on startBlock + 1.
+    Terminal status checks remain in derive_outcome because this helper is also
+    used for candidate update-window and vote eligibility checks.
+    """
+    if chain_head <= int(prop.get("updatePeriodEndBlock") or 0):
+        return "UPDATABLE"
+    if chain_head <= int(prop["startBlock"]):
+        return "PENDING"
+    if chain_head <= int(prop["endBlock"]):
+        return "ACTIVE"
+    objection_end = int(prop.get("objectionPeriodEndBlock") or 0)
+    if objection_end and chain_head <= objection_end:
+        return "OBJECTION"
+    return "CLOSED"
 
 
 def format_actions(prop: dict) -> str:
@@ -168,8 +191,21 @@ CANDIDATE_FIELDS = """
 """
 
 
+def candidate_logical_id(cand: dict) -> str:
+    """Stable identity across duplicate slugs for one onchain proposal update.
+    Scoped to the proposer — createProposalCandidate is permissionless, so a
+    third party targeting the same proposal must never collapse onto (or
+    shadow) the genuine proposer's update candidate."""
+    content = (cand.get("latestVersion") or {}).get("content") or {}
+    proposal_id = int(content.get("proposalIdToUpdate") or 0)
+    if proposal_id:
+        return f"proposal-update:{proposal_id}:{str(cand['proposer']).lower()}"
+    return cand["id"]
+
+
 def fetch_candidates(first: int = 10) -> list[dict]:
-    """Open candidates, newest activity first. Skips canceled and already-promoted."""
+    """Newest open logical candidates, collapsing duplicate update slugs."""
+    query_first = min(100, max(first, first * 5))
     gql = f"""
     query($first: Int!) {{
       proposalCandidates(first: $first, orderBy: lastUpdatedTimestamp, orderDirection: desc,
@@ -178,12 +214,32 @@ def fetch_candidates(first: int = 10) -> list[dict]:
       }}
     }}"""
     out = []
-    for c in query(gql, {"first": first})["proposalCandidates"]:
+    seen = set()
+    for c in query(gql, {"first": query_first})["proposalCandidates"]:
         content = (c.get("latestVersion") or {}).get("content") or {}
         if content.get("matchingProposalIds"):
             continue  # already became a proposal
+        logical_id = candidate_logical_id(c)
+        if logical_id in seen:
+            continue  # one proposal update can be reposted under many slugs
+        seen.add(logical_id)
         out.append(c)
+        if len(out) >= first:
+            break
     return out
+
+
+def fetch_proposals_by_ids(ids: list[int]) -> list[dict]:
+    """Fetch proposal lifecycle/signers for update candidates in one query."""
+    if not ids:
+        return []
+    gql = f"""
+    query($ids: [BigInt!]!) {{
+      proposals(first: {len(ids)}, where: {{ id_in: $ids }}) {{
+        {PROPOSAL_FIELDS}
+      }}
+    }}"""
+    return query(gql, {"ids": [str(i) for i in ids]})["proposals"]
 
 
 def candidate_content_hash(cand: dict) -> str:

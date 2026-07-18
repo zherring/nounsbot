@@ -48,7 +48,7 @@ async function loadRecord() {
           <span class="muted" style="font-size:0.85rem">${esc(v.title || "")}</span></td>
       <td><span class="pill ${pill}">${v.vote}</span><br>
           <span class="muted" style="font-size:0.8rem">${status} · ${ver}${tx}${override}</span></td>
-      <td>${(v.clauses || []).join(", ")}</td>
+      <td>${esc((v.clauses || []).join(", "))}</td>
       <td class="reason-cell" style="max-width:26rem">
         <span class="reason-text">${esc(tldr(v))}<span class="muted">${esc(flags)}</span></span>
         <button type="button" class="reason-toggle">${detailsLabel}</button>
@@ -77,13 +77,22 @@ function tldr(verdict) {
   const source = verdict.tldr || (verdict.reason || "").trim().split(/\n/, 1)[0];
   const normalized = source.replace(/\s+/g, " ").trim();
   const sentence = normalized.match(/^.*?[.!?](?:\s|$)/);
-  return (sentence ? sentence[0] : normalized).trim();
+  const out = (sentence ? sentence[0] : normalized).trim();
+  // mirror bot/evaluator.py first_sentence's cap for pre-tldr records
+  return out.length > 180 ? out.slice(0, 179).trimEnd() + "…" : out;
 }
 
 // What the agent actually DID about a candidate — sponsoring and signaling
 // are onchain acts, everything else is a verdict awaiting a human.
 function candAction(c) {
   if (c.sponsor_state === "sponsored") return `🌱 sponsored${txLink(c.sponsor_tx)}`;
+  if (c.sponsor_state === "stale") {
+    return c.revoke_available
+      ? "⚠️ updated after sponsorship · revocation available"
+      : "⚠️ updated after sponsorship";
+  }
+  if (c.sponsor_state === "revoked") return `🛑 sponsorship revoked${txLink(c.revoke_tx)}`;
+  if (c.sponsor_state === "expired") return "⌛ sponsorship expired";
   if (c.signal_tx) return `📣 signaled ${c.signal_stance || ""}${txLink(c.signal_tx)}`;
   if (c.vote === "FOR") return "🌱 sponsor-worthy — awaiting human sign-off";
   return "👀 watching";
@@ -98,14 +107,17 @@ function renderCandidates(cands) {
   for (const c of cands) {
     const tr = document.createElement("tr");
     const flags = c.flags?.length ? ` ⚑ ${c.flags.join(", ")}` : "";
+    const update = c.change_summary
+      ? ` · changed (${c.change_materiality || "material"}): ${c.change_summary}`
+      : "";
     tr.innerHTML = `
       <td><a href="https://www.nouns.camp/candidates/${encodeURIComponent(c.cand_id)}">c${c.num}</a><br>
           <span class="muted" style="font-size:0.85rem">${esc(c.title || "")}</span></td>
       <td><span class="pill ${pillClass(c.vote)}">${esc(c.vote || "")}</span><br>
           <span class="muted" style="font-size:0.8rem">${c.vote === "FOR" ? "sponsor-worthy" : "not sponsor-worthy"}</span></td>
-      <td>${(c.clauses || []).join(", ")}</td>
+      <td>${esc((c.clauses || []).join(", "))}</td>
       <td class="reason-cell" style="max-width:26rem">
-        <span class="reason-text">${esc(tldr(c))}<span class="muted">${esc(flags)}</span></span>
+        <span class="reason-text">${esc(tldr(c) + update)}<span class="muted">${esc(flags)}</span></span>
         <button type="button" class="reason-toggle">Full rationale →</button>
       </td>
       <td>${candAction(c)}</td>`;

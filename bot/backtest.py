@@ -104,7 +104,7 @@ def main() -> None:
     for p, outcome in rows:
         chash = subgraph.content_hash(p)
         db.upsert_proposal(conn, p, chash, outcome)
-        cached = db.get_verdict(conn, int(p["id"]), chash, rev, ANTHROPIC_MODEL)
+        cached = db.get_verdict(conn, int(p["id"]), chash, db.constitution_fingerprint(), ANTHROPIC_MODEL)
         if cached:
             verdict = Verdict(
                 vote=cached["vote"], confidence=cached["confidence"],

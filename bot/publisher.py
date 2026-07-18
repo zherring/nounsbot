@@ -95,9 +95,9 @@ def build_payload(conn) -> dict:
     # the Action column shows what actually happened onchain (sponsor/signal txs).
     candidates = []
     for r in conn.execute(
-        """SELECT num, cand_id, title, sponsor_state, sig_tx, signal_tx, signal_stance,
-                  signal_reason, verdict_json, updated_at
-           FROM candidates ORDER BY num DESC"""
+        """SELECT num, cand_id, title, sponsor_state, sig_tx, sig_bytes, revoke_tx,
+                  signal_tx, signal_stance, signal_reason, verdict_json, updated_at
+           FROM candidates WHERE superseded=0 ORDER BY num DESC"""
     ):
         try:
             v = json.loads(r["verdict_json"] or "{}")
@@ -119,9 +119,13 @@ def build_payload(conn) -> dict:
                 "clauses": v.get("clauses", []),
                 "tldr": tldr,
                 "reason": reason,
+                "change_summary": v.get("change_summary"),
+                "change_materiality": v.get("change_materiality"),
                 "flags": v.get("flags", []),
                 "sponsor_state": r["sponsor_state"],
                 "sponsor_tx": r["sig_tx"],
+                "revoke_tx": r["revoke_tx"],
+                "revoke_available": bool(r["sig_bytes"] or r["sig_tx"]),
                 "signal_stance": r["signal_stance"],
                 "signal_tx": r["signal_tx"],
                 "evaluated_at": r["updated_at"],
