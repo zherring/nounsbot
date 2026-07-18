@@ -10,13 +10,15 @@ on this repo) so the loop can push. Locally your normal git auth is used.
 
 import json
 import os
+import re
 import subprocess
 from datetime import datetime, timezone
 
-from .config import REPO_ROOT
+from .config import CONSTITUTION_PATH, REPO_ROOT
 from .evaluator import first_sentence, split_posted_reason
 
 VERDICTS_PATH = REPO_ROOT / "docs" / "verdicts.json"
+AMENDMENTS_PATH = REPO_ROOT / "docs" / "amendments.json"
 
 
 def build_payload(conn) -> dict:
@@ -139,16 +141,50 @@ def build_payload(conn) -> dict:
     }
 
 
+def constitution_version() -> str | None:
+    """The version label from the constitution's own heading — the document is
+    the source of truth; git SHAs are just deploy artifacts."""
+    try:
+        heading = CONSTITUTION_PATH.read_text().splitlines()[0]
+    except (OSError, IndexError):
+        return None
+    m = re.search(r"\bv(\d+\.\d+)\b", heading)
+    return f"v{m.group(1)}" if m else None
+
+
+def register_constitution_rev() -> bool:
+    """Self-maintain the amendments rev→version map. Every deploy mints a new
+    SHA and verdicts cite whatever SHA was live at eval time, so hand-curating
+    the map desyncs on the first untracked deploy. Instead, map the current
+    rev to the current heading version the first time we publish under this
+    deploy. Returns True if the map changed."""
+    from . import db
+
+    version = constitution_version()
+    rev = db.constitution_rev()
+    if not version or not rev or rev == "unknown":
+        return False
+    try:
+        data = json.loads(AMENDMENTS_PATH.read_text())
+    except (OSError, ValueError):
+        return False
+    if data.setdefault("revs", {}).get(rev) == version:
+        return False
+    data["revs"][rev] = version
+    AMENDMENTS_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    return True
+
+
 def export(conn) -> bool:
-    """Write docs/verdicts.json. Returns True if content changed."""
+    """Write the site data files. Returns True if anything changed."""
     payload = build_payload(conn)
     new_body = json.dumps(payload, indent=1)
     old_body = VERDICTS_PATH.read_text() if VERDICTS_PATH.exists() else ""
     # ignore the timestamp line when deciding whether anything real changed
-    if old_body.split("\n", 2)[-1:] == new_body.split("\n", 2)[-1:]:
-        return False
-    VERDICTS_PATH.write_text(new_body)
-    return True
+    changed = old_body.split("\n", 2)[-1:] != new_body.split("\n", 2)[-1:]
+    if changed:
+        VERDICTS_PATH.write_text(new_body)
+    return register_constitution_rev() or changed
 
 
 GITHUB_REPO = os.environ.get("GITHUB_REPO", "zherring/nounsbot")
@@ -158,43 +194,60 @@ def git(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", "-C", str(REPO_ROOT), *args], capture_output=True, text=True)
 
 
+PUBLISHED_FILES = (VERDICTS_PATH, AMENDMENTS_PATH)
+
+
 def push_via_api(token: str) -> bool:
-    """Commit docs/verdicts.json through the GitHub Contents API — works on
-    Railway, where the deployed filesystem has no .git directory."""
+    """Commit the site data files through the GitHub Contents API — works on
+    Railway, where the deployed filesystem has no .git directory. Each file is
+    compared against the remote copy first, so retries and no-op files skip
+    the write."""
     import base64
 
     import requests
 
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/docs/verdicts.json"
     headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
-    current = requests.get(url, headers=headers, timeout=20)
-    sha = current.json().get("sha") if current.status_code == 200 else None
-    body = {
-        "message": "record: update verdicts.json",
-        "content": base64.b64encode(VERDICTS_PATH.read_bytes()).decode(),
-        "committer": {"name": "nounsbot", "email": "bot@zachherring.com"},
-    }
-    if sha:
-        body["sha"] = sha
-    resp = requests.put(url, headers=headers, json=body, timeout=20)
-    if resp.status_code not in (200, 201):
-        print(f"publish API push failed: {resp.status_code} {resp.text[:200]}")
-        return False
-    return True
+    ok = True
+    for path in PUBLISHED_FILES:
+        rel = path.relative_to(REPO_ROOT).as_posix()
+        url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{rel}"
+        current = requests.get(url, headers=headers, timeout=20)
+        sha = None
+        local = path.read_bytes()
+        if current.status_code == 200:
+            remote = current.json()
+            sha = remote.get("sha")
+            try:
+                if base64.b64decode(remote.get("content") or "") == local:
+                    continue  # remote already matches
+            except (ValueError, TypeError):
+                pass
+        body = {
+            "message": f"record: update {path.name}",
+            "content": base64.b64encode(local).decode(),
+            "committer": {"name": "nounsbot", "email": "bot@zachherring.com"},
+        }
+        if sha:
+            body["sha"] = sha
+        resp = requests.put(url, headers=headers, json=body, timeout=20)
+        if resp.status_code not in (200, 201):
+            print(f"publish API push failed for {rel}: {resp.status_code} {resp.text[:200]}")
+            ok = False
+    return ok
 
 
 def push() -> bool:
-    """Publish docs/verdicts.json. GitHub API when GIT_PUSH_TOKEN is set
+    """Publish the site data files. GitHub API when GIT_PUSH_TOKEN is set
     (Railway); plain git commit+push locally."""
     token = os.environ.get("GIT_PUSH_TOKEN")
     if token:
         return push_via_api(token)
 
-    git("add", str(VERDICTS_PATH))
+    git("add", *(str(p) for p in PUBLISHED_FILES))
     if not git("diff", "--cached", "--quiet").returncode:
         return False  # nothing staged
     git("-c", "user.name=nounsbot", "-c", "user.email=bot@zachherring.com",
-        "commit", "-m", "record: update verdicts.json")
+        "commit", "-m", "record: update site data")
     result = git("push")
     if result.returncode != 0:
         print(f"publish push failed: {result.stderr.strip()[:300]}")
