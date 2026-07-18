@@ -109,6 +109,7 @@ def ingest_candidates(client, conn) -> None:
                 prefix = "⚠️ EDITED after you signaled — re-evaluated:\n"
             fields["signal_tx"] = None
             fields["signal_stance"] = None
+            fields["signal_reason"] = None
         row = db.upsert_candidate(conn, cand_id, **fields)
         sigs = [s for s in cand["latestVersion"]["content"]["contentSignatures"] if not s["canceled"]]
         card = prefix + candidate_card(row["num"], cand, verdict, len(sigs))
@@ -192,7 +193,8 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
         state = existing["state"] if existing else "scheduled"
         if state != "cast":  # refresh held casts without releasing them; never re-cast
             db.upsert_cast(conn, pid, state=state, vote=verdict.vote,
-                           reason=compose_vote_reason(verdict), cast_block_target=target)
+                           reason=compose_vote_reason(verdict), cast_block_target=target,
+                           override_by=None)
         prefix = "✏️ PROPOSAL EDITED — re-evaluated:\n" if edited else ""
         card = prefix + verdict_card(prop, outcome, verdict, target, head)
         print("\n" + card + "\n")
