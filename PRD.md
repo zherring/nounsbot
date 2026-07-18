@@ -78,13 +78,13 @@ Three surfaces, one repo:
 
 ### 6.3 Evaluation
 - One Claude call per evaluable prop version. `constitution.md` in the system prompt; proposal text **quarantined as untrusted data** (prompt-injection surface — prop authors know agents are reading).
-- Output schema: `{vote: FOR|AGAINST|ABSTAIN, confidence: 0–1, clauses_cited: [...], draft_reason: str, flags: [...]}`.
+- Output schema: `{vote: FOR|AGAINST|ABSTAIN, confidence: 0–1, clauses_cited: [...], tldr: str, reason: str, flags: [...]}`. `tldr` is exactly one sentence and appears before the full rationale everywhere a reason is posted.
 - Low confidence or any flag (calldata mismatch, injection suspicion, constitution gap) ⇒ escalate to me with the specific uncertainty named.
 
 ### 6.4 Ratification (Telegram — optimistic execution with a hold window)
 The agent never asks permission and never acts without a veto window. Every decision is reported; unflagged decisions cast themselves on a timer; one command stops any of them.
 
-- **Verdict card per evaluation** (and re-evaluation): prop, verdict, confidence, clauses cited, draft reason, and the **scheduled cast time**. Plus a daily digest of everything open (verdicts pending cast, holds, timers) whenever ≥1 item is open.
+- **Verdict card per evaluation** (and re-evaluation): prop, verdict, confidence, clauses cited, one-sentence TLDR, full reason, and the **scheduled cast time**. Plus a daily digest of everything open (verdicts pending cast, holds, timers) whenever ≥1 item is open.
 - **Default-fire with a guaranteed gap.** High-confidence, unflagged verdicts cast automatically at the scheduled time (~60–70% through the voting window). There must be **≥24h between the verdict card and the cast**; since cards normally post when voting opens (or during the updatable phase), the natural gap is ~2.5 days. If a late re-evaluation (prop edit, flip) compresses the gap below 24h, default-fire is disabled for that prop and an explicit command is required.
 - **Commands:**
   - `/hold <prop>` — freeze the cast. Nothing casts while held; reminders at 75% and 90% of the voting window.
@@ -201,7 +201,7 @@ Key timing facts (verified, but **read from chain at runtime**): lifecycle ~9 da
 is static GitHub Pages at nounsvote.com, updated via contents-scoped
 git commits). Bot EOA `0xF6e7501dFe7003299108020c5830C4c5B3CA6aA9`
 holds 1 delegated vote (Noun 1251). Telegram channel wired (`⌐◨-◨ Constitution Forge`).
-Constitution v0.4. Two-speed loop: commands/casts/publish every 120s; ingest every
+Constitution v0.5. Two-speed loop: commands/casts/publish every 120s; ingest every
 120s with spend guards. Verdict record: 22 paper + 3 live-rev verdicts (981 AGAINST⚑,
 982 AGAINST⚑ — both awaiting explicit human ratification; 983 FOR, auto-cast armed).
 

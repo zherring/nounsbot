@@ -7,7 +7,7 @@ their own.
 
 - **Site:** https://nounsvote.com — GitHub Pages, fully static, zero keys
 - **Bot delegate (vote-only EOA):** `0xF6e7501dFe7003299108020c5830C4c5B3CA6aA9`
-- **Constitution:** [constitution.md](constitution.md) — v0.4, amendment history on the site
+- **Constitution:** [constitution.md](constitution.md) — v0.5, amendment history on the site
 - **Spec:** [PRD.md](PRD.md) · **Status & roadmap:** see the bottom of the PRD
 
 ## How it works
@@ -32,7 +32,9 @@ Browser (no bot involvement)
 by Sonnet 5 into a structured brief; Opus 4.8 judges brief + raw onchain actions
 against the constitution (in the system prompt, prompt-cached). Proposal text is
 quarantined as untrusted data (prompt-injection defense). Output: vote, confidence,
-clauses cited, publishable reason, flags. Verdicts are keyed to
+clauses cited, one-sentence TLDR, full publishable reason, flags. The TLDR is the
+first line of each onchain vote reason and the skimmable text in the public record.
+Verdicts are keyed to
 `(prop, content-hash, constitution git rev)` — edits and amendments re-evaluate,
 history is append-only and published.
 
