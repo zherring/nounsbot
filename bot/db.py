@@ -186,8 +186,12 @@ CREATE TABLE IF NOT EXISTS candidates (
   superseded INTEGER DEFAULT 0,
   title TEXT,
   content_hash TEXT,
-  sponsor_state TEXT DEFAULT 'none',   -- none | sponsored | declined
+  sponsor_state TEXT DEFAULT 'none',   -- none | sponsored | stale | revoked | expired
   sig_tx TEXT,
+  sig_bytes TEXT,
+  sig_expiration INTEGER,
+  signed_content_hash TEXT,
+  revoke_tx TEXT,
   verdict_json TEXT,             -- latest verdict (vote/conf/clauses/reason/suggestions/flags)
   constitution_rev TEXT,
   raw TEXT,
@@ -206,6 +210,10 @@ def migrate(conn) -> None:
         "ALTER TABLE proposals ADD COLUMN vote_open_notified_hash TEXT",
         "ALTER TABLE candidates ADD COLUMN logical_id TEXT",
         "ALTER TABLE candidates ADD COLUMN superseded INTEGER DEFAULT 0",
+        "ALTER TABLE candidates ADD COLUMN sig_bytes TEXT",
+        "ALTER TABLE candidates ADD COLUMN sig_expiration INTEGER",
+        "ALTER TABLE candidates ADD COLUMN signed_content_hash TEXT",
+        "ALTER TABLE candidates ADD COLUMN revoke_tx TEXT",
     ):
         try:
             conn.execute(ddl)

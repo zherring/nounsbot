@@ -33,6 +33,13 @@ GOVERNOR_ABI = [
         "inputs": [{"name": "proposalId", "type": "uint256"}],
         "outputs": [{"name": "", "type": "uint8"}],
     },
+    {
+        "name": "cancelSig",
+        "type": "function",
+        "stateMutability": "nonpayable",
+        "inputs": [{"name": "sig", "type": "bytes"}],
+        "outputs": [],
+    },
 ]
 
 SUPPORT = {"AGAINST": 0, "FOR": 1, "ABSTAIN": 2}
@@ -105,7 +112,23 @@ DATA_ABI = [
             {"name": "reason", "type": "string"},
         ],
         "outputs": [],
-    }
+    },
+    {
+        "name": "SignatureAdded",
+        "type": "event",
+        "anonymous": False,
+        "inputs": [
+            {"name": "signer", "type": "address", "indexed": True},
+            {"name": "sig", "type": "bytes", "indexed": False},
+            {"name": "expirationTimestamp", "type": "uint256", "indexed": False},
+            {"name": "proposer", "type": "address", "indexed": False},
+            {"name": "slug", "type": "string", "indexed": False},
+            {"name": "proposalIdToUpdate", "type": "uint256", "indexed": False},
+            {"name": "encodedPropHash", "type": "bytes32", "indexed": False},
+            {"name": "sigDigest", "type": "bytes32", "indexed": False},
+            {"name": "reason", "type": "string", "indexed": False},
+        ],
+    },
 ]
 
 PROPOSAL_TYPEHASH = Web3.keccak(

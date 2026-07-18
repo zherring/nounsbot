@@ -4,7 +4,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from bot import chain, db, poller, subgraph
+from bot import chain, db, evaluator, poller, subgraph
 
 
 def proposal(**overrides):
@@ -168,6 +168,15 @@ class ProposalTimingTests(unittest.TestCase):
 
 
 class CandidateDedupeTests(unittest.TestCase):
+    def test_candidate_change_context_is_compact_and_specific(self):
+        old = subgraph.candidate_as_prop(candidate("same", "Budget is 10 ETH."))
+        new = subgraph.candidate_as_prop(candidate("same", "Budget is 12 ETH."))
+        context = evaluator.candidate_change_context(old, new)
+        self.assertIn("-Budget is 10 ETH.", context)
+        self.assertIn("+Budget is 12 ETH.", context)
+        self.assertIn("Onchain actions unchanged", context)
+        self.assertLessEqual(len(context), 6000)
+
     def test_duplicate_backfill_is_idempotent(self):
         conn = memory_db()
         newest = candidate("new")
@@ -239,6 +248,114 @@ class CandidateDedupeTests(unittest.TestCase):
         self.assertEqual(evaluate.call_count, 1)
         self.assertEqual(send.call_count, 1)
 
+    def test_sponsored_edit_keeps_revocable_signature_and_summarizes_change(self):
+        conn = memory_db()
+        old = candidate("same", "Budget is 10 ETH.")
+        new = candidate("same", "Budget is 12 ETH.")
+        old_hash = subgraph.candidate_content_hash(old)
+        db.upsert_candidate(
+            conn,
+            old["id"],
+            logical_id=subgraph.candidate_logical_id(old),
+            title="Proposal update",
+            content_hash=old_hash,
+            constitution_rev=db.constitution_fingerprint(),
+            verdict_json=json.dumps({"vote": "FOR", "reason": "Old reason"}),
+            raw=json.dumps(old),
+            sponsor_state="sponsored",
+            sig_tx="0xoldtx",
+            sig_bytes="0x1234",
+            signed_content_hash=old_hash,
+        )
+        verdict = SimpleNamespace(
+            vote="AGAINST",
+            confidence=0.9,
+            clauses_cited=["IV.1"],
+            reason="The higher budget is not justified.",
+            suggestions=[],
+            flags=[],
+            requires_human_review=False,
+            tldr="Raises the requested budget to 12 ETH.",
+            change_summary="Budget increased from 10 ETH to 12 ETH.",
+            change_materiality="minor",
+        )
+        with (
+            patch.object(subgraph, "fetch_candidates", return_value=[new]),
+            patch.object(subgraph, "fetch_proposals_by_ids", return_value=[proposal()]),
+            patch.object(poller, "evaluate", return_value=(verdict, None)) as evaluate,
+            patch.object(poller.telegram, "send_message") as send,
+        ):
+            poller.ingest_candidates(None, conn, head=50)
+
+        row = db.get_candidate_by_num(conn, 1)
+        self.assertEqual(row["sponsor_state"], "stale")
+        self.assertEqual(row["sig_bytes"], "0x1234")
+        self.assertEqual(
+            evaluate.call_args.kwargs["previous_prop"]["description"], "Budget is 10 ETH."
+        )
+        card = send.call_args.args[0]
+        self.assertIn("TL;DR: Raises the requested budget", card)
+        self.assertIn("changed (minor): Budget increased", card)
+        self.assertIn("/revoke c1", card)
+
+    def test_revoke_command_invalidates_stored_signature(self):
+        conn = memory_db()
+        cand = candidate("same")
+        db.upsert_candidate(
+            conn,
+            cand["id"],
+            logical_id=subgraph.candidate_logical_id(cand),
+            title="Proposal update",
+            content_hash=subgraph.candidate_content_hash(cand),
+            constitution_rev=db.constitution_fingerprint(),
+            verdict_json=json.dumps({"vote": "FOR", "reason": "Reason"}),
+            raw=json.dumps(cand),
+            sponsor_state="stale",
+            sig_tx="0xoldtx",
+            sig_bytes="0x1234",
+        )
+        with patch(
+            "bot.executor.revoke_candidate_signature", return_value="0xrevoked"
+        ) as revoke:
+            reply = poller.run_command(conn, "revoke", ["c1"])
+        revoke.assert_called_once_with("0x1234")
+        row = db.get_candidate_by_num(conn, 1)
+        self.assertEqual(row["sponsor_state"], "revoked")
+        self.assertEqual(row["revoke_tx"], "0xrevoked")
+        self.assertIn("revoked sponsorship", reply)
+
+    def test_revoke_recovers_pre_migration_signature_from_receipt(self):
+        conn = memory_db()
+        cand = candidate("legacy")
+        db.upsert_candidate(
+            conn,
+            cand["id"],
+            logical_id=subgraph.candidate_logical_id(cand),
+            title="Proposal update",
+            content_hash=subgraph.candidate_content_hash(cand),
+            constitution_rev=db.constitution_fingerprint(),
+            verdict_json=json.dumps({"vote": "FOR", "reason": "Reason"}),
+            raw=json.dumps(cand),
+            sponsor_state="stale",
+            sig_tx="0xlegacy",
+        )
+        with (
+            patch(
+                "bot.executor.recover_candidate_signature",
+                return_value=("0xabcd", 9999999999),
+            ) as recover,
+            patch(
+                "bot.executor.revoke_candidate_signature", return_value="0xrevoked"
+            ) as revoke,
+        ):
+            reply = poller.run_command(conn, "revoke", ["c1"])
+        recover.assert_called_once_with("0xlegacy")
+        revoke.assert_called_once_with("0xabcd")
+        row = db.get_candidate_by_num(conn, 1)
+        self.assertEqual(row["sig_bytes"], "0xabcd")
+        self.assertEqual(row["sponsor_state"], "revoked")
+        self.assertIn("revoked sponsorship", reply)
+
     def test_update_card_does_not_offer_sponsorship_to_non_signer(self):
         verdict = SimpleNamespace(
             vote="FOR",
@@ -282,6 +399,9 @@ class UpdateSignatureTests(unittest.TestCase):
         )
         self.assertNotEqual(new_digest, update_digest)
         self.assertNotEqual(chain.PROPOSAL_TYPEHASH, chain.UPDATE_PROPOSAL_TYPEHASH)
+
+    def test_governor_abi_exposes_signature_cancellation(self):
+        self.assertIn("cancelSig", {entry.get("name") for entry in chain.GOVERNOR_ABI})
 
 
 if __name__ == "__main__":

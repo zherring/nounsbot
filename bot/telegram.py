@@ -6,6 +6,7 @@ Commands (PRD §6.4):
   /release <prop>              resume the scheduled cast
   /override <prop> <for|against|abstain> <reason...>   replace verdict (reason mandatory)
   /cast <prop>                 cast immediately (also the explicit ratify for flagged props)
+  /revoke c<num>               invalidate a previously published candidate signature
 
 Discover your channel id with: python -m bot.telegram (posts nothing; prints chats it can see)
 """

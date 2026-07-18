@@ -2,11 +2,19 @@
 castRefundableVoteWithReason — gas is refunded by the DAO, reasoning is public."""
 
 import os
+from dataclasses import dataclass
 
 from eth_account import Account
 from web3 import Web3
 
 from . import chain
+
+
+@dataclass(frozen=True)
+class SponsorshipResult:
+    tx_hash: str
+    signature: str
+    expiration: int
 
 
 def bot_address() -> str | None:
@@ -35,15 +43,19 @@ def cast_vote(prop_id: int, vote: str, reason: str) -> str:
     return tx_hash.hex()
 
 
-def sponsor_candidate(cand: dict, reason: str, target_prop: dict | None = None) -> str:
+def sponsor_candidate(
+    cand: dict, reason: str, target_prop: dict | None = None
+) -> SponsorshipResult:
     """Sign the EIP-712 sponsorship for a candidate and register it via
     NounsDAOData.addSignature. Simulated first — a bad digest reverts in
-    eth_call before any gas is spent. Returns tx hash.
+    eth_call before any gas is spent. Returns the tx hash plus signature data
+    needed for a later governor.cancelSig revocation.
 
-    The signature commits to the candidate's exact current content; any
-    subsequent edit by the proposer invalidates it automatically. Update
-    candidates use the governor's distinct UpdateProposal typed-data payload
-    and may only be re-signed by the original proposal signers."""
+    The signature commits to the candidate's exact current content, so an edit
+    cannot reuse it for the new version. The old content remains authorized
+    until expiration or an explicit cancelSig. Update candidates use the
+    governor's distinct UpdateProposal typed-data payload and may only be
+    re-signed by the original proposal signers."""
     import time
 
     key = os.environ.get("BOT_PRIVATE_KEY")
@@ -98,7 +110,56 @@ def sponsor_candidate(cand: dict, reason: str, target_prop: dict | None = None) 
     receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=180)
     if receipt["status"] != 1:
         raise RuntimeError(f"sponsorship tx reverted: {tx_hash.hex()}")
+    return SponsorshipResult(
+        tx_hash=tx_hash.hex(),
+        signature="0x" + bytes(signature).hex(),
+        expiration=expiration,
+    )
+
+
+def revoke_candidate_signature(signature: str) -> str:
+    """Invalidate one previously published proposeBySigs signature on the governor."""
+    key = os.environ.get("BOT_PRIVATE_KEY")
+    if not key:
+        raise RuntimeError("BOT_PRIVATE_KEY not set — paper mode")
+    account = Account.from_key(key)
+    web3 = chain.w3()
+    signature_bytes = bytes.fromhex(signature.removeprefix("0x"))
+    fn = chain.governor(web3).functions.cancelSig(signature_bytes)
+    fn.call({"from": account.address})
+
+    latest = web3.eth.get_block("latest")
+    tx = fn.build_transaction({
+        "from": account.address,
+        "nonce": web3.eth.get_transaction_count(account.address),
+        "maxFeePerGas": latest["baseFeePerGas"] * 2 + web3.to_wei(1, "gwei"),
+        "maxPriorityFeePerGas": web3.to_wei(1, "gwei"),
+        "chainId": 1,
+    })
+    signed = account.sign_transaction(tx)
+    tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction)
+    receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=180)
+    if receipt["status"] != 1:
+        raise RuntimeError(f"signature revocation tx reverted: {tx_hash.hex()}")
     return tx_hash.hex()
+
+
+def recover_candidate_signature(tx_hash: str) -> tuple[str, int]:
+    """Recover signature bytes from a pre-migration SignatureAdded receipt."""
+    web3 = chain.w3()
+    receipt = web3.eth.get_transaction_receipt(tx_hash)
+    events = chain.data_contract(web3).events.SignatureAdded().process_receipt(receipt)
+    if not events:
+        raise RuntimeError("sponsorship transaction has no SignatureAdded event")
+    signer = bot_address()
+    matching = [
+        event for event in events
+        if not signer or event["args"]["signer"].lower() == signer.lower()
+    ]
+    if len(matching) != 1:
+        raise RuntimeError("could not uniquely identify this bot's SignatureAdded event")
+    args = matching[0]["args"]
+    return "0x" + bytes(args["sig"]).hex(), int(args["expirationTimestamp"])
 
 
 def signal_candidate(cand: dict, support: str, reason: str) -> str:

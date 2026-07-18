@@ -69,6 +69,20 @@ class Verdict(BaseModel):
     )
 
 
+class CandidateVerdict(Verdict):
+    tldr: str = Field(
+        max_length=220,
+        description="One plain-language sentence, at most 220 characters, summarizing the current candidate"
+    )
+    change_summary: str = Field(
+        max_length=220,
+        description="For an update: one sentence saying exactly what changed; empty only for an initial version",
+    )
+    change_materiality: Literal["minor", "material", "initial"] = Field(
+        description="Whether the candidate update is minor or material; initial for a first evaluation",
+    )
+
+
 def compose_reason(verdict: Verdict) -> str:
     """The publishable reason: rationale, then suggestions under their own header."""
     reason = verdict.reason.strip()
@@ -83,6 +97,10 @@ signatures from Nouns voting weight to reach the ballot. Judge it exactly as if 
 a live proposal: your FOR/AGAINST is the sponsorship decision — FOR means "the \
 constitution would vote for this; it deserves a place on the ballot." Apply every \
 article, flag, and review rule identically.
+
+For the candidate card, also provide a one-sentence `tldr` of the CURRENT version. If a \
+previous-version diff is provided, classify it as minor or material and explain exactly what \
+changed in one short `change_summary` sentence. Do not repeat the full verdict reason.
 
 """
 
@@ -168,6 +186,35 @@ def build_user_prompt(prop: dict) -> str:
     )
 
 
+def candidate_change_context(previous: dict, current: dict, max_chars: int = 6000) -> str:
+    """Compact, untrusted diff for the judge to summarize without resending old prose."""
+    import difflib
+
+    old_description = (previous.get("description") or "").splitlines()
+    new_description = (current.get("description") or "").splitlines()
+    description_diff = "\n".join(
+        difflib.unified_diff(
+            old_description,
+            new_description,
+            fromfile="previous-description",
+            tofile="current-description",
+            n=1,
+            lineterm="",
+        )
+    )
+    old_actions = format_actions(previous)
+    new_actions = format_actions(current)
+    actions = (
+        "Onchain actions unchanged."
+        if old_actions == new_actions
+        else f"PREVIOUS ACTIONS:\n{old_actions}\n\nCURRENT ACTIONS:\n{new_actions}"
+    )
+    context = f"{actions}\n\nDESCRIPTION DIFF:\n{description_diff or '(unchanged)'}"
+    if len(context) > max_chars:
+        context = context[:max_chars] + "\n… (diff truncated)"
+    return context
+
+
 def condense(client: anthropic.Anthropic, prop: dict, usage: UsageAgg) -> Brief:
     response = client.messages.parse(
         model=CONDENSER_MODEL,
@@ -190,7 +237,12 @@ def condense(client: anthropic.Anthropic, prop: dict, usage: UsageAgg) -> Brief:
     return response.parsed_output
 
 
-def evaluate(client: anthropic.Anthropic, prop: dict, candidate: bool = False) -> tuple[Verdict, UsageAgg]:
+def evaluate(
+    client: anthropic.Anthropic,
+    prop: dict,
+    candidate: bool = False,
+    previous_prop: dict | None = None,
+) -> tuple[Verdict, UsageAgg]:
     usage = UsageAgg()
     description = prop.get("description") or ""
 
@@ -209,6 +261,13 @@ def evaluate(client: anthropic.Anthropic, prop: dict, candidate: bool = False) -
 
     if candidate:
         user = CANDIDATE_PREAMBLE + user
+        if previous_prop:
+            user += (
+                "\n\nThis is an UPDATED candidate. Summarize this untrusted version diff:\n"
+                "<untrusted_candidate_diff>\n"
+                f"{candidate_change_context(previous_prop, prop)}\n"
+                "</untrusted_candidate_diff>"
+            )
 
     response = client.messages.parse(
         model=ANTHROPIC_MODEL,
@@ -223,7 +282,7 @@ def evaluate(client: anthropic.Anthropic, prop: dict, candidate: bool = False) -
             }
         ],
         messages=[{"role": "user", "content": user}],
-        output_format=Verdict,
+        output_format=CandidateVerdict if candidate else Verdict,
     )
     usage.add(response.usage, ANTHROPIC_MODEL)
     return response.parsed_output, usage

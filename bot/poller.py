@@ -136,8 +136,16 @@ def ingest_candidates(client, conn, head: int) -> None:
             return
 
         as_prop = subgraph.candidate_as_prop(cand)
+        previous_prop = None
+        if existing and edited:
+            try:
+                previous_prop = subgraph.candidate_as_prop(json.loads(existing["raw"]))
+            except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+                previous_prop = None
         print(f"evaluating candidate {cand['slug'][:50]}…")
-        verdict, usage = evaluate(client, as_prop, candidate=True)
+        verdict, usage = evaluate(
+            client, as_prop, candidate=True, previous_prop=previous_prop
+        )
         # candidate evals count against the daily budget via a synthetic verdict row
         db.save_verdict(conn, -1, chash, rev, ANTHROPIC_MODEL, verdict, usage)
         fields = dict(
@@ -147,15 +155,22 @@ def ingest_candidates(client, conn, head: int) -> None:
                 "clauses": verdict.clauses_cited, "reason": verdict.reason,
                 "suggestions": verdict.suggestions, "flags": verdict.flags,
                 "requires_human_review": verdict.requires_human_review,
+                "tldr": getattr(verdict, "tldr", verdict.reason),
+                "change_summary": getattr(verdict, "change_summary", ""),
+                "change_materiality": getattr(verdict, "change_materiality", "initial"),
             }),
             raw=json.dumps(cand),
         )
         prefix = ""
         if acted and edited:
-            # edits void a sponsorship signature; feedback can be re-sent
+            # The old signature cannot authorize this version, but can still
+            # authorize the old content until explicitly canceled onchain.
             if existing["sponsor_state"] == "sponsored":
-                fields["sponsor_state"] = "none"
-                prefix = "⚠️ EDITED after you sponsored — your signature is now VOID. Fresh verdict below:\n"
+                fields["sponsor_state"] = "stale"
+                prefix = (
+                    "⚠️ UPDATED after sponsorship — the old signature does not cover "
+                    "this version, but remains valid for the old content.\n"
+                )
             else:
                 prefix = "⚠️ EDITED after you signaled — re-evaluated:\n"
             fields["signal_tx"] = None
@@ -163,7 +178,14 @@ def ingest_candidates(client, conn, head: int) -> None:
         row = db.upsert_candidate(conn, cand_id, logical_id=logical_id, **fields)
         sigs = [s for s in cand["latestVersion"]["content"]["contentSignatures"] if not s["canceled"]]
         card = prefix + candidate_card(
-            row["num"], cand, verdict, len(sigs), can_sponsor, sponsor_note
+            row["num"],
+            cand,
+            verdict,
+            len(sigs),
+            can_sponsor,
+            sponsor_note,
+            is_update=bool(existing and edited),
+            revoke_available=row["sponsor_state"] == "stale" and bool(row["sig_bytes"]),
         )
         print("\n" + card + "\n")
         telegram.send_message(card)
@@ -177,6 +199,8 @@ def candidate_card(
     can_sponsor: bool = True,
     sponsor_note: str = "",
     actionable: bool = True,
+    is_update: bool = False,
+    revoke_available: bool = False,
 ) -> str:
     content = cand["latestVersion"]["content"]
     proposal_id = int(content.get("proposalIdToUpdate") or 0)
@@ -196,11 +220,27 @@ def candidate_card(
                   f"or /signal c{num} for support-with-reservations (reasoning + suggestions go onchain)")
     else:
         action = f"not sponsor-worthy — /signal c{num} against puts the reasoning on the record (optional)"
+    if revoke_available:
+        action += f"\n🛑 If this update is misaligned: /revoke c{num} invalidates the old sponsorship"
+    tldr = (getattr(verdict, "tldr", "") or verdict.reason).strip()
+    if len(tldr) > 220:
+        tldr = tldr[:217].rstrip() + "…"
+    change = (getattr(verdict, "change_summary", "") or "").strip()
+    materiality = getattr(verdict, "change_materiality", "material")
+    change_line = (
+        f"\nchanged ({materiality}): {change[:217].rstrip()}{'…' if len(change) > 217 else ''}"
+        if is_update and change
+        else ""
+    )
+    explanation = compose_reason(verdict)
+    if is_update and materiality == "minor" and len(explanation) > 280:
+        explanation = explanation[:277].rstrip() + "…"
     return (
         f"🌿 Candidate c{num}: {content.get('title') or cand['slug']}\n"
         f"by {cand['proposer'][:10]}… · {sig_count} sponsor sig(s) so far\n"
+        f"TL;DR: {tldr}{change_line}\n"
         f"verdict: {verdict.vote} (conf {verdict.confidence:.2f}) · clauses {', '.join(verdict.clauses_cited)}\n"
-        f"{compose_reason(verdict)}{flags}\n{action}"
+        f"{explanation}{flags}\n{action}"
     )
 
 
@@ -383,6 +423,9 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
                 suggestions=v.get("suggestions", []),
                 flags=v.get("flags", []),
                 requires_human_review=v.get("requires_human_review", False),
+                tldr=v.get("tldr", ""),
+                change_summary=v.get("change_summary", ""),
+                change_materiality=v.get("change_materiality", "initial"),
             )
             sigs = [s for s in cand["latestVersion"]["content"]["contentSignatures"] if not s["canceled"]]
             targets = candidate_target_map([cand])
@@ -399,10 +442,26 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
                 or update_candidate_actionable(target, head)
             )
             card = candidate_card(
-                row["num"], cand, verdict, len(sigs), can_sponsor, sponsor_note, actionable
+                row["num"],
+                cand,
+                verdict,
+                len(sigs),
+                can_sponsor,
+                sponsor_note,
+                actionable,
+                is_update=bool(v.get("change_summary")),
+                revoke_available=(
+                    row["sponsor_state"] in {"sponsored", "stale"} and bool(row["sig_bytes"])
+                ),
             )
             if row["sponsor_state"] == "sponsored":
                 card += f"\n(already sponsored: {row['sig_tx']})"
+            elif row["sponsor_state"] == "stale":
+                card += "\n(old sponsorship is still revocable)"
+            elif row["sponsor_state"] == "revoked":
+                card += f"\n(sponsorship revoked: {row['revoke_tx']})"
+            elif row["sponsor_state"] == "expired":
+                card += "\n(sponsorship signature expired)"
             elif row["signal_tx"]:
                 card += f"\n(already signaled {row['signal_stance']}: {row['signal_tx']})"
             return card
@@ -435,6 +494,12 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             conf = f" ({v['confidence']:.2f})" if v.get("confidence") is not None else ""
             if r["sponsor_state"] == "sponsored":
                 did = "🌱 sponsored"
+            elif r["sponsor_state"] == "stale":
+                did = f"⚠️ updated · /revoke c{r['num']}"
+            elif r["sponsor_state"] == "revoked":
+                did = "🛑 sponsorship revoked"
+            elif r["sponsor_state"] == "expired":
+                did = "⌛ sponsorship expired"
             elif r["signal_tx"]:
                 did = f"📣 signaled {r['signal_stance']}"
             elif r["cand_id"] not in open_ids:
@@ -444,7 +509,8 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             lines.append(f"c{r['num']}: {v.get('vote', '?')}{conf} [{did}] — {(r['title'] or '')[:45]}")
         return ("\n".join(lines)
                 + "\n\n/candidates c<num> replays the full verdict card · "
-                  "/signal c<num> [for|against|abstain] [reason] · /sponsor c<num>")
+                  "/signal c<num> [for|against|abstain] [reason] · "
+                  "/sponsor c<num> · /revoke c<num>")
 
     if cmd == "sponsor":
         if not args or not args[0].lstrip("c").isdigit():
@@ -454,6 +520,11 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             return f"candidate {args[0]}: unknown"
         if row["sponsor_state"] == "sponsored":
             return f"candidate c{row['num']} already sponsored ({row['sig_tx']})"
+        if row["sponsor_state"] == "stale":
+            return (
+                f"candidate c{row['num']} has an older sponsorship still active — "
+                f"/revoke c{row['num']} before signing the updated version"
+            )
         from .executor import bot_address, sponsor_candidate
 
         cand = json.loads(row["raw"])
@@ -478,11 +549,66 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             )
             if not can_sponsor:
                 return f"candidate c{row['num']} cannot be sponsored: {sponsor_note}"
-        tx = sponsor_candidate(cand, reason + SIGNOFF, target_prop=target)
-        db.upsert_candidate(conn, row["cand_id"], sponsor_state="sponsored", sig_tx=tx)
+        result = sponsor_candidate(cand, reason + SIGNOFF, target_prop=target)
+        db.upsert_candidate(
+            conn,
+            row["cand_id"],
+            sponsor_state="sponsored",
+            sig_tx=result.tx_hash,
+            sig_bytes=result.signature,
+            sig_expiration=result.expiration,
+            signed_content_hash=row["content_hash"],
+            revoke_tx=None,
+        )
         return (f"🌱 sponsored candidate c{row['num']} with our delegated weight\n"
-                f"tx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}\n"
-                f"(signature auto-invalidates if the proposer edits)")
+                f"tx: https://etherscan.io/tx/0x{result.tx_hash.removeprefix('0x')}\n"
+                f"(if the candidate changes, /revoke c{row['num']} invalidates this exact signature)")
+
+    if cmd == "revoke":
+        if not args or not args[0].lstrip("c").isdigit():
+            return "usage: /revoke c<num>"
+        row = db.get_candidate_by_num(conn, int(args[0].lstrip("c")))
+        if not row:
+            return f"candidate {args[0]}: unknown"
+        if row["sponsor_state"] == "revoked":
+            return f"candidate c{row['num']} sponsorship already revoked ({row['revoke_tx']})"
+        if row["sponsor_state"] == "expired":
+            return f"candidate c{row['num']} sponsorship signature already expired"
+        if row["sponsor_state"] not in {"sponsored", "stale"}:
+            return f"candidate c{row['num']} has no active sponsorship to revoke"
+        signature = row["sig_bytes"]
+        expiration = row["sig_expiration"]
+        if not signature and row["sig_tx"]:
+            from .executor import recover_candidate_signature
+
+            try:
+                signature, expiration = recover_candidate_signature(row["sig_tx"])
+            except Exception as exc:
+                return f"candidate c{row['num']}: could not recover legacy signature: {exc}"
+            db.upsert_candidate(
+                conn,
+                row["cand_id"],
+                sig_bytes=signature,
+                sig_expiration=expiration,
+            )
+        if not signature:
+            return f"candidate c{row['num']} has no stored signature to revoke"
+        if expiration and int(expiration) <= int(time.time()):
+            db.upsert_candidate(conn, row["cand_id"], sponsor_state="expired")
+            return (
+                f"candidate c{row['num']} sponsorship already expired; "
+                "no revocation transaction needed"
+            )
+        from .executor import revoke_candidate_signature
+
+        tx = revoke_candidate_signature(signature)
+        db.upsert_candidate(
+            conn, row["cand_id"], sponsor_state="revoked", revoke_tx=tx
+        )
+        return (
+            f"🛑 revoked sponsorship for candidate c{row['num']}\n"
+            f"tx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}"
+        )
 
     if cmd == "status":
         rows = conn.execute(
@@ -496,7 +622,8 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             lines.append(f"{r['prop_id']}: {r['vote']} [{r['state']}]{flag} → block {r['cast_block_target']} — {r['title'][:40]}")
         cands = conn.execute(
             """SELECT * FROM candidates
-               WHERE sponsor_state='none' AND superseded=0 ORDER BY num DESC LIMIT 8"""
+               WHERE sponsor_state IN ('none','stale') AND superseded=0
+               ORDER BY num DESC LIMIT 8"""
         ).fetchall()
         candidate_raw = [json.loads(c["raw"] or "{}") for c in cands]
         targets = candidate_target_map(candidate_raw)
@@ -505,6 +632,12 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
 
         signer = bot_address()
         for c in cands:
+            if c["sponsor_state"] == "stale":
+                lines.append(
+                    f"c{c['num']}: ⚠️ updated after sponsorship — /revoke c{c['num']} — "
+                    f"{c['title'][:40]}"
+                )
+                continue
             v = json.loads(c["verdict_json"] or "{}")
             if v.get("vote") == "FOR":
                 raw = json.loads(c["raw"] or "{}")
@@ -550,7 +683,10 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             return f"prop {pid} overridden to {vote} — reason logged, casts on schedule."
         if cmd == "cast":
             return do_cast(conn, pid, forced=True)
-    return f"unknown command /{cmd} — try /status /candidates /hold /release /override /cast /sponsor /signal"
+    return (
+        f"unknown command /{cmd} — try /status /candidates /hold /release "
+        "/override /cast /sponsor /revoke /signal"
+    )
 
 
 def do_cast(conn, pid: int, forced: bool = False, head: int | None = None) -> str:
