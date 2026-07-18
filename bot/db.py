@@ -219,14 +219,17 @@ def migrate(conn) -> None:
     )
     # Older releases keyed candidates only by proposer+slug. Proposal-update
     # candidates are often reposted under fresh slugs, so collapse those rows
-    # onto the newest local number while retaining old rows as audit history.
+    # onto the row with the newest subgraph activity while retaining old rows.
     conn.execute("DROP INDEX IF EXISTS candidates_active_logical_id")
+    keepers: dict[str, tuple[tuple[int, int], int]] = {}
     for row in conn.execute("SELECT num, cand_id, raw FROM candidates"):
         logical_id = row["cand_id"]
+        activity = 0
         try:
             cand = json.loads(row["raw"] or "{}")
             content = (cand.get("latestVersion") or {}).get("content") or {}
             proposal_id = int(content.get("proposalIdToUpdate") or 0)
+            activity = int(cand.get("lastUpdatedTimestamp") or 0)
             if proposal_id:
                 logical_id = f"proposal-update:{proposal_id}"
         except (TypeError, ValueError, json.JSONDecodeError):
@@ -235,14 +238,13 @@ def migrate(conn) -> None:
             "UPDATE candidates SET logical_id=?, superseded=0 WHERE num=?",
             (logical_id, row["num"]),
         )
-    duplicates = conn.execute(
-        """SELECT logical_id, MAX(num) keep_num FROM candidates
-           WHERE logical_id IS NOT NULL GROUP BY logical_id HAVING COUNT(*) > 1"""
-    ).fetchall()
-    for duplicate in duplicates:
+        rank = (activity, row["num"])
+        if logical_id not in keepers or rank > keepers[logical_id][0]:
+            keepers[logical_id] = (rank, row["num"])
+    for logical_id, (_, keep_num) in keepers.items():
         conn.execute(
             "UPDATE candidates SET superseded=CASE WHEN num=? THEN 0 ELSE 1 END WHERE logical_id=?",
-            (duplicate["keep_num"], duplicate["logical_id"]),
+            (keep_num, logical_id),
         )
     conn.execute(
         """CREATE UNIQUE INDEX IF NOT EXISTS candidates_active_logical_id
@@ -269,6 +271,14 @@ def upsert_candidate(conn, cand_id: str, logical_id: str | None = None, **fields
     fields["updated_at"] = datetime.now(timezone.utc).isoformat()
     existing = get_candidate_by_logical_id(conn, logical_id) if logical_id else get_candidate(conn, cand_id)
     if existing:
+        # A previously superseded slug can become current again after an edit.
+        # Keep raw audit data but free the UNIQUE cand_id for the active row.
+        conflict = get_candidate(conn, cand_id)
+        if conflict and conflict["num"] != existing["num"]:
+            conn.execute(
+                "UPDATE candidates SET cand_id=cand_id || '#superseded:' || num WHERE num=?",
+                (conflict["num"],),
+            )
         fields["cand_id"] = cand_id
         if logical_id:
             fields["logical_id"] = logical_id

@@ -132,11 +132,48 @@ class ProposalTimingTests(unittest.TestCase):
         self.assertIn("🟢 VOTING OPEN", send.call_args_list[1].args[0])
         self.assertIn("/cast 984", send.call_args_list[1].args[0])
 
+    def test_failed_voting_open_delivery_is_retried(self):
+        conn = memory_db()
+        prop = proposal()
+        verdict = SimpleNamespace(
+            vote="FOR",
+            confidence=0.8,
+            clauses_cited=["I.1"],
+            reason="Reason",
+            suggestions=[],
+            flags=["review"],
+            requires_human_review=True,
+        )
+        with (
+            patch.object(subgraph, "fetch_proposals", return_value=[prop]),
+            patch.object(poller, "evaluate", return_value=(verdict, None)) as evaluate,
+            patch.object(poller.telegram, "send_message", side_effect=[False, True]) as send,
+        ):
+            poller.ingest_and_evaluate(None, conn, head=111)
+            poller.ingest_and_evaluate(None, conn, head=112)
+            poller.ingest_and_evaluate(None, conn, head=113)
+
+        self.assertEqual(evaluate.call_count, 1)
+        self.assertEqual(send.call_count, 2)
+
+    def test_against_schedule_remains_open_during_objection_period(self):
+        conn = memory_db()
+        prop = proposal(objectionPeriodEndBlock="250")
+        db.upsert_proposal(conn, prop, subgraph.content_hash(prop), "OBJECTION")
+        db.upsert_cast(
+            conn, 984, state="scheduled", vote="AGAINST", reason="Reason", cast_block_target=160
+        )
+        poller.check_schedule(conn, head=201)
+        self.assertEqual(db.get_cast(conn, 984)["state"], "scheduled")
+
 
 class CandidateDedupeTests(unittest.TestCase):
     def test_duplicate_backfill_is_idempotent(self):
         conn = memory_db()
-        for cand in (candidate("old"), candidate("new")):
+        newest = candidate("new")
+        newest["lastUpdatedTimestamp"] = "2"
+        old = candidate("old")
+        for cand in (newest, old):
             conn.execute(
                 "INSERT INTO candidates (cand_id, raw, updated_at) VALUES (?, ?, '')",
                 (cand["id"], json.dumps(cand)),
@@ -148,7 +185,21 @@ class CandidateDedupeTests(unittest.TestCase):
             "SELECT num, superseded FROM candidates WHERE logical_id='proposal-update:984' "
             "ORDER BY num"
         ).fetchall()
-        self.assertEqual([row["superseded"] for row in rows], [1, 0])
+        self.assertEqual([row["superseded"] for row in rows], [0, 1])
+        row = db.upsert_candidate(
+            conn,
+            old["id"],
+            logical_id="proposal-update:984",
+            raw=json.dumps(old),
+        )
+        self.assertEqual(row["cand_id"], old["id"])
+        self.assertEqual(
+            conn.execute(
+                "SELECT COUNT(*) c FROM candidates WHERE logical_id='proposal-update:984' "
+                "AND superseded=0"
+            ).fetchone()["c"],
+            1,
+        )
 
     def test_fetch_collapses_update_slugs_before_limit(self):
         rows = [candidate("new"), candidate("old"), candidate("other")]
@@ -208,6 +259,17 @@ class CandidateDedupeTests(unittest.TestCase):
         self.assertFalse(can_sponsor)
         self.assertNotIn("/sponsor", card)
         self.assertIn("only prop 984's original signer(s)", card)
+
+    def test_canceled_update_is_not_actionable(self):
+        target = proposal(status="CANCELLED")
+        can_sponsor, note = poller.update_sponsorship_status(
+            candidate("update"),
+            target,
+            50,
+            "0x0000000000000000000000000000000000000002",
+        )
+        self.assertFalse(can_sponsor)
+        self.assertIn("window has closed", note)
 
 
 class UpdateSignatureTests(unittest.TestCase):

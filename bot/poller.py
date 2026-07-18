@@ -76,13 +76,21 @@ def candidate_target_map(candidates: list[dict]) -> dict[int, dict]:
     return {int(p["id"]): p for p in subgraph.fetch_proposals_by_ids(sorted(ids))}
 
 
+def update_candidate_actionable(target: dict | None, head: int) -> bool:
+    return bool(
+        target
+        and target.get("status") not in {"CANCELLED", "VETOED", "EXECUTED", "QUEUED"}
+        and subgraph.derive_phase(target, head) == "UPDATABLE"
+    )
+
+
 def update_sponsorship_status(cand: dict, target: dict | None, head: int, signer: str | None) -> tuple[bool, str]:
     proposal_id = int(cand["latestVersion"]["content"].get("proposalIdToUpdate") or 0)
     if not proposal_id:
         return True, ""
     if not target:
         return False, f"target prop {proposal_id} was not found"
-    if subgraph.derive_phase(target, head) != "UPDATABLE":
+    if not update_candidate_actionable(target, head):
         return False, f"prop {proposal_id}'s update window has closed"
     original_signers = {s["id"].lower() for s in target.get("signers") or []}
     if not signer or signer.lower() not in original_signers:
@@ -106,22 +114,14 @@ def ingest_candidates(client, conn, head: int) -> None:
         proposal_id = int(cand["latestVersion"]["content"].get("proposalIdToUpdate") or 0)
         target = targets.get(proposal_id)
         can_sponsor, sponsor_note = update_sponsorship_status(cand, target, head, signer)
-        if proposal_id and (
-            not target or subgraph.derive_phase(target, head) != "UPDATABLE"
-        ):
+        if proposal_id and not update_candidate_actionable(target, head):
             continue  # stale update candidates remain in the subgraph after their window closes
         chash = subgraph.candidate_content_hash(cand)
         existing = db.get_candidate_by_logical_id(conn, logical_id)
         acted = existing and (existing["sponsor_state"] == "sponsored" or existing["signal_tx"])
         edited = existing and existing["content_hash"] != chash
         if acted and not edited:
-            if existing["cand_id"] != cand_id:
-                db.upsert_candidate(
-                    conn, cand_id, logical_id=logical_id, title=existing["title"],
-                    content_hash=chash, constitution_rev=existing["constitution_rev"],
-                    verdict_json=existing["verdict_json"], raw=json.dumps(cand),
-                )
-            continue  # you've already acted onchain; nothing a re-verdict could change
+            continue  # preserve the exact slug where the onchain action was recorded
         if existing and existing["content_hash"] == chash and existing["constitution_rev"] == fp:
             if existing["cand_id"] != cand_id:
                 db.upsert_candidate(
@@ -277,8 +277,8 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
                     prop, outcome, verdict_from_row(cached), target, head
                 )
                 print("\n" + card + "\n")
-                telegram.send_message(card)
-                db.mark_vote_open_notified(conn, pid, chash)
+                if telegram.send_message(card):
+                    db.mark_vote_open_notified(conn, pid, chash)
             continue
         cast_row = db.get_cast(conn, pid)
         if cast_row and cast_row["state"] == "cast" and not edited:
@@ -313,8 +313,8 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
             prefix = ""
         card = prefix + verdict_card(prop, outcome, verdict, target, head)
         print("\n" + card + "\n")
-        telegram.send_message(card)
-        if outcome == "VOTING":
+        delivered = telegram.send_message(card)
+        if outcome == "VOTING" and delivered:
             db.mark_vote_open_notified(conn, pid, chash)
 
 
@@ -396,7 +396,7 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             target = targets.get(proposal_id)
             actionable = (
                 not proposal_id
-                or (target is not None and subgraph.derive_phase(target, head) == "UPDATABLE")
+                or update_candidate_actionable(target, head)
             )
             card = candidate_card(
                 row["num"], cand, verdict, len(sigs), can_sponsor, sponsor_note, actionable
@@ -421,13 +421,12 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             or (
                 int(c["latestVersion"]["content"].get("proposalIdToUpdate") or 0)
                 in open_targets
-                and subgraph.derive_phase(
+                and update_candidate_actionable(
                     open_targets[
                         int(c["latestVersion"]["content"].get("proposalIdToUpdate") or 0)
                     ],
                     head,
                 )
-                == "UPDATABLE"
             )
         }
         lines = []
@@ -515,7 +514,7 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
                 if proposal_id:
                     target = targets.get(proposal_id)
                     can_sponsor, note = update_sponsorship_status(raw, target, head, signer)
-                    if not target or subgraph.derive_phase(target, head) != "UPDATABLE":
+                    if not update_candidate_actionable(target, head):
                         continue
                     action = f"/sponsor c{c['num']}" if can_sponsor else "feedback review"
                     lines.append(
@@ -597,7 +596,9 @@ def check_schedule(conn, head: int) -> None:
             telegram.send_message(f"⏹ prop {pid} was {current['status'].lower()} — cast cancelled, nothing to do")
             continue
         end = int(prop["endBlock"])
-        if head > end:
+        objection_end = int(prop.get("objectionPeriodEndBlock") or 0)
+        deadline = objection_end if row["vote"] == "AGAINST" and objection_end > end else end
+        if head > deadline:
             db.upsert_cast(conn, pid, state="missed")
             telegram.send_message(
                 f"⏹ prop {pid} window closed without a cast "
