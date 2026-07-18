@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS proposals (
   status TEXT,
   content_hash TEXT,
   outcome TEXT,
+  vote_open_notified_hash TEXT,
   raw TEXT,
   updated_at TEXT
 );
@@ -181,6 +182,8 @@ CANDIDATE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS candidates (
   num INTEGER PRIMARY KEY AUTOINCREMENT,
   cand_id TEXT UNIQUE,           -- proposer-slug
+  logical_id TEXT,               -- proposal-update:<id> for reposted update candidates
+  superseded INTEGER DEFAULT 0,
   title TEXT,
   content_hash TEXT,
   sponsor_state TEXT DEFAULT 'none',   -- none | sponsored | declined
@@ -200,6 +203,9 @@ def migrate(conn) -> None:
         "ALTER TABLE candidates ADD COLUMN signal_tx TEXT",
         "ALTER TABLE candidates ADD COLUMN signal_stance TEXT",
         "ALTER TABLE verdicts ADD COLUMN constitution_fp TEXT",
+        "ALTER TABLE proposals ADD COLUMN vote_open_notified_hash TEXT",
+        "ALTER TABLE candidates ADD COLUMN logical_id TEXT",
+        "ALTER TABLE candidates ADD COLUMN superseded INTEGER DEFAULT 0",
     ):
         try:
             conn.execute(ddl)
@@ -211,6 +217,37 @@ def migrate(conn) -> None:
         "UPDATE verdicts SET constitution_fp=? WHERE constitution_fp IS NULL",
         (constitution_fingerprint(),),
     )
+    # Older releases keyed candidates only by proposer+slug. Proposal-update
+    # candidates are often reposted under fresh slugs, so collapse those rows
+    # onto the newest local number while retaining old rows as audit history.
+    conn.execute("DROP INDEX IF EXISTS candidates_active_logical_id")
+    for row in conn.execute("SELECT num, cand_id, raw FROM candidates"):
+        logical_id = row["cand_id"]
+        try:
+            cand = json.loads(row["raw"] or "{}")
+            content = (cand.get("latestVersion") or {}).get("content") or {}
+            proposal_id = int(content.get("proposalIdToUpdate") or 0)
+            if proposal_id:
+                logical_id = f"proposal-update:{proposal_id}"
+        except (TypeError, ValueError, json.JSONDecodeError):
+            pass
+        conn.execute(
+            "UPDATE candidates SET logical_id=?, superseded=0 WHERE num=?",
+            (logical_id, row["num"]),
+        )
+    duplicates = conn.execute(
+        """SELECT logical_id, MAX(num) keep_num FROM candidates
+           WHERE logical_id IS NOT NULL GROUP BY logical_id HAVING COUNT(*) > 1"""
+    ).fetchall()
+    for duplicate in duplicates:
+        conn.execute(
+            "UPDATE candidates SET superseded=CASE WHEN num=? THEN 0 ELSE 1 END WHERE logical_id=?",
+            (duplicate["keep_num"], duplicate["logical_id"]),
+        )
+    conn.execute(
+        """CREATE UNIQUE INDEX IF NOT EXISTS candidates_active_logical_id
+           ON candidates(logical_id) WHERE superseded=0"""
+    )
     conn.commit()
 
 
@@ -218,19 +255,38 @@ def get_candidate(conn, cand_id: str):
     return conn.execute("SELECT * FROM candidates WHERE cand_id=?", (cand_id,)).fetchone()
 
 
+def get_candidate_by_logical_id(conn, logical_id: str):
+    return conn.execute(
+        "SELECT * FROM candidates WHERE logical_id=? AND superseded=0", (logical_id,)
+    ).fetchone()
+
+
 def get_candidate_by_num(conn, num: int):
     return conn.execute("SELECT * FROM candidates WHERE num=?", (num,)).fetchone()
 
 
-def upsert_candidate(conn, cand_id: str, **fields):
+def upsert_candidate(conn, cand_id: str, logical_id: str | None = None, **fields):
     fields["updated_at"] = datetime.now(timezone.utc).isoformat()
-    existing = get_candidate(conn, cand_id)
+    existing = get_candidate_by_logical_id(conn, logical_id) if logical_id else get_candidate(conn, cand_id)
     if existing:
+        fields["cand_id"] = cand_id
+        if logical_id:
+            fields["logical_id"] = logical_id
+        fields["superseded"] = 0
         sets = ", ".join(f"{k}=?" for k in fields)
-        conn.execute(f"UPDATE candidates SET {sets} WHERE cand_id=?", (*fields.values(), cand_id))
+        conn.execute(f"UPDATE candidates SET {sets} WHERE num=?", (*fields.values(), existing["num"]))
     else:
+        if logical_id:
+            fields["logical_id"] = logical_id
         cols = ", ".join(["cand_id", *fields])
         marks = ", ".join("?" * (len(fields) + 1))
         conn.execute(f"INSERT INTO candidates ({cols}) VALUES ({marks})", (cand_id, *fields.values()))
     conn.commit()
     return get_candidate(conn, cand_id)
+
+
+def mark_vote_open_notified(conn, prop_id: int, chash: str) -> None:
+    conn.execute(
+        "UPDATE proposals SET vote_open_notified_hash=? WHERE id=?", (chash, prop_id)
+    )
+    conn.commit()

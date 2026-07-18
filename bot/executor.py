@@ -35,38 +35,53 @@ def cast_vote(prop_id: int, vote: str, reason: str) -> str:
     return tx_hash.hex()
 
 
-def sponsor_candidate(cand: dict, reason: str) -> str:
+def sponsor_candidate(cand: dict, reason: str, target_prop: dict | None = None) -> str:
     """Sign the EIP-712 sponsorship for a candidate and register it via
     NounsDAOData.addSignature. Simulated first — a bad digest reverts in
     eth_call before any gas is spent. Returns tx hash.
 
     The signature commits to the candidate's exact current content; any
-    subsequent edit by the proposer invalidates it automatically. v1 supports
-    new candidates only (proposalIdToUpdate == 0)."""
+    subsequent edit by the proposer invalidates it automatically. Update
+    candidates use the governor's distinct UpdateProposal typed-data payload
+    and may only be re-signed by the original proposal signers."""
     import time
 
     key = os.environ.get("BOT_PRIVATE_KEY")
     if not key:
         raise RuntimeError("BOT_PRIVATE_KEY not set — paper mode")
     content = cand["latestVersion"]["content"]
-    if int(content.get("proposalIdToUpdate") or 0) != 0:
-        raise RuntimeError("update-candidates not supported yet (proposalIdToUpdate != 0)")
+    proposal_id = int(content.get("proposalIdToUpdate") or 0)
 
     account = Account.from_key(key)
     web3 = chain.w3()
+    if proposal_id:
+        if not target_prop or int(target_prop["id"]) != proposal_id:
+            raise RuntimeError("target proposal data is required for update-candidate sponsorship")
+        original_signers = {s["id"].lower() for s in target_prop.get("signers") or []}
+        if account.address.lower() not in original_signers:
+            raise RuntimeError(
+                f"only prop {proposal_id}'s original signers can sign its update; "
+                "this delegate was not an original signer"
+            )
+        # NounsDAOTypes.ProposalState.Updatable is enum value 10.
+        if chain.proposal_state(web3, proposal_id) != 10:
+            raise RuntimeError(f"prop {proposal_id} is no longer updatable")
 
     encoded = chain.calc_proposal_encode_data(
         cand["proposer"], content["targets"], content["values"],
         content["signatures"], content["calldatas"], content["description"],
     )
+    if proposal_id:
+        # updateProposalBySigs uses abi.encodePacked(proposalId, encodedProp).
+        encoded = proposal_id.to_bytes(32, "big") + encoded
     expiration = int(time.time()) + 30 * 24 * 3600  # 30 days
-    digest = chain.sponsorship_digest(encoded, expiration)
+    digest = chain.sponsorship_digest(encoded, expiration, proposal_id)
     sign_fn = getattr(Account, "unsafe_sign_hash", None) or Account._sign_hash
     signature = sign_fn(digest, private_key=key).signature
 
     fn = chain.data_contract(web3).functions.addSignature(
         bytes(signature), expiration, Web3.to_checksum_address(cand["proposer"]),
-        cand["slug"], 0, encoded, reason,
+        cand["slug"], proposal_id, encoded, reason,
     )
     fn.call({"from": account.address})  # simulate: digest/candidate validity check
 

@@ -89,7 +89,7 @@ def build_payload(conn) -> dict:
     for r in conn.execute(
         """SELECT num, cand_id, title, sponsor_state, sig_tx, signal_tx, signal_stance,
                   verdict_json, updated_at
-           FROM candidates ORDER BY num DESC"""
+           FROM candidates WHERE superseded=0 ORDER BY num DESC"""
     ):
         try:
             v = json.loads(r["verdict_json"] or "{}")
