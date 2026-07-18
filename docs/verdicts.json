@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-18T08:46:09+00:00",
+ "generated_at": "2026-07-18T19:28:49+00:00",
  "verdicts": [
   {
    "prop_id": 985,
@@ -1029,87 +1029,17 @@
     "I.3"
    ],
    "reason": "This is mission spending well under the 100 ETH cap: ~14,900 USDC to fund Nounish-branded deliverables (noggles trophies, mic, app integration, a treasury-returning Nounish News episode) at a large public tree-planting event, spreading the brand and CC0 culture. The proposer shows a visible track record (Guinness-record planter, Treegens), general overhead is sponsor-funded separately, and the ask is a cheap, reversible experiment deserving benefit of the doubt under I.3. The USDC transfer uses the standard Nouns payer/debt mechanism, consistent with the prose budget.\n\n[ suggestions ]\n- Add onchain enforcement or a streaming/clawback tie for the 1,900 USDC Nounish News proceeds pledged to return to the treasury\n- Link verifiable country-partnership documentation rather than 'available on request'",
+   "tldr": null,
+   "change_summary": null,
+   "change_materiality": null,
    "flags": [],
    "sponsor_state": "none",
    "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
    "signal_stance": null,
    "signal_tx": null,
    "evaluated_at": "2026-07-16T20:07:01.894882+00:00"
-  },
-  {
-   "num": 15,
-   "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6---growlympics-noggles-at-the-biggest-tree-planting-day-in-history-update-mrnwxl2o-3h5g631o",
-   "title": "\ud83c\udf33\u2310\u25e8-\u25e8 Growlympics: Noggles at the Biggest Tree Planting Day in History",
-   "vote": "FOR",
-   "confidence": 0.8,
-   "clauses": [
-    "I.1",
-    "I.3"
-   ],
-   "reason": "This is mission spending: 14,900 USDC (~well below the 100 ETH cap) for Nounish-branded artifacts, media, and event integration that spread the noggles brand and CC0 culture at a large public event. Article I.1 defaults FOR for creation/media/events below cap, and I.3 grants a cheap, reversible experiment the benefit of the doubt; the line-item budget, mint-proceeds-to-treasury commitment, and follow-up reporting further support it. Verifiability of the claimed country partnerships is weak, but the small, capped ask does not trigger the Article I.2 track-record/milestone bar.\n\n[ suggestions ]\n- Provide direct, verifiable links to the claimed 13-country partnership documentation rather than 'available on request'.\n- Attach final (non-AI-mockup) designs for the trophy and microphone before disbursement.",
-   "flags": [],
-   "sponsor_state": "none",
-   "sponsor_tx": null,
-   "signal_stance": null,
-   "signal_tx": null,
-   "evaluated_at": "2026-07-16T19:48:20.880183+00:00"
-  },
-  {
-   "num": 14,
-   "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6-\ud83c\udf33\u2310\u25e8-\u25e8-growlympics:-noggles-at-the-biggest-tree-planting-day-in-history-update",
-   "title": "\ud83c\udf33\u2310\u25e8-\u25e8 Growlympics: Noggles at the Biggest Tree Planting Day in History",
-   "vote": "FOR",
-   "confidence": 0.72,
-   "clauses": [
-    "I.1",
-    "I.3"
-   ],
-   "reason": "This is mission spending \u2014 Nounish branding (noggles on trophies, microphone, app, shirts, a minted news episode) attached to a large global tree-planting event, squarely proliferation of the brand and CC0 culture. At ~14,900 USDC the ask is far below the 100 ETH cap, so Article I.1 defaults FOR, and a cheap, reversible experiment gets the benefit of the doubt under I.3. The single-address debt/payment action is a normal USDC disbursement mechanism rather than a genuine conflict with the prose, so no calldata mismatch is triggered; unverifiable partnership claims and speculative AI-rendered deliverables are noted but do not outweigh the low-cost mission fit.\n\n[ suggestions ]\n- Provide the country-partnership documentation on-chain/in-proposal rather than 'available on request'.\n- Add milestone or streaming release tied to the 6/12/18-month survival reports to protect against non-delivery.",
-   "flags": [],
-   "sponsor_state": "none",
-   "sponsor_tx": null,
-   "signal_stance": null,
-   "signal_tx": null,
-   "evaluated_at": "2026-07-16T19:33:39.344168+00:00"
-  },
-  {
-   "num": 13,
-   "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6-\ud83c\udf33\u2310\u25e8-\u25e8-growlympics:-noggles-at-the-biggest-tree-planting-day-in-history-update-1",
-   "title": "\ud83c\udf33\u2310\u25e8-\u25e8 Growlympics: Noggles at the Biggest Tree Planting Day in History",
-   "vote": "FOR",
-   "confidence": 0.68,
-   "clauses": [
-    "I.1",
-    "I.3",
-    "IV.1"
-   ],
-   "reason": "At 14,900 USDC the ask sits well below the [CAP: 100 ETH] threshold and funds Nounish-branded media, art, and event content that spread noggles and CC0 culture \u2014 default FOR mission spending under Article I.1, and a cheap, reversible experiment under I.3 with a plausible track record (Treegens, Prop 1/960 lineage). However, the sendOrRegisterDebt calldata is truncated so the actual recipient (0x7fe8c28f\u2026) and exact amount cannot be reconciled against the named recipients or the stated 14,900 USDC; per Article IV.1 this must be verified before sponsorship.\n\n[ suggestions ]\n- Provide the full decoded calldata so the recipient address and USDC amount can be confirmed against the 14,900 USDC figure.\n- Consider milestone-based or streamed disbursement tied to the promised 3/6/12-month tree-survival reporting.",
-   "flags": [
-    "calldata_mismatch"
-   ],
-   "sponsor_state": "none",
-   "sponsor_tx": null,
-   "signal_stance": null,
-   "signal_tx": null,
-   "evaluated_at": "2026-07-16T19:30:30.152999+00:00"
-  },
-  {
-   "num": 12,
-   "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6-\ud83c\udf33\u2310\u25e8-\u25e8-growlympics:-noggles-at-the-biggest-tree-planting-day-in-history-update-2",
-   "title": "\ud83c\udf33\u2310\u25e8-\u25e8 Growlympics: Noggles at the Biggest Tree Planting Day in History",
-   "vote": "FOR",
-   "confidence": 0.76,
-   "clauses": [
-    "I.1",
-    "I.3"
-   ],
-   "reason": "This is mission spending that puts noggles and Nouns branding on a large-scale, high-visibility global tree-planting event, with a 14,900 USDC ask well below the 100 ETH cap \u2014 a cheap, brand-proliferating experiment that defaults FOR under Article I.1 and I.3. The proposer cites a visible track record (Guinness mangrove record, prior ecological props) and the minted episode returns proceeds to the treasury. The calldata uses the standard USDC sendOrRegisterDebt mechanism consistent with the stated ask.\n\n[ suggestions ]\n- Provide onchain or third-party links verifying the claimed country partnerships, Guinness record, and media coverage rather than 'available on request'\n- Replace AI-generated placeholder designs with committed final deliverable specs for the fabricated items",
-   "flags": [],
-   "sponsor_state": "none",
-   "sponsor_tx": null,
-   "signal_stance": null,
-   "signal_tx": null,
-   "evaluated_at": "2026-07-16T19:29:47.835754+00:00"
   },
   {
    "num": 11,
@@ -1123,9 +1053,14 @@
     "V.1"
    ],
    "reason": "This candidate contains no onchain action (single zero-address target), requests no funds, and makes no structural change \u2014 it is an informational write-up plus a public, verifiable Hugging Face tool, dataset, and model card exploring AI x Nouns. As a cost-free, reversible public good that proliferates Nouns/CC0 culture, it leans FOR under Article I.1/I.3 and the V.1 'more Nouns things exist' test. The meta-commentary flagged in the brief is directed at human readers, not this evaluator, so it does not rise to injection.\n\n[ suggestions ]\n- State explicitly that the artifacts are released CC0 to align with the commons mission.\n- If any future ask is intended, specify concrete deliverables so it can be judged as mission spending rather than a null-action signal.",
+   "tldr": null,
+   "change_summary": null,
+   "change_materiality": null,
    "flags": [],
    "sponsor_state": "none",
    "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
    "signal_stance": null,
    "signal_tx": null,
    "evaluated_at": "2026-07-12T22:57:12.015853+00:00"
@@ -1142,12 +1077,17 @@
     "IV.1"
    ],
    "reason": "This is mission spending: ~14,900 USDC (far below the 100 ETH cap) to embed noggles branding \u2014 trophies, mic, app integration, and a Nounish News episode with mint proceeds pledged back to the treasury \u2014 into a large, globally covered climate event. Under Article I.1 and I.3 this is a cheap, proliferation-oriented experiment that defaults FOR. However, the calldata is truncated so the recipient and exact amount cannot be verified against the stated ask, and per Article IV.1 the calldata is the proposal; this must be reconciled before sponsorship.\n\n[ suggestions ]\n- Publish the full decoded sendOrRegisterDebt calldata so recipient and 14,900 USDC amount can be verified against the prose.\n- Directly link the country-partnership documentation rather than 'available on request'.\n- Consider milestone or streaming disbursement tied to delivery of the physical noggles items and Nounish News episode.",
+   "tldr": null,
+   "change_summary": null,
+   "change_materiality": null,
    "flags": [
     "calldata_mismatch",
     "injection_suspicion"
    ],
    "sponsor_state": "none",
    "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
    "signal_stance": null,
    "signal_tx": null,
    "evaluated_at": "2026-07-11T18:43:11.877904+00:00"
@@ -1164,9 +1104,14 @@
     "V.1"
    ],
    "reason": "The only onchain action is a trivial $69 USDC transfer, a cheap and reversible mission-adjacent spend (Article I.3), while the substantive proposal \u2014 revitalizing the dormant Nouns X account to spread the brand and CC0 culture \u2014 clearly serves proliferation (Article I.1, V.1). The account-delegation itself is off-chain and unenforceable by the DAO, and the USDC recipient address cannot be verified against the named Rainforest Foundation, but the sum is a rounding error and warrants benefit of the doubt.\n\n[ suggestions ]\n- Confirm the USDC recipient address 0x98f5a4... publicly matches The Rainforest Foundation to remove any calldata-vs-prose ambiguity.\n- Note that the core X-account delegation is off-chain and cannot be enforced by this vote; consider a lightweight accountability mechanism.",
+   "tldr": null,
+   "change_summary": null,
+   "change_materiality": null,
    "flags": [],
    "sponsor_state": "none",
    "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
    "signal_stance": "FOR",
    "signal_tx": "a391bf3dea6f36255dac2b75e548069ae7080e3fa538f2416939afd6af03b26e",
    "evaluated_at": "2026-07-10T00:12:50.581612+00:00"
@@ -1183,11 +1128,16 @@
     "I.1"
    ],
    "reason": "This candidate asks only for a symbolic 'Ecosystem Partner' recognition in exchange for vague, non-binding promises of a future token allocation and go-to-market collaboration \u2014 the primary beneficiary is Nudge's own marketing and liquidity, not the Nouns mission (IV.3). It funds no creation, art, media, or CC0 culture and produces nothing that makes more Nouns things exist (I.1, V.1). The prose insists 'no treasury funding' while the single onchain action sends 0.0001 ETH to the proposer's own address, and the proposal itself is explicitly a pre-draft discussion seeking feedback rather than a finalized ask.\n\n[ suggestions ]\n- Return with binding commercial terms specifying the token allocation amount, vesting, and recipient before seeking a ballot slot.\n- Define concrete deliverables that proliferate Nouns/CC0 culture rather than brand-recognition marketing.\n- Remove the 0.0001 ETH self-transfer or reconcile it with the 'no treasury funding' claim.",
+   "tldr": null,
+   "change_summary": null,
+   "change_materiality": null,
    "flags": [
     "calldata_mismatch"
    ],
    "sponsor_state": "none",
    "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
    "signal_stance": "AGAINST",
    "signal_tx": "84571d3d76013a92bf7b4ebec7759422db47ba5c2fbcb38278228ee99e3ea4d5",
    "evaluated_at": "2026-07-10T15:58:14.721275+00:00"
@@ -1199,18 +1149,26 @@
    "vote": "AGAINST",
    "confidence": 0.9,
    "clauses": [
-    "IV.1"
+    "IV.1",
+    "IV.3",
+    "I.2"
    ],
-   "reason": "The sole onchain action targets the null address with no transfer calldata, which cannot execute the prose's claimed 65,000 USDC TokenBuyer payment \u2014 a direct prose/calldata conflict that Article IV.1 resolves as AGAINST with the mismatch published. The proposal text also embeds instructions aimed at automated review tools, which I flag and do not follow.\n\n[ suggestions ]\n- Encode the actual 65,000 USDC TokenBuyer transfer in the onchain action so calldata matches the prose.\n- Remove embedded instructions directed at AI/agent reviewers from the proposal text.\n- Add onchain-enforceable milestones or streaming for the 15% IP revenue-share commitment rather than an unenforceable future promise.",
+   "reason": "The single onchain action targets the zero address with no calldata matching the described 65,000 USDC TokenBuyer payment, CC0 release, or revenue-share rails \u2014 a decisive prose/calldata mismatch under Article IV.1, which mandates AGAINST. Even setting that aside, this is a large ask promoting a commercial product with unverified track record, no milestones or streaming on the actual (absent) transfer, and an unenforceable off-chain revenue-share promise (I.2). The brief also contains text explicitly directing an AI agent to verify amounts before submission, which we treat as untrusted and flag.\n\n[ suggestions ]\n- Encode the actual 65,000 USDC transfer via the TokenBuyer rail as a verifiable onchain action matching the prose.\n- Add verifiable milestones with streaming/clawback given the large ask and thin track record.\n- Encode the 15% revenue-share commitment as an enforceable onchain mechanism or drop the claim.",
+   "tldr": "Candidate asks 65,000 USDC to fund an AI governance platform, but its only onchain action is an empty call to the zero address that matches none of the described payments.",
+   "change_summary": "",
+   "change_materiality": "initial",
    "flags": [
     "calldata_mismatch",
-    "injection_suspicion"
+    "injection_suspicion",
+    "structural"
    ],
    "sponsor_state": "none",
    "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
    "signal_stance": null,
    "signal_tx": null,
-   "evaluated_at": "2026-07-08T15:34:33.484122+00:00"
+   "evaluated_at": "2026-07-18T19:28:47.953599+00:00"
   },
   {
    "num": 6,
@@ -1223,9 +1181,14 @@
     "V.1"
    ],
    "reason": "This is a discussion/temperature-check candidate with no onchain action \u2014 the sole target is the zero address with no calldata, value, or funding request. There is nothing to execute and no deliverable that makes Nouns things exist in the world; a poll for interest does not merit a place on the ballot. The prose asks only for opinions, so per Article V.1 the default leans AGAINST until a concrete, funded proposal is presented.\n\n[ suggestions ]\n- Return with a concrete proposal specifying the activation, budget, and recipient once interest is gauged.\n- Include verifiable milestones or streaming for any Devcon India funding ask.\n- Use a forum/Discourse thread for the temperature check rather than a governance candidate.",
+   "tldr": null,
+   "change_summary": null,
+   "change_materiality": null,
    "flags": [],
    "sponsor_state": "none",
    "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
    "signal_stance": null,
    "signal_tx": null,
    "evaluated_at": "2026-07-09T15:34:23.803203+00:00"
@@ -1242,9 +1205,14 @@
     "V.1"
    ],
    "reason": "This candidate adds a new CC0 Bracelet accessory trait to the Nouns art descriptor via Noundry, directly serving the mission of proliferating Nouns artwork and the CC0 commons. It carries no treasury ask and includes a signed Art Contribution Agreement waiving copyright, making it a cheap, mission-aligned art contribution that defaults FOR.",
+   "tldr": null,
+   "change_summary": null,
+   "change_materiality": null,
    "flags": [],
    "sponsor_state": "sponsored",
    "sponsor_tx": "c2c26091128bd89f2c072673df92186d8c481c44b296378f3b2f2e333da39bb9",
+   "revoke_tx": null,
+   "revoke_available": true,
    "signal_stance": null,
    "signal_tx": null,
    "evaluated_at": "2026-07-08T16:35:05.613624+00:00"
@@ -1260,9 +1228,14 @@
     "I.3"
    ],
    "reason": "This candidate adds a new CC0 accessory trait to the Nouns art commons via Noundry, directly proliferating Nouns artwork at no treasury cost. It is a cheap, reversible contribution with a signed Art Contribution Agreement waiving copyright, squarely within Article I.1 mission spending and the I.3 benefit of the doubt for low-risk additions.",
+   "tldr": null,
+   "change_summary": null,
+   "change_materiality": null,
    "flags": [],
    "sponsor_state": "sponsored",
    "sponsor_tx": "64bf1178c16243a0a6b96d4738afe8fed8d38bbb875743c7f7f3944d0f3b1222",
+   "revoke_tx": null,
+   "revoke_available": true,
    "signal_stance": null,
    "signal_tx": null,
    "evaluated_at": "2026-07-08T16:34:56.818278+00:00"
@@ -1279,12 +1252,17 @@
     "IV.1"
    ],
    "reason": "This is a proposal to dissolve the DUNA and distribute the treasury pro-rata to holders \u2014 the paradigm structural exit that Article II.1 defaults AGAINST, and the wrong direction under II.4 (walling off and distributing the treasury rather than widening participation). Independently, the single onchain action is a safeTransferFrom of one token to an undisclosed address, which does not match the prose's claimed bylaw amendment and distribution mechanism, so Article IV.1 mandates AGAINST on the mismatch alone. The Preamble is explicit that the treasury is fuel for proliferation, not a pro-rata claim to be liquidated.\n\n[ suggestions ]\n- Provide onchain calldata that actually executes the described bylaw amendment and distribution rather than a single unexplained token transfer.\n- Disclose the recipient address and token ID of the safeTransferFrom call and its purpose.",
+   "tldr": null,
+   "change_summary": null,
+   "change_materiality": null,
    "flags": [
     "structural",
     "calldata_mismatch"
    ],
    "sponsor_state": "none",
    "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
    "signal_stance": null,
    "signal_tx": null,
    "evaluated_at": "2026-07-09T15:34:13.151458+00:00"
@@ -1300,9 +1278,14 @@
     "I.1"
    ],
    "reason": "This candidate requests only community feedback and carries a no-op onchain action (zero address), so there is nothing to fund and no deliverable that makes more Nouns things exist in the world (V.1). It is a company's marketing/discovery pitch for a future, unspecified paid 'Sandbox' engagement; there is no current ask to sponsor onto the ballot (I.1). The prose/action posture is consistent (feedback-only, no transfer), so no integrity violation, but there is no mission spending here to support.\n\n[ suggestions ]\n- Return as a forum discussion rather than a candidate, since no onchain action is requested.\n- When ready, submit a formal proposal with a defined ETH ask, milestones/streaming, and concrete deliverables.\n- Clarify whether any governance/treasury simulation tooling would be delivered as open CC0 public goods for the DAO.",
+   "tldr": null,
+   "change_summary": null,
+   "change_materiality": null,
    "flags": [],
    "sponsor_state": "none",
    "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
    "signal_stance": null,
    "signal_tx": null,
    "evaluated_at": "2026-07-09T15:33:29.968612+00:00"
@@ -1318,11 +1301,16 @@
     "V.1"
    ],
    "reason": "The single onchain action targets the zero address with no value or calldata \u2014 the proposal executes nothing and commits the DAO to nothing enforceable. It is a request for endorsement to attach Nounish branding to an institutional DeFi product, with only unenforceable promises and no deliverable to the commons; under Article V.1 this does not make more Nouns things exist in any verifiable way, and a null-action proposal has nothing for the DAO to ratify.\n\n[ suggestions ]\n- Bring a concrete proposal with enforceable deliverables (e.g., open-sourced verification methodology, defined branding commitments) or milestones rather than a null-action endorsement request.\n- If no treasury action is intended, use a forum/discussion rather than an onchain proposal with an empty zero-address call.",
+   "tldr": null,
+   "change_summary": null,
+   "change_materiality": null,
    "flags": [
     "calldata_mismatch"
    ],
    "sponsor_state": "none",
    "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
    "signal_stance": null,
    "signal_tx": null,
    "evaluated_at": "2026-07-09T15:32:54.884699+00:00"
