@@ -44,7 +44,7 @@ def cast_vote(prop_id: int, vote: str, reason: str) -> str:
 
 
 def sponsor_candidate(
-    cand: dict, reason: str, target_prop: dict | None = None
+    cand: dict, reason: str, target_prop: dict | None = None, on_sent=None
 ) -> SponsorshipResult:
     """Sign the EIP-712 sponsorship for a candidate and register it via
     NounsDAOData.addSignature. Simulated first — a bad digest reverts in
@@ -69,6 +69,15 @@ def sponsor_candidate(
     if proposal_id:
         if not target_prop or int(target_prop["id"]) != proposal_id:
             raise RuntimeError("target proposal data is required for update-candidate sponsorship")
+        # updateProposalBySigs verifies the digest against msg.sender — the
+        # proposal's original proposer. A signature over anyone else's candidate
+        # would register fine but could never be consumed.
+        target_proposer = str((target_prop.get("proposer") or {}).get("id") or "").lower()
+        if str(cand["proposer"]).lower() != target_proposer:
+            raise RuntimeError(
+                f"candidate proposer {cand['proposer']} is not prop {proposal_id}'s "
+                "original proposer — this update signature could never be consumed"
+            )
         original_signers = {s["id"].lower() for s in target_prop.get("signers") or []}
         if account.address.lower() not in original_signers:
             raise RuntimeError(
@@ -107,14 +116,19 @@ def sponsor_candidate(
     })
     signed = account.sign_transaction(tx)
     tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction)
-    receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=180)
-    if receipt["status"] != 1:
-        raise RuntimeError(f"sponsorship tx reverted: {tx_hash.hex()}")
-    return SponsorshipResult(
+    result = SponsorshipResult(
         tx_hash=tx_hash.hex(),
         signature="0x" + bytes(signature).hex(),
         expiration=expiration,
     )
+    if on_sent:
+        # Persist before waiting on the receipt: a mined-but-timed-out tx must
+        # never leave a live onchain signature the DB has no record of.
+        on_sent(result)
+    receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=180)
+    if receipt["status"] != 1:
+        raise RuntimeError(f"sponsorship tx reverted: {tx_hash.hex()}")
+    return result
 
 
 def revoke_candidate_signature(signature: str) -> str:
@@ -152,9 +166,11 @@ def recover_candidate_signature(tx_hash: str) -> tuple[str, int]:
     if not events:
         raise RuntimeError("sponsorship transaction has no SignatureAdded event")
     signer = bot_address()
+    if not signer:
+        raise RuntimeError("BOT_PRIVATE_KEY not set — cannot identify this bot's signature")
     matching = [
         event for event in events
-        if not signer or event["args"]["signer"].lower() == signer.lower()
+        if event["args"]["signer"].lower() == signer.lower()
     ]
     if len(matching) != 1:
         raise RuntimeError("could not uniquely identify this bot's SignatureAdded event")

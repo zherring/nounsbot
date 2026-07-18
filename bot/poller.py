@@ -92,6 +92,12 @@ def update_sponsorship_status(cand: dict, target: dict | None, head: int, signer
         return False, f"target prop {proposal_id} was not found"
     if not update_candidate_actionable(target, head):
         return False, f"prop {proposal_id}'s update window has closed"
+    target_proposer = str((target.get("proposer") or {}).get("id") or "").lower()
+    if str(cand.get("proposer") or "").lower() != target_proposer:
+        return False, (
+            f"posted by someone other than prop {proposal_id}'s proposer — "
+            "its signature could never be consumed"
+        )
     original_signers = {s["id"].lower() for s in target.get("signers") or []}
     if not signer or signer.lower() not in original_signers:
         return False, f"only prop {proposal_id}'s original signer(s) can re-sign an update"
@@ -313,12 +319,17 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
         if cached:
             notified_hash = prior["vote_open_notified_hash"] if prior else None
             if outcome == "VOTING" and notified_hash != chash:
-                card = "🟢 VOTING OPEN —\n" + verdict_card(
-                    prop, outcome, verdict_from_row(cached), target, head
-                )
-                print("\n" + card + "\n")
-                if telegram.send_message(card):
+                cast_row = db.get_cast(conn, pid)
+                if cast_row and cast_row["state"] in {"cast", "missed", "skipped"}:
+                    # nothing actionable to announce — the vote is already spent
                     db.mark_vote_open_notified(conn, pid, chash)
+                else:
+                    card = "🟢 VOTING OPEN —\n" + verdict_card(
+                        prop, outcome, verdict_from_row(cached), target, head
+                    )
+                    print("\n" + card + "\n")
+                    if telegram.send_message(card):
+                        db.mark_vote_open_notified(conn, pid, chash)
             continue
         cast_row = db.get_cast(conn, pid)
         if cast_row and cast_row["state"] == "cast" and not edited:
@@ -549,16 +560,22 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             )
             if not can_sponsor:
                 return f"candidate c{row['num']} cannot be sponsored: {sponsor_note}"
-        result = sponsor_candidate(cand, reason + SIGNOFF, target_prop=target)
-        db.upsert_candidate(
-            conn,
-            row["cand_id"],
-            sponsor_state="sponsored",
-            sig_tx=result.tx_hash,
-            sig_bytes=result.signature,
-            sig_expiration=result.expiration,
-            signed_content_hash=row["content_hash"],
-            revoke_tx=None,
+        def record_signature(sent):
+            # Runs right after broadcast, before the receipt wait: a mined-but-
+            # timed-out tx must never leave a live signature the DB can't revoke.
+            db.upsert_candidate(
+                conn,
+                row["cand_id"],
+                sponsor_state="sponsored",
+                sig_tx=sent.tx_hash,
+                sig_bytes=sent.signature,
+                sig_expiration=sent.expiration,
+                signed_content_hash=row["content_hash"],
+                revoke_tx=None,
+            )
+
+        result = sponsor_candidate(
+            cand, reason + SIGNOFF, target_prop=target, on_sent=record_signature
         )
         return (f"🌱 sponsored candidate c{row['num']} with our delegated weight\n"
                 f"tx: https://etherscan.io/tx/0x{result.tx_hash.removeprefix('0x')}\n"
@@ -734,6 +751,21 @@ def check_schedule(conn, head: int) -> None:
         end = int(prop["endBlock"])
         objection_end = int(prop.get("objectionPeriodEndBlock") or 0)
         deadline = objection_end if row["vote"] == "AGAINST" and objection_end > end else end
+        if head > deadline and row["vote"] == "AGAINST" and objection_end <= end:
+            # The cached raw is up to one ingest interval stale — a last-minute
+            # flip can open an objection window we haven't seen yet. Re-fetch
+            # before declaring a terminal miss.
+            try:
+                fresh = subgraph.fetch_proposals_by_ids([pid])
+            except Exception:
+                fresh = []
+            if fresh:
+                prop = fresh[0]
+                db.upsert_proposal(conn, prop, subgraph.content_hash(prop),
+                                   subgraph.derive_outcome(prop, head))
+                objection_end = int(prop.get("objectionPeriodEndBlock") or 0)
+                if objection_end > end:
+                    deadline = objection_end
         if head > deadline:
             db.upsert_cast(conn, pid, state="missed")
             telegram.send_message(

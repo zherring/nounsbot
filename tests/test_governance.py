@@ -177,6 +177,8 @@ class CandidateDedupeTests(unittest.TestCase):
         self.assertIn("Onchain actions unchanged", context)
         self.assertLessEqual(len(context), 6000)
 
+    UPDATE_LOGICAL_ID = "proposal-update:984:0x0000000000000000000000000000000000000001"
+
     def test_duplicate_backfill_is_idempotent(self):
         conn = memory_db()
         newest = candidate("new")
@@ -191,23 +193,82 @@ class CandidateDedupeTests(unittest.TestCase):
         db.migrate(conn)
         db.migrate(conn)
         rows = conn.execute(
-            "SELECT num, superseded FROM candidates WHERE logical_id='proposal-update:984' "
-            "ORDER BY num"
+            "SELECT num, superseded FROM candidates WHERE logical_id=? ORDER BY num",
+            (self.UPDATE_LOGICAL_ID,),
         ).fetchall()
         self.assertEqual([row["superseded"] for row in rows], [0, 1])
         row = db.upsert_candidate(
             conn,
             old["id"],
-            logical_id="proposal-update:984",
+            logical_id=self.UPDATE_LOGICAL_ID,
             raw=json.dumps(old),
         )
         self.assertEqual(row["cand_id"], old["id"])
         self.assertEqual(
             conn.execute(
-                "SELECT COUNT(*) c FROM candidates WHERE logical_id='proposal-update:984' "
-                "AND superseded=0"
+                "SELECT COUNT(*) c FROM candidates WHERE logical_id=? AND superseded=0",
+                (self.UPDATE_LOGICAL_ID,),
             ).fetchone()["c"],
             1,
+        )
+
+    def test_third_party_update_candidate_gets_its_own_identity(self):
+        mine = candidate("mine")
+        foreign = candidate("shadow")
+        foreign["proposer"] = "0x000000000000000000000000000000000000dead"
+        foreign["id"] = f"{foreign['proposer']}-shadow"
+        foreign["lastUpdatedTimestamp"] = "99"  # newer activity must not shadow ours
+        self.assertNotEqual(
+            subgraph.candidate_logical_id(mine), subgraph.candidate_logical_id(foreign)
+        )
+        with patch.object(
+            subgraph, "query", return_value={"proposalCandidates": [foreign, mine]}
+        ):
+            result = subgraph.fetch_candidates(first=10)
+        self.assertEqual([c["slug"] for c in result], ["shadow", "mine"])
+
+    def test_migration_never_supersedes_a_sponsored_row(self):
+        conn = memory_db()
+        sponsored = candidate("sponsored-slug")
+        sponsored["lastUpdatedTimestamp"] = "1"
+        repost = candidate("newer-repost")
+        repost["lastUpdatedTimestamp"] = "2"
+        conn.execute(
+            "INSERT INTO candidates (cand_id, raw, sponsor_state, sig_tx, updated_at) "
+            "VALUES (?, ?, 'sponsored', '0xsigtx', '')",
+            (sponsored["id"], json.dumps(sponsored)),
+        )
+        conn.execute(
+            "INSERT INTO candidates (cand_id, raw, updated_at) VALUES (?, ?, '')",
+            (repost["id"], json.dumps(repost)),
+        )
+        conn.commit()
+        db.migrate(conn)
+        active = db.get_candidate_by_logical_id(conn, self.UPDATE_LOGICAL_ID)
+        self.assertEqual(active["cand_id"], sponsored["id"])
+        self.assertEqual(active["sponsor_state"], "sponsored")
+
+    def test_cand_id_upsert_does_not_resurrect_superseded_row(self):
+        conn = memory_db()
+        newest = candidate("new")
+        newest["lastUpdatedTimestamp"] = "2"
+        old = candidate("old")
+        for cand in (newest, old):
+            conn.execute(
+                "INSERT INTO candidates (cand_id, raw, updated_at) VALUES (?, ?, '')",
+                (cand["id"], json.dumps(cand)),
+            )
+        conn.commit()
+        db.migrate(conn)
+        # bookkeeping write on the superseded row (e.g. /revoke recording a tx)
+        db.upsert_candidate(conn, old["id"], sponsor_state="revoked", revoke_tx="0xrevoked")
+        rows = conn.execute(
+            "SELECT cand_id, superseded FROM candidates WHERE logical_id=? ORDER BY num",
+            (self.UPDATE_LOGICAL_ID,),
+        ).fetchall()
+        self.assertEqual([r["superseded"] for r in rows], [0, 1])
+        self.assertEqual(
+            db.get_candidate(conn, old["id"])["sponsor_state"], "revoked"
         )
 
     def test_fetch_collapses_update_slugs_before_limit(self):
@@ -402,6 +463,28 @@ class UpdateSignatureTests(unittest.TestCase):
 
     def test_governor_abi_exposes_signature_cancellation(self):
         self.assertIn("cancelSig", {entry.get("name") for entry in chain.GOVERNOR_ABI})
+
+    def test_update_typehash_pinned_to_governor_constant(self):
+        # keccak256 of the exact NounsDAOProposals UpdateProposal typehash string —
+        # pins the constant against accidental edits to the type string.
+        self.assertEqual(
+            chain.UPDATE_PROPOSAL_TYPEHASH.hex().removeprefix("0x"),
+            "e5a9e6d2702042f3612beac0f605312204baddec2d19d1338da7e37e6c67d6ee",
+        )
+
+    def test_update_sponsorship_rejects_foreign_proposer(self):
+        from unittest.mock import patch as env_patch
+
+        from bot import executor
+
+        foreign = candidate("shadow")
+        foreign["proposer"] = "0x000000000000000000000000000000000000dead"
+        target = proposal()  # proposer is 0x...01, state check never reached
+        with env_patch.dict(
+            "os.environ", {"BOT_PRIVATE_KEY": "0x" + "11" * 32}
+        ), self.assertRaises(RuntimeError) as ctx:
+            executor.sponsor_candidate(foreign, "reason", target_prop=target)
+        self.assertIn("original proposer", str(ctx.exception))
 
 
 if __name__ == "__main__":

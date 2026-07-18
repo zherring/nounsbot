@@ -212,7 +212,7 @@ the record's first "🗳 cast" row.
 1. Calldata ABI decoding in the enricher — removes the "couldn't verify vs verified
    mismatch" ambiguity (the 957 flip-flop).
 2. Missed-cast dead-man alarm (healthchecks.io ping per tick).
-3. ~~Candidate lane~~ — SHIPPED 2026-07-08: candidates evaluated like props, 🌿 cards, /sponsor signs the EIP-712 sponsorship (digest replica validated byte-exact against 3 real onchain signatures); never automatic. Updated cards include a short current TL;DR and change summary. Old signatures remain tied to old content and can be invalidated with `/revoke`. Update candidates are grouped by target proposal and use the UpdateProposal typed-data digest; the contract only permits the proposal's original signers to re-sign them.
+3. ~~Candidate lane~~ — SHIPPED 2026-07-08: candidates evaluated like props, 🌿 cards, /sponsor signs the EIP-712 sponsorship (digest replica validated byte-exact against 3 real onchain signatures); never automatic. Updated cards include a short current TL;DR and change summary. Old signatures remain tied to old content and can be invalidated with `/revoke`. Update candidates are grouped by (target proposal, proposer) — third-party candidates targeting the same proposal keep their own identity — and use the UpdateProposal typed-data digest; the contract only permits the proposal's original signers to re-sign them, and the bot refuses to sign updates not posted by the original proposer.
 4. Tripwires: late-window vote-dump alerts, defeated→successful flip alerts,
    objection-window watch.
 5. Client ID registration (client incentives).

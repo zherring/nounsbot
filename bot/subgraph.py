@@ -192,10 +192,15 @@ CANDIDATE_FIELDS = """
 
 
 def candidate_logical_id(cand: dict) -> str:
-    """Stable identity across duplicate slugs for one onchain proposal update."""
+    """Stable identity across duplicate slugs for one onchain proposal update.
+    Scoped to the proposer — createProposalCandidate is permissionless, so a
+    third party targeting the same proposal must never collapse onto (or
+    shadow) the genuine proposer's update candidate."""
     content = (cand.get("latestVersion") or {}).get("content") or {}
     proposal_id = int(content.get("proposalIdToUpdate") or 0)
-    return f"proposal-update:{proposal_id}" if proposal_id else cand["id"]
+    if proposal_id:
+        return f"proposal-update:{proposal_id}:{str(cand['proposer']).lower()}"
+    return cand["id"]
 
 
 def fetch_candidates(first: int = 10) -> list[dict]:

@@ -229,8 +229,10 @@ def migrate(conn) -> None:
     # candidates are often reposted under fresh slugs, so collapse those rows
     # onto the row with the newest subgraph activity while retaining old rows.
     conn.execute("DROP INDEX IF EXISTS candidates_active_logical_id")
-    keepers: dict[str, tuple[tuple[int, int], int]] = {}
-    for row in conn.execute("SELECT num, cand_id, raw FROM candidates"):
+    keepers: dict[str, tuple[tuple[int, int, int], int]] = {}
+    for row in conn.execute(
+        "SELECT num, cand_id, raw, sponsor_state, sig_tx, sig_bytes, signal_tx FROM candidates"
+    ):
         logical_id = row["cand_id"]
         activity = 0
         try:
@@ -239,14 +241,22 @@ def migrate(conn) -> None:
             proposal_id = int(content.get("proposalIdToUpdate") or 0)
             activity = int(cand.get("lastUpdatedTimestamp") or 0)
             if proposal_id:
-                logical_id = f"proposal-update:{proposal_id}"
+                # proposer-scoped: a third party's candidate targeting the same
+                # proposal must not collapse onto the genuine proposer's update
+                logical_id = f"proposal-update:{proposal_id}:{str(cand.get('proposer') or '').lower()}"
         except (TypeError, ValueError, json.JSONDecodeError):
             pass
         conn.execute(
             "UPDATE candidates SET logical_id=?, superseded=0 WHERE num=?",
             (logical_id, row["num"]),
         )
-        rank = (activity, row["num"])
+        # A row that acted onchain holds a live signature or published feedback —
+        # it must stay the visible/revocable row even if a newer repost exists.
+        acted = int(
+            row["sponsor_state"] in ("sponsored", "stale")
+            or bool(row["sig_tx"] or row["sig_bytes"] or row["signal_tx"])
+        )
+        rank = (acted, activity, row["num"])
         if logical_id not in keepers or rank > keepers[logical_id][0]:
             keepers[logical_id] = (rank, row["num"])
     for logical_id, (_, keep_num) in keepers.items():
@@ -258,6 +268,14 @@ def migrate(conn) -> None:
         """CREATE UNIQUE INDEX IF NOT EXISTS candidates_active_logical_id
            ON candidates(logical_id) WHERE superseded=0"""
     )
+    # One-time: props already in VOTING at upgrade time were announced by the
+    # pre-notification code — don't re-announce every open prop on the first tick.
+    if not kv_get(conn, "vote_open_notified_backfill"):
+        conn.execute(
+            "UPDATE proposals SET vote_open_notified_hash=content_hash "
+            "WHERE outcome='VOTING' AND vote_open_notified_hash IS NULL"
+        )
+        kv_set(conn, "vote_open_notified_backfill", "1")
     conn.commit()
 
 
@@ -289,8 +307,11 @@ def upsert_candidate(conn, cand_id: str, logical_id: str | None = None, **fields
             )
         fields["cand_id"] = cand_id
         if logical_id:
+            # Only the logical_id-keyed path may (re)activate a row — a plain
+            # cand_id update (revoke/signal bookkeeping) must not resurrect a
+            # superseded row and collide with the active one on the unique index.
             fields["logical_id"] = logical_id
-        fields["superseded"] = 0
+            fields["superseded"] = 0
         sets = ", ".join(f"{k}=?" for k in fields)
         conn.execute(f"UPDATE candidates SET {sets} WHERE num=?", (*fields.values(), existing["num"]))
     else:
