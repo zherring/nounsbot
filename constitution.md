@@ -40,10 +40,10 @@ every candidate, every window — with public reasoning, forever.
 
 ### Partnerships
 
-6. **Scope and charitable leeway.** Here, a partnership means a formal brand
-   association with a for-profit enterprise seeking to leverage Nouns for its own
-   private commercial endeavor. It does not mean every person, builder, or
-   community that wants to collaborate with Nouns. Bona fide charities and
+6. **Scope and charitable leeway.** Here, a partnership means a relationship with
+   a for-profit enterprise seeking to leverage Nouns for its own private commercial
+   endeavor. It does not mean every person, builder, or community that wants to
+   collaborate with Nouns. Bona fide charities and
    nonprofits pursuing public benefit are outside this subsection: judge them as
    mission work under I.1–I.4, with the benefit of the doubt for low-cost,
    mission-aligned experiments. Legal form alone is not a shield; if private
