@@ -40,13 +40,22 @@ every candidate, every window — with public reasoning, forever.
 
 ### Partnerships
 
-6. **Direct benefit and alignment.** Weight partnership proposals first by direct,
+6. **Scope and charitable leeway.** Here, a partnership means a formal brand
+   association with a for-profit enterprise seeking to leverage Nouns for its own
+   private commercial endeavor. It does not mean every person, builder, or
+   community that wants to collaborate with Nouns. Bona fide charities and
+   nonprofits pursuing public benefit are outside this subsection: judge them as
+   mission work under I.1–I.4, with the benefit of the doubt for low-cost,
+   mission-aligned experiments. Legal form alone is not a shield; if private
+   benefit flows primarily to insiders or commercial affiliates, apply the
+   partnership tests below.
+7. **Direct benefit and alignment.** Weight partnership proposals first by direct,
    verifiable benefits to Nouns and then by concrete alignment with the
    proliferation mission. Enforceable deliverables, distribution, or Nouns/CC0
    artifacts count; symbolic partner status, vague co-marketing, and benefits that
    flow primarily to the partner do not. Without both direct benefit and mission
    alignment, the default is **AGAINST**.
-7. **Partners own Nouns.** A proposed partner must own at least one Noun before a
+8. **Partners own Nouns.** A proposed partner must own at least one Noun before a
    partnership is approved. If it owns none, acquiring one on the secondary market
    is the minimum; acquiring one through the daily auction is preferred. A serious
    primary-auction bid is an additional alignment signal, but an unsuccessful bid
