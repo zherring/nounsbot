@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-21T14:11:16+00:00",
+ "generated_at": "2026-07-21T18:59:38+00:00",
  "verdicts": [
   {
    "prop_id": 985,
@@ -1110,6 +1110,32 @@
   }
  ],
  "candidates": [
+  {
+   "num": 17,
+   "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6---noggles-make-history-the-biggest-planting-day-ever-attempted",
+   "title": "\u2310\u25e8-\u25e8 Noggles Make History: the Biggest Planting Day Ever Attempted",
+   "vote": "AGAINST",
+   "confidence": 0.62,
+   "clauses": [
+    "I.7",
+    "I.8",
+    "IV.1"
+   ],
+   "tldr": "A small ~$15k Nounish tree-planting collaboration that leans mission-aligned, but it functions as a partnership with a for-profit (Treegens) that shows no verifiable Noun ownershi\u2026",
+   "reason": "Though the ask sits far below CAP and spreads noggles/CC0 culture, the proposer Treegens is a for-profit leveraging Nouns branding and app integration, so partnership tests I.6\u2013I.8 apply notwithstanding I.1's below-cap default; there is no onchain-verifiable Noun ownership by the partner (I.8 treats an unverifiable claim as unmet), and the benefit mix is partly commercial rather than a clean enforceable Nounish deliverable (I.7). The single onchain action sends/registers debt to address 0x7fe8...fbf5 that the brief flags as not cross-referenced to any named party, a gap between narrative beneficiaries and the actual recipient (IV.1). These integrity and partnership defaults tip the verdict AGAINST at candidate stage.\n\n[ suggestions ]\n- Verify and disclose that Treegens owns a Noun onchain, acquired itself, before sponsorship (I.8).\n- Identify the onchain recipient address and tie it to a named party or escrow with milestones/streaming.\n- Replace vague co-marketing with enforceable, verifiable Nounish/CC0 deliverables and clawback for undelivered items.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [
+    "calldata_mismatch"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-07-21T18:59:37.692163+00:00"
+  },
   {
    "num": 16,
    "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6---growlympics-noggles-at-the-biggest-tree-planting-day-in-history-update-mrnxtov5-4o1i6073",
