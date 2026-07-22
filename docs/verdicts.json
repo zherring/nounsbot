@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-21T18:59:38+00:00",
+ "generated_at": "2026-07-22T09:07:01+00:00",
  "verdicts": [
   {
    "prop_id": 985,
@@ -17,7 +17,7 @@
     "calldata_mismatch"
    ],
    "constitution_rev": "a96bc32",
-   "outcome": "VOTING",
+   "outcome": "SUCCEEDED_NOT_QUEUED",
    "status": "cast",
    "tx_hash": "2710bdedfd8bfed0011b7bc374ca57fdcfb489751ef4ac8983aa8258edf3cb07",
    "overridden": false,
