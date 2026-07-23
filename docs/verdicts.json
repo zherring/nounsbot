@@ -1,6 +1,28 @@
 {
- "generated_at": "2026-07-22T12:37:21+00:00",
+ "generated_at": "2026-07-23T16:41:20+00:00",
  "verdicts": [
+  {
+   "prop_id": 986,
+   "title": "\u2310\u25e8-\u25e8 Noggles Make History: the Biggest Planting Day Ever Attempted",
+   "vote": "FOR",
+   "confidence": 0.58,
+   "clauses": [
+    "I.1",
+    "I.3",
+    "I.6",
+    "I.7"
+   ],
+   "tldr": "A small ~15k USDC ask to put noggles branding on a globally-covered billion-tree public-benefit event is mission-aligned proliferation that earns the benefit of the doubt, but the\u2026",
+   "reason": "The event is a bona-fide public-benefit tree-planting initiative (Green Legacy) which I.6 places outside the strict partnership subsection, so I judge it as mission spending: the ask is far below the 100 ETH cap and funds concrete Nouns/CC0 artifacts (trophies, branded content, app integration, a Nounish News mint that returns proceeds to the treasury), qualifying as low-cost proliferation under I.1 and I.3. However, the category is genuinely borderline because Treegens is a for-profit vehicle whose app also benefits \u2014 if treated as a partnership under I.7\u2013I.8, the unverified Noun ownership would be a hard gate against approval. Media-reach claims (BBC/CNBC) and the assertion that no other funder covers these deliverables are unverifiable from the text, and the sendOrRegisterDebt recipient's control is not explained relative to the budget, so confidence is limited and human review is required.\n\n[ suggestions ]\n- Verify and disclose onchain Noun ownership by Treegens/Jimi Cohen to satisfy I.8 if judged a partnership\n- Clarify who controls the sendOrRegisterDebt recipient address and tie disbursement to itemized deliverables\n- Add milestone- or streaming-based release contingent on the delivered Nounish elements and follow-up reports",
+   "flags": [],
+   "constitution_rev": "b563d1a",
+   "outcome": "UPDATABLE",
+   "status": "scheduled",
+   "tx_hash": null,
+   "overridden": false,
+   "evaluated_at": "2026-07-23T16:41:19.135418+00:00",
+   "history": []
+  },
   {
    "prop_id": 985,
    "title": "Nudge \u00d7 Nouns",
