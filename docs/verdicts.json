@@ -1,25 +1,27 @@
 {
- "generated_at": "2026-07-30T20:24:06+00:00",
+ "generated_at": "2026-07-30T20:53:08+00:00",
  "verdicts": [
   {
    "prop_id": 987,
    "title": "WALL",
    "vote": "FOR",
-   "confidence": 0.76,
+   "confidence": 0.72,
    "clauses": [
     "I.1",
     "I.3",
-    "IV.1"
+    "V.1"
    ],
-   "tldr": "A zero-cost CC0 art contribution adding a single new glasses trait to the on-chain descriptor is core proliferation of Nouns culture, so it earns a default FOR.",
-   "reason": "The action adds one new CC0-licensed glasses trait to the NounsDescriptor with no ETH ask, which is precisely the art/CC0-commons proliferation Article I.1 defaults FOR and the kind of cheap, low-risk contribution Article I.3 favors. It touches the art library, not treasury, auction, entity, or governance mechanics, and notably does not call lockParts, so it is not structural under Article II. The narrative framing and off-standard artwork host are minor provenance flags rather than a calldata/prose conflict; the stated addGlasses call matches the described action under IV.1, though the exact bytes and external asset link warrant a light human check.\n\n[ suggestions ]\n- Host the artwork spec/RLE source on a standard Nouns/GitHub asset host so provenance is independently verifiable.",
-   "flags": [],
+   "tldr": "A zero-cost CC0 contribution of a single new glasses trait proliferates Nouns art and adds no treasury, auction, or governance mechanics, so it defaults FOR.",
+   "reason": "The only onchain action is addGlasses adding one CC0-licensed 'Wall' glasses trait to the descriptor with no ETH requested and no lock functions called, which is mission-aligned art proliferation under Article I.1 and a cheap, low-risk contribution under I.3. Despite the condenser's 'structural' label, this touches none of Article II's categories (treasury, auction, entity, governance) \u2014 it enriches the art commons the Preamble exists to spread. The extended allegorical 'Small Fable' appears crafted to steer evaluative sentiment beyond the technical facts, and the CC0 signature is truncated/unverifiable, so I flag it for human confirmation of the calldata payload and signature.\n\n[ suggestions ]\n- Provide a complete, verifiable CC0 signature block for the Nouns Art Contribution Agreement\n- Trim the persuasive allegorical narrative so evaluation rests on the technical trait facts",
+   "flags": [
+    "injection_suspicion"
+   ],
    "constitution_rev": "b563d1a",
    "outcome": "UPDATABLE",
    "status": "scheduled",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-30T20:24:05.293584+00:00",
+   "evaluated_at": "2026-07-30T20:53:07.392676+00:00",
    "history": [
     {
      "vote": "FOR",
@@ -32,6 +34,19 @@
      "reason": "The proposal adds a single new glasses trait via addGlasses at no ETH cost, contributed under CC0 with a signed art agreement \u2014 squarely mission spending that spreads Nouns art (I.1). The calldata modifies the descriptor's trait art, not treasury, auction, entity, or governance mechanics, and does not call lockParts, so it is not structural under Article II. The prose claims match a single addGlasses action, satisfying IV.1; the external artwork-hosting URL is a permanence concern but the payload is verifiable onchain, and the embedded allegorical narrative is context, not actionable AI instruction.",
      "constitution_rev": "b563d1a",
      "evaluated_at": "2026-07-30T19:57:17.156296+00:00"
+    },
+    {
+     "vote": "FOR",
+     "confidence": 0.76,
+     "clauses": [
+      "I.1",
+      "I.3",
+      "IV.1"
+     ],
+     "tldr": "A zero-cost CC0 art contribution adding a single new glasses trait to the on-chain descriptor is core proliferation of Nouns culture, so it earns a default FOR.",
+     "reason": "The action adds one new CC0-licensed glasses trait to the NounsDescriptor with no ETH ask, which is precisely the art/CC0-commons proliferation Article I.1 defaults FOR and the kind of cheap, low-risk contribution Article I.3 favors. It touches the art library, not treasury, auction, entity, or governance mechanics, and notably does not call lockParts, so it is not structural under Article II. The narrative framing and off-standard artwork host are minor provenance flags rather than a calldata/prose conflict; the stated addGlasses call matches the described action under IV.1, though the exact bytes and external asset link warrant a light human check.",
+     "constitution_rev": "b563d1a",
+     "evaluated_at": "2026-07-30T20:24:05.293584+00:00"
     }
    ]
   },
