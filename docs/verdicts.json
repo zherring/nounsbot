@@ -1,25 +1,39 @@
 {
- "generated_at": "2026-07-30T19:57:18+00:00",
+ "generated_at": "2026-07-30T20:24:06+00:00",
  "verdicts": [
   {
    "prop_id": 987,
    "title": "WALL",
    "vote": "FOR",
-   "confidence": 0.82,
+   "confidence": 0.76,
    "clauses": [
     "I.1",
+    "I.3",
     "IV.1"
    ],
-   "tldr": "A zero-cost CC0 art contribution adding one new glasses trait to the descriptor proliferates Nouns culture and defaults FOR under Article I.1.",
-   "reason": "The proposal adds a single new glasses trait via addGlasses at no ETH cost, contributed under CC0 with a signed art agreement \u2014 squarely mission spending that spreads Nouns art (I.1). The calldata modifies the descriptor's trait art, not treasury, auction, entity, or governance mechanics, and does not call lockParts, so it is not structural under Article II. The prose claims match a single addGlasses action, satisfying IV.1; the external artwork-hosting URL is a permanence concern but the payload is verifiable onchain, and the embedded allegorical narrative is context, not actionable AI instruction.\n\n[ suggestions ]\n- Host the source artwork on IPFS/Arweave rather than a third-party domain for permanence and verifiability.",
+   "tldr": "A zero-cost CC0 art contribution adding a single new glasses trait to the on-chain descriptor is core proliferation of Nouns culture, so it earns a default FOR.",
+   "reason": "The action adds one new CC0-licensed glasses trait to the NounsDescriptor with no ETH ask, which is precisely the art/CC0-commons proliferation Article I.1 defaults FOR and the kind of cheap, low-risk contribution Article I.3 favors. It touches the art library, not treasury, auction, entity, or governance mechanics, and notably does not call lockParts, so it is not structural under Article II. The narrative framing and off-standard artwork host are minor provenance flags rather than a calldata/prose conflict; the stated addGlasses call matches the described action under IV.1, though the exact bytes and external asset link warrant a light human check.\n\n[ suggestions ]\n- Host the artwork spec/RLE source on a standard Nouns/GitHub asset host so provenance is independently verifiable.",
    "flags": [],
    "constitution_rev": "b563d1a",
    "outcome": "UPDATABLE",
    "status": "scheduled",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-30T19:57:17.156296+00:00",
-   "history": []
+   "evaluated_at": "2026-07-30T20:24:05.293584+00:00",
+   "history": [
+    {
+     "vote": "FOR",
+     "confidence": 0.82,
+     "clauses": [
+      "I.1",
+      "IV.1"
+     ],
+     "tldr": "A zero-cost CC0 art contribution adding one new glasses trait to the descriptor proliferates Nouns culture and defaults FOR under Article I.1.",
+     "reason": "The proposal adds a single new glasses trait via addGlasses at no ETH cost, contributed under CC0 with a signed art agreement \u2014 squarely mission spending that spreads Nouns art (I.1). The calldata modifies the descriptor's trait art, not treasury, auction, entity, or governance mechanics, and does not call lockParts, so it is not structural under Article II. The prose claims match a single addGlasses action, satisfying IV.1; the external artwork-hosting URL is a permanence concern but the payload is verifiable onchain, and the embedded allegorical narrative is context, not actionable AI instruction.",
+     "constitution_rev": "b563d1a",
+     "evaluated_at": "2026-07-30T19:57:17.156296+00:00"
+    }
+   ]
   },
   {
    "prop_id": 986,
