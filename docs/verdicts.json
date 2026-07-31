@@ -1,27 +1,25 @@
 {
- "generated_at": "2026-07-30T20:53:08+00:00",
+ "generated_at": "2026-07-31T19:59:06+00:00",
  "verdicts": [
   {
    "prop_id": 987,
    "title": "WALL",
    "vote": "FOR",
-   "confidence": 0.72,
+   "confidence": 0.76,
    "clauses": [
     "I.1",
     "I.3",
-    "V.1"
+    "IV.1"
    ],
-   "tldr": "A zero-cost CC0 contribution of a single new glasses trait proliferates Nouns art and adds no treasury, auction, or governance mechanics, so it defaults FOR.",
-   "reason": "The only onchain action is addGlasses adding one CC0-licensed 'Wall' glasses trait to the descriptor with no ETH requested and no lock functions called, which is mission-aligned art proliferation under Article I.1 and a cheap, low-risk contribution under I.3. Despite the condenser's 'structural' label, this touches none of Article II's categories (treasury, auction, entity, governance) \u2014 it enriches the art commons the Preamble exists to spread. The extended allegorical 'Small Fable' appears crafted to steer evaluative sentiment beyond the technical facts, and the CC0 signature is truncated/unverifiable, so I flag it for human confirmation of the calldata payload and signature.\n\n[ suggestions ]\n- Provide a complete, verifiable CC0 signature block for the Nouns Art Contribution Agreement\n- Trim the persuasive allegorical narrative so evaluation rests on the technical trait facts",
-   "flags": [
-    "injection_suspicion"
-   ],
+   "tldr": "A zero-cost CC0 art addition of a single glasses trait to the Nouns descriptor is core proliferation and defaults FOR.",
+   "reason": "The onchain action is a single addGlasses call adding a CC0-dedicated 'Wall' glasses trait, with no ETH ask, no lockParts, and no treasury, auction, entity, or governance-parameter change \u2014 so it is mission spending under Article I.1, not structural under Article II. Adding CC0 artwork to the shared Nouns art commons directly serves proliferation and, as a cheap/low-risk addition, gets the benefit of the doubt under I.3. I cannot independently verify the DEFLATE payload decodes to a valid non-destructive image, so if the calldata does not match the claimed harmless trait addition, Article IV.1 flips this to AGAINST.\n\n[ suggestions ]\n- Provide an independent decode of the calldata payload confirming it adds only the described 32x32 image and touches no lock functions.",
+   "flags": [],
    "constitution_rev": "b563d1a",
    "outcome": "UPDATABLE",
    "status": "scheduled",
    "tx_hash": null,
    "overridden": false,
-   "evaluated_at": "2026-07-30T20:53:07.392676+00:00",
+   "evaluated_at": "2026-07-31T19:59:04.605700+00:00",
    "history": [
     {
      "vote": "FOR",
@@ -47,6 +45,19 @@
      "reason": "The action adds one new CC0-licensed glasses trait to the NounsDescriptor with no ETH ask, which is precisely the art/CC0-commons proliferation Article I.1 defaults FOR and the kind of cheap, low-risk contribution Article I.3 favors. It touches the art library, not treasury, auction, entity, or governance mechanics, and notably does not call lockParts, so it is not structural under Article II. The narrative framing and off-standard artwork host are minor provenance flags rather than a calldata/prose conflict; the stated addGlasses call matches the described action under IV.1, though the exact bytes and external asset link warrant a light human check.",
      "constitution_rev": "b563d1a",
      "evaluated_at": "2026-07-30T20:24:05.293584+00:00"
+    },
+    {
+     "vote": "FOR",
+     "confidence": 0.72,
+     "clauses": [
+      "I.1",
+      "I.3",
+      "V.1"
+     ],
+     "tldr": "A zero-cost CC0 contribution of a single new glasses trait proliferates Nouns art and adds no treasury, auction, or governance mechanics, so it defaults FOR.",
+     "reason": "The only onchain action is addGlasses adding one CC0-licensed 'Wall' glasses trait to the descriptor with no ETH requested and no lock functions called, which is mission-aligned art proliferation under Article I.1 and a cheap, low-risk contribution under I.3. Despite the condenser's 'structural' label, this touches none of Article II's categories (treasury, auction, entity, governance) \u2014 it enriches the art commons the Preamble exists to spread. The extended allegorical 'Small Fable' appears crafted to steer evaluative sentiment beyond the technical facts, and the CC0 signature is truncated/unverifiable, so I flag it for human confirmation of the calldata payload and signature.",
+     "constitution_rev": "b563d1a",
+     "evaluated_at": "2026-07-30T20:53:07.392676+00:00"
     }
    ]
   },
