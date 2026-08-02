@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-02T08:08:17+00:00",
+ "generated_at": "2026-08-02T20:10:28+00:00",
  "verdicts": [
   {
    "prop_id": 987,
@@ -15,7 +15,7 @@
    "reason": "The onchain action is a single addGlasses call adding a CC0-dedicated 'Wall' glasses trait, with no ETH ask, no lockParts, and no treasury, auction, entity, or governance-parameter change \u2014 so it is mission spending under Article I.1, not structural under Article II. Adding CC0 artwork to the shared Nouns art commons directly serves proliferation and, as a cheap/low-risk addition, gets the benefit of the doubt under I.3. I cannot independently verify the DEFLATE payload decodes to a valid non-destructive image, so if the calldata does not match the claimed harmless trait addition, Article IV.1 flips this to AGAINST.\n\n[ suggestions ]\n- Provide an independent decode of the calldata payload confirming it adds only the described 32x32 image and touches no lock functions.",
    "flags": [],
    "constitution_rev": "b563d1a",
-   "outcome": "PENDING",
+   "outcome": "VOTING",
    "status": "scheduled",
    "tx_hash": null,
    "overridden": false,
