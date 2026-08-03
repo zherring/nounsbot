@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-02T20:10:28+00:00",
+ "generated_at": "2026-08-03T12:06:16+00:00",
  "verdicts": [
   {
    "prop_id": 987,
@@ -1192,6 +1192,32 @@
   }
  ],
  "candidates": [
+  {
+   "num": 18,
+   "cand_id": "0x0081e6f9373c1ffb7d7fc702eb15ac805eb50389-nouns-scooter",
+   "title": "NOUNS Scooter",
+   "vote": "AGAINST",
+   "confidence": 0.82,
+   "clauses": [
+    "I.7",
+    "I.8",
+    "IV.3"
+   ],
+   "tldr": "A for-profit scooter business run by the proposer's own venture returns only a minority 20% profit share to Nouns, with no verified Noun ownership and benefit flowing mainly to th\u2026",
+   "reason": "This is a partnership under I.6: a for-profit enterprise (the proposer's own Noyo Gimbal View attraction) leveraging Nouns for private commercial gain, so it is judged under I.6\u2013I.8 notwithstanding the below-cap default. It fails I.7 because roughly 80% of profit, all employment, and brand upside accrue to the proposer while only an unenforceable 20% share and a promised-but-unsigned agreement return to Nouns \u2014 benefit flows primarily to the partner. It also fails I.8, with no verifiable onchain Noun ownership by the partner, and the recipient of the debt-registration call is the proposer's own address, raising a self-dealing concern under IV.3. The onchain action's ETH amount cannot be reconciled with the stated ~$35,967 ask from the truncated calldata, an additional integrity gap.\n\n[ suggestions ]\n- Acquire and verify onchain Noun ownership by the partner before seeking sponsorship (I.8).\n- Provide an enforceable, signed cooperation and profit-sharing agreement with independent oversight.\n- Disclose the exact ETH amount so calldata can be reconciled with the stated USD ask.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [
+    "calldata_mismatch"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-08-03T12:06:15.179272+00:00"
+  },
   {
    "num": 17,
    "cand_id": "0xfc9265a28f66cf4561d74a4e25d7bbd3f482b8e6---noggles-make-history-the-biggest-planting-day-ever-attempted",
