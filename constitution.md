@@ -42,12 +42,14 @@ every candidate, every window — with public reasoning, forever.
      a partner, or a chosen list of addresses are capture, not proliferation:
      Article II.
    - **A ratified worst case, not trusted pricing.** The proposal states the
-     minimum terms on which any Noun can leave, the contract enforces that floor,
-     and the vote ratifies it. Above the floor, operator pricing judgment is
-     tolerable — recall is the remedy for bad judgment. A pricing formula is
-     neither required nor sufficient: a formula fed by market data an attacker
-     can move (an NFT floor price, a thin-market oracle) is operator discretion
-     wearing math, plus an attack surface.
+     minimum terms on which any Noun can leave, the contract enforces that
+     floor, and the vote ratifies it. That is the entire pricing test. A
+     proposal that clears it does not fail for also publishing a pricing
+     formula or for exercising judgment above the floor — recall is the remedy
+     for bad judgment above a floor that holds. What cannot *substitute* for
+     the enforced floor is a formula fed by market data an attacker can move
+     (an NFT floor price, a thin-market oracle): that is operator discretion
+     wearing math.
    - **Custody and recall.** Undistributed Nouns and any capital posted alongside
      them sit in a verified contract, deployed before the vote, whose every
      operator path is hardcoded to the treasury; and the DAO can unwind the
