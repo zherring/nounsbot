@@ -81,3 +81,35 @@ def test_malformed_calldata_for_known_signature_renders_undecoded_without_raisin
     out = format_actions(prop)
     assert "UNDECODED" in out
     assert "agent could not decode" in out
+
+
+def test_known_selector_with_empty_signature_decodes_delegate():
+    # selector=0x5c19a95c is delegate(address) — full calldata (selector + args),
+    # empty signature, as it appears onchain for prop 982.
+    delegate_to = "0x000000000000000000000000000000000000dead"
+    calldata = "0x5c19a95c" + abi_encode(["address"], [delegate_to]).hex()
+    prop = {
+        "targets": ["0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03"],
+        "values": ["0"],
+        "signatures": [""],
+        "calldatas": [calldata],
+    }
+    out = format_actions(prop)
+    assert "UNDECODED" not in out
+    assert "delegate(" in out
+    assert delegate_to in out.lower()
+
+
+def test_unknown_selector_renders_undecoded_with_not_evidence_wording():
+    calldata = "0xdeadbeef" + "00" * 32
+    prop = {
+        "targets": ["0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03"],
+        "values": ["0"],
+        "signatures": [""],
+        "calldatas": [calldata],
+    }
+    out = format_actions(prop)
+    assert "UNDECODED" in out
+    assert "0xdeadbeef" in out
+    assert "NOT evidence" in out
+    assert "not treat it as a mismatch" in out.lower()

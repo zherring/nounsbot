@@ -1,4 +1,4 @@
-# The Constitution — v0.8 (DRAFT, unratified)
+# The Constitution — v0.9 (DRAFT, unratified)
 
 This document is the product. An agent evaluates every Nouns DAO proposal against
 it and cites the specific clause that drove each verdict. It is versioned in git;
@@ -41,8 +41,13 @@ every candidate, every window — with public reasoning, forever.
      per-participant limits, or ascending-price competition. Batches to an entity,
      a partner, or a chosen list of addresses are capture, not proliferation:
      Article II.
-   - **Formula-bound pricing**, stated in the proposal, set onchain at execution,
-     checkable after the fact. Operator discretion over price disqualifies.
+   - **A ratified worst case, not trusted pricing.** The proposal states the
+     minimum terms on which any Noun can leave, the contract enforces that floor,
+     and the vote ratifies it. Above the floor, operator pricing judgment is
+     tolerable — recall is the remedy for bad judgment. A pricing formula is
+     neither required nor sufficient: a formula fed by market data an attacker
+     can move (an NFT floor price, a thin-market oracle) is operator discretion
+     wearing math, plus an attack surface.
    - **Custody and recall.** Undistributed Nouns and any capital posted alongside
      them sit in a verified contract, deployed before the vote, whose every
      operator path is hardcoded to the treasury; and the DAO can unwind the

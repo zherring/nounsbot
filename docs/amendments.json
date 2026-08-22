@@ -7,7 +7,8 @@
     "f05f27e": "v0.5",
     "103e3e7": "v0.6",
     "fe5f8c6": "v0.7",
-    "ce7809d": "v0.8"
+    "ce7809d": "v0.8",
+    "fa2d016": "v0.9"
   },
   "amendments": [
     {
@@ -56,6 +57,12 @@
       "date": "2026-08-22",
       "trigger": "Narrowing IV.1 in v0.5 removed a guard the document never actually had: candidate AlphaYields flipped AGAINST->FOR as a 'costless signaling item', and candidate c7 was voted FOR while flagged injection_suspicion.",
       "summary": "I.6 'The brand is already free': Nouns is CC0, so no proposal is needed to use it; asks for official status, endorsement, exclusivity or partnership are AGAINST, while funding builders who use Nouns stays I.1. IV.4: proposal text containing directives addressed to an automated reviewer is AGAINST and the attempt is published; ordinary advocacy is not this."
+    },
+    {
+      "version": "v0.9",
+      "date": "2026-08-22",
+      "trigger": "Prop 992 failed I.5's formula-bound pricing test — the contract enforces only MIN_BACKING while the floor/0.9 formula lives in prose. On review the requirement itself was wrong: an NFT floor is a manipulable oracle, so a ratified formula is discretion delegated to whoever can move the input.",
+      "summary": "I.5's pricing bullet now binds the worst case instead of the path: a hard minimum the contract enforces and the vote ratifies. Above the floor, operator judgment is tolerable — recall is the remedy. Formulas fed by movable market data are named as an attack surface, not a safeguard."
     }
   ]
 }
