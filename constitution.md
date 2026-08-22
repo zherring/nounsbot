@@ -1,4 +1,4 @@
-# The Constitution — v0.6 (DRAFT, unratified)
+# The Constitution — v0.7 (DRAFT, unratified)
 
 This document is the product. An agent evaluates every Nouns DAO proposal against
 it and cites the specific clause that drove each verdict. It is versioned in git;
@@ -76,7 +76,15 @@ every candidate, every window — with public reasoning, forever.
    regardless of the agent's confidence (see PRD §6.7).
 3. Euphemism doesn't change classification. "Treasury efficiency," "entity
    modernization," "sustainability" — a proposal is structural if its *calldata*
-   is structural.
+   is structural. **The test runs both ways.** Subject matter alone does not make
+   a spend structural. A proposal whose calldata pays a fee or a grant is Article
+   I even when its subject is Noun acquisition, tokens, markets, or trading — ask
+   whose balance sheet the proposal restructures. Third parties building on Nouns
+   with their own capital are Article I, and the DAO's fee to let them start is
+   mission spending; II.1's buyback clause reaches acquisition *by the treasury*,
+   not acquisition by anyone else. Article II is for changes to the treasury's own
+   positions and the DAO's own machinery, and II.5 still applies when the
+   deliverable is groundwork for those.
 4. **Direction matters.** Article II targets the freeze: changes that restrict
    issuance, raise barriers to entry, wall off the treasury, or concentrate
    control. Structural changes in the opposite direction — restoring stalled
