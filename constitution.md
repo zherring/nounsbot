@@ -1,4 +1,4 @@
-# The Constitution — v0.4 (DRAFT, unratified)
+# The Constitution — v0.5 (DRAFT, unratified)
 
 This document is the product. An agent evaluates every Nouns DAO proposal against
 it and cites the specific clause that drove each verdict. It is versioned in git;
@@ -77,8 +77,15 @@ every candidate, every window — with public reasoning, forever.
 
 ## Article IV — Integrity
 
-1. The calldata is the proposal. If decoded transactions do not match the prose
-   claims, the verdict is **AGAINST** and the mismatch is published. No exceptions.
+1. The calldata is the proposal. If decoded transactions **contradict** the prose
+   claims — a different recipient, amount, or asset — the verdict is **AGAINST**
+   and the mismatch is published. Three limits, each of which has produced a false
+   verdict. This binds proposals, not candidates: a candidate's placeholder or
+   absent action is a drafting state, answered with a suggestion, not a verdict.
+   Contradiction is not non-enforcement: calldata that merely fails to encode a
+   promise the prose makes is Article I.2's concern, not this one. And calldata the
+   agent could not decode is never evidence of mismatch — it escalates to human
+   review. An agent that cannot read the arguments has not checked them.
 2. Proposers with undisclosed prior failures, unreturned funds, or abandoned
    milestones face a raised bar: milestones and streaming or **AGAINST**.
 3. Self-dealing — proposals whose primary beneficiary is the proposer's own
