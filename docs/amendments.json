@@ -3,7 +3,9 @@
     "401a716": "v0.1",
     "5f6222b": "v0.2",
     "58d6f7d": "v0.3",
-    "10086dd": "v0.4"
+    "10086dd": "v0.4",
+    "f05f27e": "v0.5",
+    "0ce51ab": "v0.6"
   },
   "amendments": [
     {
@@ -28,6 +30,18 @@
       "date": "2026-07-05",
       "trigger": "Prop 962 (501c3 Study) leaned FOR — classify-by-calldata let entity-conversion groundwork read as a small grant.",
       "summary": "II.5 'Reconnaissance is part of the invasion': spending whose deliverable is groundwork for a structural change inherits Article II's default AGAINST, even when the calldata only spends."
+    },
+    {
+      "version": "v0.5",
+      "date": "2026-08-22",
+      "trigger": "IV.1 cited on 5 of 34 judged items and wrong on 4 — fired on candidates whose zero-address placeholder action is the Nouns drafting convention, and on plain transfers that simply did not encode the prose's milestones. Root cause: format_actions truncated calldata at 74 chars, so 112 of 125 actions (89%) were cut off before their arguments ended and the judge had never seen a token amount.",
+      "summary": "IV.1 now requires a decoded contradiction (recipient, amount, or asset). It binds proposals, not candidates; non-enforcement is deferred to I.2; and calldata the agent could not decode escalates to human review instead of implying mismatch."
+    },
+    {
+      "version": "v0.6",
+      "date": "2026-08-22",
+      "trigger": "Candidate \"Fake World Assets\" (24 treasury Nouns + 30 ETH into a randomized onchain draw, operator exits hardcoded to the timelock) judged AGAINST under II.1 + I.5's entity carve-out, while being the largest reduction in cost-of-joining proposed since the auction reserve stalled issuance at 101 no-bid auctions out of 102.",
+      "summary": "I.5 'Recognition in kind' becomes 'Nouns are fuel too': treasury Nouns may be distributed for proliferation when acquisition is open and unsweepable, pricing is formula-bound, custody and recall are hardcoded to the treasury, escrowed votes are uncapturable, and adjustedTotalSupply drift stays under [DRIFT: 5%]. Concentration, not price, is the test. Recognition-in-kind survives as the named exception."
     }
   ]
 }

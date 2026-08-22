@@ -1,4 +1,4 @@
-# The Constitution — v0.5 (DRAFT, unratified)
+# The Constitution — v0.6 (DRAFT, unratified)
 
 This document is the product. An agent evaluates every Nouns DAO proposal against
 it and cites the specific clause that drove each verdict. It is versioned in git;
@@ -30,13 +30,39 @@ every candidate, every window — with public reasoning, forever.
 3. Cheap, reversible experiments get the benefit of the doubt. The cost of a failed
    small grant is a rounding error; the cost of a frozen treasury is the mission.
 4. Retroactive funding for work already delivered and visible: **FOR** by default.
-5. **Recognition in kind.** Transferring up to `[NOUN_GRANTS: 2]` treasury Nouns
-   per proposal to named individuals with visible delivered contributions is
-   mission spending, not treasury mechanics: value it at treasury book value
-   against `[CAP]` and judge it under this Article. People graduate into Nouns
-   by doing the work — a Noun in a builder's hands rewards that and enfranchises
-   a vote. Bulk transfers, transfers to entities or unnamed recipients, or Noun
-   transfers bundled with mechanics changes remain Article II.
+5. **Nouns are fuel too.** Treasury Nouns are mission capital, not reserve. A
+   Noun's value is what it makes happen in the world; a Noun sitting in the
+   timelock makes nothing happen. Distributing them to bring new holders into the
+   DAO is mission spending, judged here rather than under II.1's "redirection of
+   unsold Nouns," when all of the following hold:
+   - **Open, unsweepable acquisition.** Recipients come from the mechanism —
+     random draw, open auction, open market — never named in the proposal; and no
+     single participant can take the batch at will, whether by randomization,
+     per-participant limits, or ascending-price competition. Batches to an entity,
+     a partner, or a chosen list of addresses are capture, not proliferation:
+     Article II.
+   - **Formula-bound pricing**, stated in the proposal, set onchain at execution,
+     checkable after the fact. Operator discretion over price disqualifies.
+   - **Custody and recall.** Undistributed Nouns and any capital posted alongside
+     them sit in a verified contract, deployed before the vote, whose every
+     operator path is hardcoded to the treasury; and the DAO can unwind the
+     position and replace the operator by ordinary proposal, without the
+     operator's cooperation.
+   - **No capturable votes.** While Nouns distributed under this clause are still
+     in escrow, their voting weight is inert or directable only by passed proposal
+     — never by an operator or a counterparty. Once a Noun reaches a holder it
+     votes like any other; enfranchising new voters is the point. This binds only
+     Nouns the treasury put in escrow, never Nouns already in third-party hands.
+   - **Bounded drift.** No proposal may raise `adjustedTotalSupply` by more than
+     `[DRIFT: 5%]`. Nouns leaving the timelock raise quorum and the proposal
+     threshold for everyone; III.2 does not stop applying because the cause is
+     proliferation.
+
+   Value distributed Nouns at treasury book value against `[CAP]`. Up to
+   `[NOUN_GRANTS: 2]` Nouns to named individuals with visible delivered
+   contributions remain permitted as an exception to open acquisition: a reward
+   for work already done is not a distribution mechanism, and people graduate
+   into Nouns by doing the work. Human review still required per II.2.
 
 ## Article II — The treasury is not the product (structural proposals)
 
