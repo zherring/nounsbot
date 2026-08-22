@@ -13,6 +13,7 @@ Run: python -m bot.poller
 import time
 import traceback
 from datetime import datetime, timezone
+from urllib.parse import quote
 
 import anthropic
 
@@ -128,6 +129,7 @@ def candidate_card(num, cand, verdict, sig_count) -> str:
         action = f"not sponsor-worthy — /signal c{num} against puts the reasoning on the record (optional)"
     return (
         f"🌿 Candidate c{num}: {content.get('title') or cand['slug']}\n"
+        f"https://www.nouns.camp/candidates/{quote(cand['id'], safe='')}\n"
         f"by {cand['proposer'][:10]}… · {sig_count} sponsor sig(s) so far\n"
         f"verdict: {verdict.vote} (conf {verdict.confidence:.2f}) · clauses {', '.join(verdict.clauses_cited)}\n"
         f"{compose_reason(verdict)}{flags}\n{action}"
@@ -144,6 +146,7 @@ def verdict_card(prop, outcome, verdict, cast_target_block, head):
         firing = f"🕒 auto-casts in ~{eta_h:.0f}h (block {cast_target_block}) — /hold {prop['id']} to stop"
     return (
         f"📜 Prop {prop['id']}: {prop.get('title', '(untitled)')}\n"
+        f"https://www.nouns.camp/proposals/{prop['id']}\n"
         f"state: {outcome}\n"
         f"verdict: {verdict.vote} (conf {verdict.confidence:.2f}) · clauses {', '.join(verdict.clauses_cited)}\n"
         f"{compose_reason(verdict)}{flags}\n{firing}"
@@ -173,7 +176,8 @@ def ingest_and_evaluate(client, conn, head: int) -> None:
         if evals_last_24h(conn, pid) >= MAX_EVALS_PER_PROP_PER_DAY:
             spend_guard_alert(conn, f"guard_prop_{pid}",
                 f"🛑 prop {pid} re-evaluated {MAX_EVALS_PER_PROP_PER_DAY}x in 24h (edit spam?) — "
-                f"pausing evaluations for it until tomorrow; latest verdict stands")
+                f"pausing evaluations for it until tomorrow; latest verdict stands\n"
+                f"https://www.nouns.camp/proposals/{pid}")
             continue
         if evals_last_24h(conn) >= MAX_EVALS_PER_DAY:
             spend_guard_alert(conn, "guard_global",
@@ -224,7 +228,8 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         if not row:
             return f"candidate {args[0]}: unknown"
         if row["signal_tx"]:
-            return f"candidate c{row['num']} already signaled {row['signal_stance']} ({row['signal_tx']})"
+            return (f"candidate c{row['num']} already signaled {row['signal_stance']} ({row['signal_tx']})\n"
+                    f"https://www.nouns.camp/candidates/{quote(row['cand_id'], safe='')}")
         from .executor import signal_candidate
 
         v = json.loads(row["verdict_json"] or "{}")
@@ -241,11 +246,14 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
                 reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
         fresh = [c for c in subgraph.fetch_candidates(first=20) if c["id"] == row["cand_id"]]
         if not fresh:
-            return f"candidate c{row['num']} no longer open (canceled or promoted)"
+            return (f"candidate c{row['num']} no longer open (canceled or promoted)\n"
+                    f"https://www.nouns.camp/candidates/{quote(row['cand_id'], safe='')}")
         tx = signal_candidate(fresh[0], stance, reason + SIGNOFF)
         db.upsert_candidate(conn, row["cand_id"], signal_tx=tx, signal_stance=stance)
         return (f"📣 signaled {stance} on candidate c{row['num']} with reasoning "
-                f"(feedback, not sponsorship)\ntx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}")
+                f"(feedback, not sponsorship)\n"
+                f"https://www.nouns.camp/candidates/{quote(row['cand_id'], safe='')}\n"
+                f"tx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}")
 
     if cmd == "candidates":
         # /candidates → every candidate we've judged; /candidates c<num> → replay its card
@@ -291,7 +299,7 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
                 did = "open"
             lines.append(f"c{r['num']}: {v.get('vote', '?')}{conf} [{did}] — {(r['title'] or '')[:45]}")
         return ("\n".join(lines)
-                + "\n\n/candidates c<num> replays the full verdict card · "
+                + "\n\n/candidates c<num> replays the full verdict card (with link) · "
                   "/signal c<num> [for|against|abstain] [reason] · /sponsor c<num>")
 
     if cmd == "sponsor":
@@ -301,7 +309,8 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         if not row:
             return f"candidate {args[0]}: unknown"
         if row["sponsor_state"] == "sponsored":
-            return f"candidate c{row['num']} already sponsored ({row['sig_tx']})"
+            return (f"candidate c{row['num']} already sponsored ({row['sig_tx']})\n"
+                    f"https://www.nouns.camp/candidates/{quote(row['cand_id'], safe='')}")
         from .executor import sponsor_candidate
 
         cand = json.loads(row["raw"])
@@ -309,15 +318,18 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         # re-check content: an edit since evaluation means we'd sign unseen content
         fresh = [c for c in subgraph.fetch_candidates(first=20) if c["id"] == row["cand_id"]]
         if not fresh:
-            return f"candidate c{row['num']} no longer open (canceled or promoted)"
+            return (f"candidate c{row['num']} no longer open (canceled or promoted)\n"
+                    f"https://www.nouns.camp/candidates/{quote(row['cand_id'], safe='')}")
         if subgraph.candidate_content_hash(fresh[0]) != row["content_hash"]:
-            return f"candidate c{row['num']} was EDITED since evaluation — wait for the re-evaluation card"
+            return (f"candidate c{row['num']} was EDITED since evaluation — wait for the re-evaluation card\n"
+                    f"https://www.nouns.camp/candidates/{quote(row['cand_id'], safe='')}")
         reason = v["reason"]
         if v.get("suggestions"):
             reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in v["suggestions"])
         tx = sponsor_candidate(fresh[0], reason + SIGNOFF)
         db.upsert_candidate(conn, row["cand_id"], sponsor_state="sponsored", sig_tx=tx)
         return (f"🌱 sponsored candidate c{row['num']} with our delegated weight\n"
+                f"https://www.nouns.camp/candidates/{quote(row['cand_id'], safe='')}\n"
                 f"tx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}\n"
                 f"(signature auto-invalidates if the proposer edits)")
 
@@ -330,15 +342,19 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         for r in rows:
             v = latest_verdict(conn, r["prop_id"])
             flag = " ⚑review" if v and v["requires_human_review"] else ""
-            lines.append(f"{r['prop_id']}: {r['vote']} [{r['state']}]{flag} → block {r['cast_block_target']} — {r['title'][:40]}")
+            lines.append(f"{r['prop_id']}: {r['vote']} [{r['state']}]{flag} → block {r['cast_block_target']} — {r['title'][:40]}\n"
+                         f"   https://www.nouns.camp/proposals/{r['prop_id']}")
         cands = conn.execute(
             "SELECT * FROM candidates WHERE sponsor_state='none' ORDER BY num DESC LIMIT 8"
         ).fetchall()
         for c in cands:
             v = json.loads(c["verdict_json"] or "{}")
             if v.get("vote") == "FOR":
-                lines.append(f"c{c['num']}: 🌱 sponsor-worthy — /sponsor c{c['num']} — {c['title'][:40]}")
-        return "\n".join(lines) if lines else "nothing pending — all quiet"
+                lines.append(f"c{c['num']}: 🌱 sponsor-worthy — /sponsor c{c['num']} — {c['title'][:40]}\n"
+                             f"   https://www.nouns.camp/candidates/{quote(c['cand_id'], safe='')}")
+        if not lines:
+            return "nothing pending — all quiet"
+        return "\n".join(lines)
 
     if cmd in {"hold", "release", "cast", "override"}:
         if not args:
@@ -374,15 +390,18 @@ def do_cast(conn, pid: int, forced: bool = False) -> str:
     vote, reason = row["vote"], (row["reason"] or "") + SIGNOFF
     if not bot_address():
         db.upsert_cast(conn, pid, state="skipped")
-        return f"📝 paper mode: would cast {vote} on prop {pid} — no key configured"
+        return (f"📝 paper mode: would cast {vote} on prop {pid} — no key configured\n"
+                f"https://www.nouns.camp/proposals/{pid}")
     try:
         tx = cast_vote(pid, vote, reason)
     except Exception as exc:
-        telegram.send_message(f"🚨 cast FAILED for prop {pid}: {exc}")
+        telegram.send_message(f"🚨 cast FAILED for prop {pid}: {exc}\nhttps://www.nouns.camp/proposals/{pid}")
         raise
     db.upsert_cast(conn, pid, state="cast", tx_hash=tx)
     who = "forced by /cast" if forced else "auto-fired"
-    return f"🗳 cast {vote} on prop {pid} ({who})\nreason: {reason}\ntx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}"
+    return (f"🗳 cast {vote} on prop {pid} ({who})\n"
+            f"https://www.nouns.camp/proposals/{pid}\n"
+            f"reason: {reason}\ntx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}")
 
 
 def check_schedule(conn, head: int) -> None:
@@ -399,14 +418,18 @@ def check_schedule(conn, head: int) -> None:
         current = conn.execute("SELECT status FROM proposals WHERE id=?", (pid,)).fetchone()
         if current and current["status"] in ("CANCELLED", "VETOED"):
             db.upsert_cast(conn, pid, state="skipped")
-            telegram.send_message(f"⏹ prop {pid} was {current['status'].lower()} — cast cancelled, nothing to do")
+            telegram.send_message(
+                f"⏹ prop {pid} was {current['status'].lower()} — cast cancelled, nothing to do\n"
+                f"https://www.nouns.camp/proposals/{pid}"
+            )
             continue
         end = int(prop["endBlock"])
         if head > end:
             db.upsert_cast(conn, pid, state="missed")
             telegram.send_message(
                 f"⏹ prop {pid} window closed without a cast "
-                f"({'held' if row['state'] == 'held' else 'not ratified'}) — logged as a public miss"
+                f"({'held' if row['state'] == 'held' else 'not ratified'}) — logged as a public miss\n"
+                f"https://www.nouns.camp/proposals/{pid}"
             )
             continue
         if row["state"] == "held" or head < row["cast_block_target"]:
@@ -420,7 +443,10 @@ def check_schedule(conn, head: int) -> None:
         )
         if flagged:
             if head % 300 < 5:  # gentle reminder roughly hourly
-                telegram.send_message(f"⏳ prop {pid} is past cast time but flagged — /cast {pid} or /override, else it won't vote")
+                telegram.send_message(
+                    f"⏳ prop {pid} is past cast time but flagged — /cast {pid} or /override, else it won't vote\n"
+                    f"https://www.nouns.camp/proposals/{pid}"
+                )
             continue
         if verdict_age < RATIFY_FLOOR_SECONDS:
             continue  # 24h floor: too fresh to default-fire
