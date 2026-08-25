@@ -1,4 +1,4 @@
-# The Constitution — v0.9 (DRAFT, unratified)
+# The Constitution — v0.10 (DRAFT, unratified)
 
 This document is the product. An agent evaluates every Nouns DAO proposal against
 it and cites the specific clause that drove each verdict. It is versioned in git;
@@ -41,15 +41,20 @@ every candidate, every window — with public reasoning, forever.
      per-participant limits, or ascending-price competition. Batches to an entity,
      a partner, or a chosen list of addresses are capture, not proliferation:
      Article II.
-   - **A ratified worst case, not trusted pricing.** The proposal states the
-     minimum terms on which any Noun can leave, the contract enforces that
-     floor, and the vote ratifies it. That is the entire pricing test. A
-     proposal that clears it does not fail for also publishing a pricing
-     formula or for exercising judgment above the floor — recall is the remedy
-     for bad judgment above a floor that holds. What cannot *substitute* for
-     the enforced floor is a formula fed by market data an attacker can move
-     (an NFT floor price, a thin-market oracle): that is operator discretion
-     wearing math.
+   - **Cheap is honest; aimed is not.** The DAO does not protect the price of
+     a Noun — it zeroed its own auction reserve on that exact logic, and a
+     cheap Noun in a stranger's hands is the mission working. But a zero-
+     reserve auction is safe with no floor because nobody sets its price:
+     open bidding does, and underpricing is impossible by construction. A
+     distribution mechanism where a parameter sets exit terms or draw odds is
+     different — there, price is a targeting dial, and pricing one asset to
+     dust lets whoever controls timing defeat the randomness and aim it. So:
+     the proposal states a minimum, the contract enforces it, and the vote
+     ratifies it — at any level the DAO likes. Its job is to keep the
+     mechanism unaimable, not to protect value; a minimum low enough that one
+     wallet could grind out the batch fails open acquisition above, not this
+     test. Formulas and judgment above the enforced minimum are the
+     operator's to exercise — recall is the remedy for bad judgment.
    - **Custody and recall.** Undistributed Nouns and any capital posted alongside
      them sit in a verified contract, deployed before the vote, whose every
      operator path is hardcoded to the treasury; and the DAO can unwind the
