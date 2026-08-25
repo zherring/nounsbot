@@ -153,6 +153,57 @@ def verdict_card(prop, outcome, verdict, cast_target_block, head):
     )
 
 
+REMIND_INTERVAL_SECONDS = 6 * 3600
+REMIND_FINAL_HOURS = 12
+
+
+def format_duration(hours: float) -> str:
+    """~2 days / ~14h / ~90min — sensible units for a countdown."""
+    if hours >= 24:
+        days = hours / 24
+        return f"~{days:.0f} day{'s' if round(days) != 1 else ''}"
+    if hours >= 1:
+        return f"~{hours:.0f}h"
+    return f"~{hours * 60:.0f}min"
+
+
+def _reason_snippet(reason: str, limit: int = 200) -> str:
+    """First sentence or first ~200 chars, whichever is shorter, with ellipsis if truncated."""
+    reason = (reason or "").strip()
+    if not reason:
+        return ""
+    period = reason.find(". ")
+    sentence = reason[: period + 1] if period != -1 else reason
+    snippet = sentence if len(sentence) <= limit else reason[:limit].rstrip()
+    if len(snippet) < len(reason):
+        snippet = snippet.rstrip(".") + "…"
+    return snippet
+
+
+def flagged_reminder_card(pid: int, prop: dict, verdict, hours_left: float, final: bool = False) -> str:
+    """Compact context card for a flagged, past-cast-time prop — not a bare nag."""
+    title = prop.get("title", "(untitled)")
+    clauses = json.loads(verdict["clauses"] or "[]")
+    flags = json.loads(verdict["flags"] or "[]")
+    flag_str = f" · ⚑ {', '.join(flags)}" if flags else ""
+    snippet = _reason_snippet(verdict["reason"])
+    if final:
+        header = (
+            f"🚨 LAST CALL — prop {pid} voting closes in ~{hours_left:.0f}h and it is flagged; "
+            f"without /cast {pid} or /override it will NOT vote and the miss goes on the public record\n"
+            f"{title}\n"
+        )
+    else:
+        header = f"⏳ flagged & waiting ({format_duration(hours_left)} left): prop {pid} — {title}\n"
+    return (
+        f"{header}"
+        f"verdict: {verdict['vote']} ({verdict['confidence']:.2f}) · clauses {', '.join(clauses)}{flag_str}\n"
+        f"\"{snippet}\"\n"
+        f"https://www.nouns.camp/proposals/{pid}\n"
+        f"/cast {pid} to ratify · /override {pid} for|against|abstain <reason> to change"
+    )
+
+
 def ingest_and_evaluate(client, conn, head: int) -> None:
     rev = db.constitution_rev()
     fp = db.constitution_fingerprint()
@@ -254,6 +305,40 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
                 f"(feedback, not sponsorship)\n"
                 f"https://www.nouns.camp/candidates/{quote(row['cand_id'], safe='')}\n"
                 f"tx: https://etherscan.io/tx/0x{tx.removeprefix('0x')}")
+
+    if cmd == "prop":
+        # /prop <id> → replay the full verdict + cast context for any judged proposal
+        if not args or not args[0].isdigit():
+            return "usage: /prop <id>"
+        pid = int(args[0])
+        prop_row = conn.execute("SELECT * FROM proposals WHERE id=?", (pid,)).fetchone()
+        verdict = latest_verdict(conn, pid)
+        if not prop_row or not verdict:
+            return f"prop {pid}: not judged yet\nhttps://www.nouns.camp/proposals/{pid}"
+        clauses = json.loads(verdict["clauses"] or "[]")
+        flags = json.loads(verdict["flags"] or "[]")
+        flag_str = f"\n⚑ {', '.join(flags)}" if flags else ""
+        reason = verdict["reason"] or ""
+        suggestions = json.loads(verdict["suggestions"] or "[]")
+        if suggestions:
+            reason += "\n\n[ suggestions ]\n" + "\n".join(f"- {s}" for s in suggestions)
+        cast_row = db.get_cast(conn, pid)
+        if cast_row:
+            cast_line = f"\ncast: {cast_row['state']}"
+            if cast_row["cast_block_target"]:
+                cast_line += f" (target block {cast_row['cast_block_target']})"
+            if cast_row["tx_hash"]:
+                cast_line += f"\ntx: https://etherscan.io/tx/0x{cast_row['tx_hash'].removeprefix('0x')}"
+        else:
+            cast_line = "\ncast: nothing scheduled"
+        return (
+            f"📜 Prop {pid}: {prop_row['title'] or '(untitled)'}\n"
+            f"status: {prop_row['status']} · outcome: {prop_row['outcome']}\n"
+            f"verdict: {verdict['vote']} (conf {verdict['confidence']:.2f}) · clauses {', '.join(clauses)}{flag_str}\n"
+            f"{reason}\n"
+            f"https://www.nouns.camp/proposals/{pid}"
+            f"{cast_line}"
+        )
 
     if cmd == "candidates":
         # /candidates → every candidate we've judged; /candidates c<num> → replay its card
@@ -380,7 +465,7 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             return f"prop {pid} overridden to {vote} — reason logged, casts on schedule."
         if cmd == "cast":
             return do_cast(conn, pid, forced=True)
-    return f"unknown command /{cmd} — try /status /candidates /hold /release /override /cast /sponsor /signal"
+    return f"unknown command /{cmd} — try /status /prop /candidates /hold /release /override /cast /sponsor /signal"
 
 
 def do_cast(conn, pid: int, forced: bool = False) -> str:
@@ -442,11 +527,23 @@ def check_schedule(conn, head: int) -> None:
             if verdict else 0
         )
         if flagged:
-            if head % 300 < 5:  # gentle reminder roughly hourly
-                telegram.send_message(
-                    f"⏳ prop {pid} is past cast time but flagged — /cast {pid} or /override, else it won't vote\n"
-                    f"https://www.nouns.camp/proposals/{pid}"
-                )
+            now = datetime.now(timezone.utc)
+            hours_left = max(0.0, (end - head) * 12 / 3600)
+            final_key = f"remind_final_{pid}"
+            if hours_left < REMIND_FINAL_HOURS and not db.kv_get(conn, final_key):
+                card = flagged_reminder_card(pid, prop, verdict, hours_left, final=True)
+                telegram.send_message(card)
+                print(card)
+                db.kv_set(conn, final_key, now.isoformat())
+                db.kv_set(conn, f"remind_{pid}", now.isoformat())  # final counts as a reminder too
+                continue
+            remind_key = f"remind_{pid}"
+            last_sent = db.kv_get(conn, remind_key)
+            if not last_sent or (now - datetime.fromisoformat(last_sent)).total_seconds() >= REMIND_INTERVAL_SECONDS:
+                card = flagged_reminder_card(pid, prop, verdict, hours_left, final=False)
+                telegram.send_message(card)
+                print(card)
+                db.kv_set(conn, remind_key, now.isoformat())
             continue
         if verdict_age < RATIFY_FLOOR_SECONDS:
             continue  # 24h floor: too fresh to default-fire
