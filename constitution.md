@@ -1,4 +1,4 @@
-# The Constitution — v0.10 (DRAFT, unratified)
+# The Constitution — v0.11 (DRAFT, unratified)
 
 This document is the product. An agent evaluates every Nouns DAO proposal against
 it and cites the specific clause that drove each verdict. It is versioned in git;
@@ -55,6 +55,16 @@ every candidate, every window — with public reasoning, forever.
      wallet could grind out the batch fails open acquisition above, not this
      test. Formulas and judgment above the enforced minimum are the
      operator's to exercise — recall is the remedy for bad judgment.
+
+     Liveness is evidence, never a gate. A busy mechanism defends itself — a
+     mispriced listing in a pool with real organic volume gets raced by the
+     public before it can be aimed; an empty one hands its only spinner the
+     whole lottery. The verdict must state the mechanism's measured activity,
+     its trend, and what the position looks like if that volume dies — flagged
+     for the human review these proposals already require, not scored, because
+     liveness is measured at vote time and decays afterward. Ratifying a
+     number that can rot would be wrong in both directions; recall is the
+     remedy when it does.
    - **Custody and recall.** Undistributed Nouns and any capital posted alongside
      them sit in a verified contract, deployed before the vote, whose every
      operator path is hardcoded to the treasury; and the DAO can unwind the
