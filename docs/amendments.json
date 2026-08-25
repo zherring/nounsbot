@@ -8,7 +8,8 @@
     "103e3e7": "v0.6",
     "fe5f8c6": "v0.7",
     "ce7809d": "v0.8",
-    "dd2952d": "v0.9"
+    "dd2952d": "v0.9",
+    "016a77b": "v0.10"
   },
   "amendments": [
     {
@@ -63,6 +64,12 @@
       "date": "2026-08-22",
       "trigger": "Prop 992 failed I.5's formula-bound pricing test — the contract enforces only MIN_BACKING while the floor/0.9 formula lives in prose. On review the requirement itself was wrong: an NFT floor is a manipulable oracle, so a ratified formula is discretion delegated to whoever can move the input.",
       "summary": "I.5's pricing bullet now binds the worst case instead of the path: a hard minimum the contract enforces and the vote ratifies, stated as the entire pricing test. Publishing a formula above the floor does not disqualify; a movable-oracle formula cannot substitute for the floor."
+    },
+    {
+      "version": "v0.10",
+      "date": "2026-08-25",
+      "trigger": "Operator challenge: the DAO zeroed its own auction reserve, so why does I.5 protect price? Verified with FWA's own math — at any plausible price, cheap listings barely dent the draw randomness; only dust pricing (~1e-5 ETH) turns the price parameter into a targeting dial that defeats the lottery.",
+      "summary": "I.5's pricing bullet reframed from value protection to aim prevention: the vote may ratify any enforced minimum, including a low one. The floor's job is to keep an odds-weighted mechanism unaimable; a floor one wallet can grind through is a sweepable batch and fails open acquisition instead. The zero-reserve auction needs no floor because open bidding has no dial."
     }
   ]
 }
