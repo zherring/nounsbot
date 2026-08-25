@@ -153,7 +153,6 @@ def verdict_card(prop, outcome, verdict, cast_target_block, head):
     )
 
 
-REMIND_INTERVAL_SECONDS = 6 * 3600
 REMIND_FINAL_HOURS = 12
 
 
@@ -538,8 +537,7 @@ def check_schedule(conn, head: int) -> None:
                 db.kv_set(conn, f"remind_{pid}", now.isoformat())  # final counts as a reminder too
                 continue
             remind_key = f"remind_{pid}"
-            last_sent = db.kv_get(conn, remind_key)
-            if not last_sent or (now - datetime.fromisoformat(last_sent)).total_seconds() >= REMIND_INTERVAL_SECONDS:
+            if not db.kv_get(conn, remind_key):  # exactly one initial ping; LAST CALL is the only follow-up
                 card = flagged_reminder_card(pid, prop, verdict, hours_left, final=False)
                 telegram.send_message(card)
                 print(card)
