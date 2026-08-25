@@ -5,8 +5,15 @@
     "58d6f7d": "v0.3",
     "10086dd": "v0.4",
     "4c30b80": "v0.4",
-    "a96bc32": "v0.5",
-    "b563d1a": "v0.5"
+    "a96bc32": "v0.5-main",
+    "b563d1a": "v0.5-main",
+    "f05f27e": "v0.5",
+    "103e3e7": "v0.6",
+    "fe5f8c6": "v0.7",
+    "ce7809d": "v0.8",
+    "dd2952d": "v0.9",
+    "016a77b": "v0.10",
+    "538526c": "v0.11"
   },
   "amendments": [
     {
@@ -33,10 +40,58 @@
       "summary": "II.5 'Reconnaissance is part of the invasion': spending whose deliverable is groundwork for a structural change inherits Article II's default AGAINST, even when the calldata only spends."
     },
     {
-      "version": "v0.5",
+      "version": "v0.5-main",
       "date": "2026-07-18",
       "trigger": "Prop 985 (Nudge × Nouns) exposed that symbolic partnership status could be proposed without direct Nouns deliverables or partner Noun ownership.",
-      "summary": "I.6–I.8 'Partnerships': limit the commercial-partnership test to for-profit enterprises leveraging Nouns for private endeavors, give bona fide charities and nonprofits separate mission-spend leeway, require direct benefit and alignment, and require commercial partners to acquire and own a Noun."
+      "summary": "I.7–I.9 (renumbered in the v0.12 merge) 'Partnerships': limit the commercial-partnership test to for-profit enterprises leveraging Nouns for private endeavors, give bona fide charities and nonprofits separate mission-spend leeway, require direct benefit and alignment, and require commercial partners to acquire and own a Noun."
+    },
+    {
+      "version": "v0.5",
+      "date": "2026-08-22",
+      "trigger": "IV.1 cited on 5 of 34 judged items and wrong on 4 — fired on candidates whose zero-address placeholder action is the Nouns drafting convention, and on plain transfers that simply did not encode the prose's milestones. Root cause: format_actions truncated calldata at 74 chars, so 112 of 125 actions (89%) were cut off before their arguments ended and the judge had never seen a token amount.",
+      "summary": "IV.1 now requires a decoded contradiction (recipient, amount, or asset). It binds proposals, not candidates; non-enforcement is deferred to I.2; and calldata the agent could not decode escalates to human review instead of implying mismatch."
+    },
+    {
+      "version": "v0.6",
+      "date": "2026-08-22",
+      "trigger": "Candidate \"Fake World Assets\" (24 treasury Nouns + 30 ETH into a randomized onchain draw, operator exits hardcoded to the timelock) judged AGAINST under II.1 + I.5's entity carve-out, while being the largest reduction in cost-of-joining proposed since the auction reserve stalled issuance at 101 no-bid auctions out of 102.",
+      "summary": "I.5 'Recognition in kind' becomes 'Nouns are fuel too': treasury Nouns may be distributed for proliferation when acquisition is open and unsweepable, pricing is formula-bound, custody and recall are hardcoded to the treasury, escrowed votes are uncapturable, and adjustedTotalSupply drift stays under [DRIFT: 5%]. Concentration, not price, is the test. Recognition-in-kind survives as the named exception."
+    },
+    {
+      "version": "v0.7",
+      "date": "2026-08-22",
+      "trigger": "Prop 900 NounStrategy (gami + Adam) judged AGAINST 0.72 on II.1/II.3/III.2 — the first evaluation it has ever received, and the proposal whose failure started this project. II.1's buyback clause was applied to a third party buying on the open market with its own revenue, and I.5 was applied to a proposal moving zero treasury Nouns. The DAO's exposure is a 1 ETH deployment fee.",
+      "summary": "II.3's calldata test now runs both ways: subject matter alone does not make a spend structural. Ask whose balance sheet the proposal restructures — a fee or grant paid out is Article I even when the subject is Nouns, tokens, or markets; the treasury's own positions and the DAO's own machinery are Article II. II.5 preserved."
+    },
+    {
+      "version": "v0.8",
+      "date": "2026-08-22",
+      "trigger": "Narrowing IV.1 in v0.5 removed a guard the document never actually had: candidate AlphaYields flipped AGAINST->FOR as a 'costless signaling item', and candidate c7 was voted FOR while flagged injection_suspicion.",
+      "summary": "I.6 'The brand is already free': Nouns is CC0, so no proposal is needed to use it; asks for official status, endorsement, exclusivity or partnership are AGAINST, while funding builders who use Nouns stays I.1. IV.4: proposal text containing directives addressed to an automated reviewer is AGAINST and the attempt is published; ordinary advocacy is not this."
+    },
+    {
+      "version": "v0.9",
+      "date": "2026-08-22",
+      "trigger": "Prop 992 failed I.5's formula-bound pricing test — the contract enforces only MIN_BACKING while the floor/0.9 formula lives in prose. On review the requirement itself was wrong: an NFT floor is a manipulable oracle, so a ratified formula is discretion delegated to whoever can move the input.",
+      "summary": "I.5's pricing bullet now binds the worst case instead of the path: a hard minimum the contract enforces and the vote ratifies, stated as the entire pricing test. Publishing a formula above the floor does not disqualify; a movable-oracle formula cannot substitute for the floor."
+    },
+    {
+      "version": "v0.10",
+      "date": "2026-08-25",
+      "trigger": "Operator challenge: the DAO zeroed its own auction reserve, so why does I.5 protect price? Verified with FWA's own math — at any plausible price, cheap listings barely dent the draw randomness; only dust pricing (~1e-5 ETH) turns the price parameter into a targeting dial that defeats the lottery.",
+      "summary": "I.5's pricing bullet reframed from value protection to aim prevention: the vote may ratify any enforced minimum, including a low one. The floor's job is to keep an odds-weighted mechanism unaimable; a floor one wallet can grind through is a sweepable batch and fails open acquisition instead. The zero-reserve auction needs no floor because open bidding has no dial."
+    },
+    {
+      "version": "v0.11",
+      "date": "2026-08-25",
+      "trigger": "Operator observation on prop 992: gameability analysis assumed a quiet mechanism, but FWA runs ~310 organic draws/day — a busy pool races attackers with the public, an empty gacha hands its only spinner the lottery.",
+      "summary": "I.5: mechanism liveness is a third defense (after the enforced floor and open acquisition) but is evidence, never a gate — measured at vote time, it decays afterward. Verdicts must state measured activity, trend, and the if-volume-dies picture for human review; recall is the remedy when liveness rots."
+    },
+    {
+      "version": "v0.12",
+      "date": "2026-08-25",
+      "trigger": "Two constitution lineages developed in parallel: main added the Partnerships subsection (its v0.5, PR #1) while a working branch carried v0.5-v0.11 (IV.1 scope, I.5 Nouns-as-fuel, II.3 both-ways, I.6 brand/IV.4 injection, pricing-as-anti-aim, liveness-as-evidence).",
+      "summary": "Merge of both lineages. The branch's Article text stands; main's Partnerships subsection is absorbed as I.7-I.9 (renumbered from I.6-I.8, internal reference updated). No clause text changed in the merge beyond numbering."
     }
   ]
 }
