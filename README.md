@@ -7,7 +7,8 @@ their own.
 
 - **Site:** https://nounsvote.com — GitHub Pages, fully static, zero keys
 - **Bot delegate (vote-only EOA):** `0xF6e7501dFe7003299108020c5830C4c5B3CA6aA9`
-- **Constitution:** [constitution.md](constitution.md) — v0.5, amendment history on the site
+- **Constitution:** [constitution.md](constitution.md) — v0.12, amendment history on the site
+- **Run your own:** hand [nounsvote.com/llms.txt](https://nounsvote.com/llms.txt) to an LLM assistant and it can walk you from zero to your own constitution agent
 - **Spec:** [PRD.md](PRD.md) · **Status & roadmap:** see the bottom of the PRD
 
 ## How it works

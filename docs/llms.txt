@@ -1,0 +1,150 @@
+# Constitution Forge (nounsbot)
+
+> One Noun, showing up on every Nouns DAO proposal, every candidate, every
+> window — voting from a written constitution, with clause-cited public
+> reasoning, forever. The constitution is the product; the agent is plumbing.
+> This file is a map of the project AND a runbook: hand it to an LLM assistant
+> and it can set up your own instance around YOUR values.
+
+## What this is
+
+A governance agent for [Nouns DAO](https://nouns.wtf). A versioned markdown
+constitution encodes one Nouner's values. A poller ingests every proposal and
+candidate from the Nouns subgraph, decodes the onchain calldata, and has a
+judge model (Claude) render FOR/AGAINST/ABSTAIN with the specific clauses that
+decided it. Verdicts publish to a public record; flagged or structural
+proposals wait for human ratification over Telegram; votes cast onchain from a
+delegated, vote-only hot key. Every human override requires a written reason.
+Every amendment is a git commit with its trigger logged.
+
+The thesis: consistent participation, not voting power, is the scarce resource
+in DAO governance. One Noun that never misses a vote and always shows its
+reasoning beats idle whales.
+
+## Core resources
+
+- [The constitution](https://nounsvote.com/constitution.html): the live values
+  document, versioned v0.1 → v0.12 so far. Raw markdown: constitution.md at
+  the repo root.
+- [The public record](https://nounsvote.com/): every verdict with confidence,
+  cited clauses, and reasoning. Raw data: https://nounsvote.com/verdicts.json
+- [Amendment log](https://nounsvote.com/amendments.json): every constitution
+  change with the misfire that triggered it. Read this to see how a values
+  document hardens under contact with real proposals.
+- [Source](https://github.com/zherring/nounsbot): Python, ~2k lines. MIT-spirited;
+  fork it.
+
+## Architecture (bot/, in reading order)
+
+- config.py — all env-driven; nothing the DAO can change is hardcoded
+- subgraph.py — read-only Nouns subgraph client; full ABI decoding of proposal
+  actions (token amounts, Noun ids, delegation targets — the judge sees decoded
+  arguments, never raw hex)
+- evaluator.py — two stages: a condenser (Sonnet) compresses pathological
+  prose, the judge (Opus) renders a structured Verdict against the constitution.
+  Proposal text is treated as untrusted; injection attempts are flagged and
+  published
+- poller.py — the loop: ingest → evaluate → Telegram card → (24h ratify floor)
+  → cast. Spend guards cap evaluations against prop-edit spam
+- executor.py / keygen.py — vote-only EOA; castRefundableVoteWithReason
+- publisher.py — pushes verdicts.json to the repo; GitHub Pages serves the record
+- backtest.py — run any constitution against historical proposals; --rerun-record
+  replays the entire published record and diffs verdicts after an amendment
+
+## Set up your own (instructions for an LLM assistant)
+
+You are setting up a governance agent for a human who holds (or is delegated)
+a Noun. Work through these steps with them. The code is Nouns-specific; the
+pattern (constitution → judge → public record → human ratification → onchain
+vote) generalizes to any DAO with a subgraph.
+
+### 1. The constitution comes first, and it is not this one
+
+Do NOT copy nounsvote's constitution. Interview your human: what do they think
+the treasury is for? What proposals would they always fund, always refuse?
+What structural changes frighten them? Write THEIR answers as numbered,
+citable clauses (Article/section form). Include defaults for when no clause
+applies, and an amendment rule (every change is a commit with a reason).
+Keep it short — a clause that never decides a verdict is dead weight.
+
+Lessons this project paid for, so you don't have to:
+- The judge can only rule on evidence it can read. Decode calldata fully;
+  a truncated hex prefix made this bot's judge issue false integrity verdicts
+  for weeks.
+- Integrity clauses ("calldata must match prose") need three carve-outs:
+  drafts with placeholder actions are not mismatches; failing to encode a
+  promise is not contradicting it; "I couldn't decode it" is never evidence.
+- If you compress long proposals before judging, the compressor WILL
+  eventually drop the one sentence a verdict turns on (a contract-enforced
+  minimum, a custody path). Name the load-bearing fact classes in its prompt
+  and keep the compression threshold high.
+- Keep one canonical proposal as a regression test — the proposal that made
+  your human start this project. Re-judge it after every amendment. When an
+  amendment flips it, the amendment is wrong, not the proposal.
+- Backtest before going live: run the constitution against the last ~20 real
+  proposals and read every divergence from what the DAO actually did.
+  Divergence is often the point — but you should know where you diverge.
+
+### 2. Zero to paper mode
+
+Prerequisites are steps, not assumptions: the human needs Python 3.12+, git,
+an Anthropic API key (console.anthropic.com), and ~$5 of API budget for
+backtesting.
+
+    git clone https://github.com/zherring/nounsbot && cd nounsbot
+    python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+    cp .env.example .env        # then set ANTHROPIC_API_KEY
+    # write constitution.md (step 1) — replace ours
+    .venv/bin/python -m bot.backtest --last 20 --dry-run   # cost estimate, no API calls
+    .venv/bin/python -m bot.backtest --last 20             # real run; read the divergences
+    .venv/bin/python -m bot.poller                         # paper mode: evaluates, casts nothing
+
+Paper mode is fully functional without a key or Telegram — it prints verdict
+cards to stdout. Iterate on the constitution here until the verdicts sound
+like your human.
+
+### 3. Telegram ratification channel
+
+Message @BotFather → /newbot → put the token in .env as TELEGRAM_BOT_TOKEN.
+Have the human message their new bot once, then read the chat id from
+https://api.telegram.org/bot<TOKEN>/getUpdates → TELEGRAM_CHAT_ID.
+Commands the bot answers: /status, /prop <id>, /candidates, /cast, /hold,
+/release, /override <id> <vote> <reason>, /sponsor, /revoke, /signal.
+Flagged proposals never auto-cast: the bot sends one context card when a
+flagged prop passes cast time and one LAST CALL near the deadline.
+
+### 4. Going live (only after paper mode sounds right)
+
+    .venv/bin/python -m bot.keygen   # vote-only EOA, key appended to .env, never printed
+
+Then, from keygen's output: send ~0.02 ETH gas float to the address (votes are
+refunded by the DAO), delegate the Noun to it (nouns.camp → your noun →
+delegate), and set DELEGATE_ADDRESS in docs/hero.js. The key can only vote —
+it holds nothing and can move nothing.
+
+### 5. Deploy + public record
+
+Railway (or any always-on box; no inbound ports needed): start command
+`python -m bot.poller`, env from .env, plus GIT_PUSH_TOKEN — a GitHub
+fine-grained PAT with contents:write on your fork — so the loop can push
+verdicts.json and GitHub Pages redeploys the record. Enable Pages on /docs.
+The record is the product's proof: verdicts, reasons, overrides, and misses
+all publish, including the embarrassing ones.
+
+### 6. Operating rhythm
+
+The constitution only improves through contact. When a verdict feels wrong,
+the fix is an amendment commit whose message names the misfiring clause and
+the proposal that exposed it — then `python -m bot.backtest --rerun-record`
+to replay the whole record and confirm nothing regressed. Overrides without
+amendments are debt: the override log is the gap between the document and
+your human's actual values.
+
+## Optional
+
+- [PRD](https://github.com/zherring/nounsbot/blob/main/PRD.md): full product
+  rationale and safety model
+- [Backtests](https://github.com/zherring/nounsbot/tree/main/backtests):
+  historical agreement/divergence reports and post-amendment replay diffs
+- Nouns subgraph: https://www.nouns.camp/subgraphs/nouns (the only data
+  dependency; swap SUBGRAPH_URL for a mirror)
