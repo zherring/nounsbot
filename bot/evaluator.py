@@ -16,13 +16,20 @@ from typing import ClassVar, Literal
 import anthropic
 from pydantic import BaseModel, Field, field_validator
 
-from .config import ANTHROPIC_MODEL, CONDENSER_MODEL, CONDENSE_THRESHOLD_CHARS, CONSTITUTION_PATH
+from .config import (
+    ANTHROPIC_MODEL,
+    CONDENSER_MODEL,
+    CONDENSE_THRESHOLD_CHARS,
+    CONSTITUTION_PATH,
+    JUDGE_EFFORT,
+)
 from .subgraph import format_actions
 
 # $/MTok (input, output)
 PRICING = {
     "claude-opus-4-8": (5.00, 25.00),
-    "claude-sonnet-5": (3.00, 15.00),
+    "claude-opus-5-5": (4.00, 20.00),
+    "claude-sonnet-5": (2.00, 10.00),
     "claude-haiku-4-5": (1.00, 5.00),
 }
 
@@ -356,6 +363,7 @@ def evaluate(
         model=ANTHROPIC_MODEL,
         max_tokens=16000,
         thinking={"type": "adaptive"},
+        output_config={"effort": JUDGE_EFFORT},
         system=[
             {
                 "type": "text",
