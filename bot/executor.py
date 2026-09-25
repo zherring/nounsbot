@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from eth_account import Account
 from web3 import Web3
+from web3.exceptions import ContractLogicError
 
 from . import chain
 
@@ -34,7 +35,32 @@ def cast_vote(prop_id: int, vote: str, reason: str) -> str:
     # simulate first: a revert here costs nothing and gives us the reason
     chain.simulate_vote(web3, account.address, prop_id, vote, reason)
 
-    tx = chain.build_vote_tx(web3, account.address, prop_id, vote, reason)
+    # the wallet must front the vote's gas cost before casting — the DAO's
+    # refund only pays out after the vote succeeds, and doesn't cover the
+    # full cost, so an undertopped wallet fails here with a clear reason
+    # instead of a cryptic "execution reverted, no data" from eth_estimateGas
+    # capping the tx's gas at balance/maxFeePerGas.
+    balance, cost_per_vote = chain.vote_cost_estimate(web3, account.address)
+    if balance < cost_per_vote:
+        raise RuntimeError(
+            f"bot wallet too low to vote: {web3.from_wei(balance, 'ether')} ETH, a vote "
+            f"needs ~{web3.from_wei(cost_per_vote, 'ether')} ETH at current gas — "
+            f"top up {account.address}"
+        )
+
+    try:
+        tx = chain.build_vote_tx(web3, account.address, prop_id, vote, reason)
+    except ContractLogicError as exc:
+        # a revert with no data out of build_transaction's gas estimate is
+        # almost always this same low-balance condition slipping past the
+        # check above (fee moved between the two RPC calls) — rewrap it
+        # rather than let the raw tuple reach Telegram.
+        if exc.data in (None, "no data"):
+            raise RuntimeError(
+                f"vote gas estimate reverted with no data — likely low wallet balance "
+                f"({web3.from_wei(balance, 'ether')} ETH): {exc}"
+            ) from exc
+        raise
     signed = account.sign_transaction(tx)
     tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction)
     receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=180)

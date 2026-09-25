@@ -28,3 +28,6 @@ INGEST_INTERVAL_SECONDS = int(os.environ.get("INGEST_INTERVAL_SECONDS", "120"))
 # prop-edit spam (updateProposal is nearly free for a hostile proposer)
 MAX_EVALS_PER_PROP_PER_DAY = int(os.environ.get("MAX_EVALS_PER_PROP_PER_DAY", "3"))
 MAX_EVALS_PER_DAY = int(os.environ.get("MAX_EVALS_PER_DAY", "20"))
+
+# below this many votes' worth of gas, the wallet gets a Telegram warning
+LOW_BALANCE_VOTES = int(os.environ.get("LOW_BALANCE_VOTES", "2"))

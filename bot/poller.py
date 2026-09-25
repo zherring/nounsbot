@@ -20,11 +20,12 @@ import anthropic
 import json
 from types import SimpleNamespace
 
-from . import db, publisher, subgraph, telegram
+from . import chain, db, publisher, subgraph, telegram
 from .evaluator import compose_reason, compose_vote_reason, first_sentence, format_posted_reason
 from .config import (
     ANTHROPIC_MODEL,
     INGEST_INTERVAL_SECONDS,
+    LOW_BALANCE_VOTES,
     MAX_EVALS_PER_DAY,
     MAX_EVALS_PER_PROP_PER_DAY,
     POLL_INTERVAL_SECONDS,
@@ -51,12 +52,60 @@ def spend_guard_alert(conn, key: str, message: str) -> None:
         db.kv_set(conn, key, today)
         telegram.send_message(message)
         print(message)
+
+
+def check_wallet_balance(conn) -> None:
+    """Warn once the bot wallet drops under LOW_BALANCE_VOTES votes' worth of
+    gas, then at most once per 24h while it stays low; reset (with a short
+    top-up notice) once it recovers. Skipped entirely in paper mode. The RPC
+    calls are throttled to roughly BALANCE_CHECK_INTERVAL_SECONDS, and any
+    failure here is logged and swallowed — a bad balance check must never
+    take the loop down."""
+    from .executor import bot_address
+
+    addr = bot_address()
+    if not addr:
+        return
+    now = datetime.now(timezone.utc)
+    last_checked = db.kv_get(conn, "wallet_balance_checked_at")
+    if last_checked and (now - datetime.fromisoformat(last_checked)).total_seconds() < BALANCE_CHECK_INTERVAL_SECONDS:
+        return
+    db.kv_set(conn, "wallet_balance_checked_at", now.isoformat())
+
+    try:
+        web3 = chain.w3()
+        balance, cost_per_vote = chain.vote_cost_estimate(web3, addr)
+    except Exception as exc:
+        print(f"wallet balance check failed: {exc}")
+        return
+
+    votes_left = balance // cost_per_vote if cost_per_vote else 0
+    was_low = db.kv_get(conn, "wallet_low") == "1"
+    if votes_left < LOW_BALANCE_VOTES:
+        db.kv_set(conn, "wallet_low", "1")
+        last_warned = db.kv_get(conn, "wallet_low_warned_at")
+        due = not last_warned or (now - datetime.fromisoformat(last_warned)).total_seconds() > LOW_BALANCE_WARN_INTERVAL_SECONDS
+        if not was_low or due:
+            msg = (
+                f"⛽ bot wallet low: {web3.from_wei(balance, 'ether')} ETH ≈ {votes_left} "
+                f"votes left at current gas. Top up {addr}"
+            )
+            telegram.send_message(msg)
+            print(msg)
+            db.kv_set(conn, "wallet_low_warned_at", now.isoformat())
+    elif was_low:
+        db.kv_set(conn, "wallet_low", "0")
+        telegram.send_message("topped up ✅")
+
+
 from .evaluator import evaluate
 
 CAST_AT_FRACTION = 0.65  # through the voting window
 SIGNOFF = "\n\nmore @ nounsvote.com"  # every onchain reason is an ad for the constitution
 RATIFY_FLOOR_SECONDS = 24 * 3600
 VOTES = {"for": "FOR", "against": "AGAINST", "abstain": "ABSTAIN"}
+BALANCE_CHECK_INTERVAL_SECONDS = 600  # throttle the wallet-balance RPC calls, not the warning itself
+LOW_BALANCE_WARN_INTERVAL_SECONDS = 24 * 3600
 
 
 def latest_verdict(conn, prop_id: int):
@@ -757,11 +806,26 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         )
 
     if cmd == "status":
+        from .executor import bot_address
+
+        signer = bot_address()
         rows = conn.execute(
             "SELECT c.*, p.title, p.status FROM casts c JOIN proposals p ON p.id=c.prop_id "
             "WHERE c.state IN ('scheduled','held') ORDER BY c.prop_id"
         ).fetchall()
         lines = []
+        if signer:
+            try:
+                web3 = chain.w3()
+                balance, cost_per_vote = chain.vote_cost_estimate(web3, signer)
+                votes_left = balance // cost_per_vote if cost_per_vote else 0
+                lines.append(
+                    f"⛽ wallet: {web3.from_wei(balance, 'ether')} ETH ≈ {votes_left} votes left — {signer}"
+                )
+            except Exception as exc:
+                lines.append(f"⛽ wallet balance unavailable: {exc}")
+        else:
+            lines.append("⛽ paper mode — no bot wallet configured")
         for r in rows:
             v = latest_verdict(conn, r["prop_id"])
             flag = " ⚑review" if v and v["requires_human_review"] else ""
@@ -775,9 +839,6 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
         candidate_raw = [json.loads(c["raw"] or "{}") for c in cands]
         targets = candidate_target_map(candidate_raw)
         head = subgraph.current_block()
-        from .executor import bot_address
-
-        signer = bot_address()
         for c in cands:
             if c["sponsor_state"] == "stale":
                 lines.append(
@@ -975,6 +1036,7 @@ def main() -> None:
                 last_ingest = time.time()
             handle_commands(conn)
             check_schedule(conn, head)
+            check_wallet_balance(conn)
             publisher.publish(conn)
         except Exception:
             traceback.print_exc()
