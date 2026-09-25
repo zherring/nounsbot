@@ -54,6 +54,11 @@ def spend_guard_alert(conn, key: str, message: str) -> None:
         print(message)
 
 
+def votes_left(balance: int, cost_per_vote: int) -> int:
+    """Shared by check_wallet_balance, /status and /gas so the math can't drift."""
+    return balance // cost_per_vote if cost_per_vote else 0
+
+
 def check_wallet_balance(conn) -> None:
     """Warn once the bot wallet drops under LOW_BALANCE_VOTES votes' worth of
     gas, then at most once per 24h while it stays low; reset (with a short
@@ -79,15 +84,15 @@ def check_wallet_balance(conn) -> None:
         print(f"wallet balance check failed: {exc}")
         return
 
-    votes_left = balance // cost_per_vote if cost_per_vote else 0
+    left = votes_left(balance, cost_per_vote)
     was_low = db.kv_get(conn, "wallet_low") == "1"
-    if votes_left < LOW_BALANCE_VOTES:
+    if left < LOW_BALANCE_VOTES:
         db.kv_set(conn, "wallet_low", "1")
         last_warned = db.kv_get(conn, "wallet_low_warned_at")
         due = not last_warned or (now - datetime.fromisoformat(last_warned)).total_seconds() > LOW_BALANCE_WARN_INTERVAL_SECONDS
         if not was_low or due:
             msg = (
-                f"⛽ bot wallet low: {web3.from_wei(balance, 'ether')} ETH ≈ {votes_left} "
+                f"⛽ bot wallet low: {chain.format_eth(balance)} ≈ {left} "
                 f"votes left at current gas. Top up {addr}"
             )
             telegram.send_message(msg)
@@ -95,7 +100,9 @@ def check_wallet_balance(conn) -> None:
             db.kv_set(conn, "wallet_low_warned_at", now.isoformat())
     elif was_low:
         db.kv_set(conn, "wallet_low", "0")
-        telegram.send_message("topped up ✅")
+        telegram.send_message(
+            f"⛽ bot wallet topped up ✅ {chain.format_eth(balance)} ≈ {left} votes left"
+        )
 
 
 from .evaluator import evaluate
@@ -818,10 +825,8 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             try:
                 web3 = chain.w3()
                 balance, cost_per_vote = chain.vote_cost_estimate(web3, signer)
-                votes_left = balance // cost_per_vote if cost_per_vote else 0
-                lines.append(
-                    f"⛽ wallet: {web3.from_wei(balance, 'ether')} ETH ≈ {votes_left} votes left — {signer}"
-                )
+                left = votes_left(balance, cost_per_vote)
+                lines.append(f"⛽ wallet: {chain.format_eth(balance)} ≈ {left} votes left — {signer}")
             except Exception as exc:
                 lines.append(f"⛽ wallet balance unavailable: {exc}")
         else:
@@ -870,6 +875,29 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
                     )
         return "\n".join(lines) if lines else "nothing pending — all quiet"
 
+    if cmd == "gas":
+        from .executor import bot_address
+
+        addr = bot_address()
+        if not addr:
+            return "⛽ paper mode — no bot wallet configured"
+        try:
+            web3 = chain.w3()
+            balance, cost_per_vote, base_fee = chain.gas_status(web3, addr)
+        except Exception as exc:
+            return f"⛽ gas check failed: {exc}"
+        left = votes_left(balance, cost_per_vote)
+        alert = "⚠️ LOW" if left < LOW_BALANCE_VOTES else "OK"
+        base_gwei = float(web3.from_wei(base_fee, "gwei"))
+        budget_k = chain.VOTE_GAS_BUDGET // 1000
+        return (
+            f"⛽ bot wallet: {chain.format_eth(balance)} ≈ {left} votes left\n"
+            f"gas now: {base_gwei:.2f} gwei base · ~{chain.format_eth(cost_per_vote)} per vote "
+            f"({budget_k}k gas budget)\n"
+            f"low-balance alert below {LOW_BALANCE_VOTES} votes · currently {alert}\n"
+            f"{addr}"
+        )
+
     if cmd in {"hold", "release", "cast", "override"}:
         if not args:
             return f"usage: /{cmd} <prop_id> …"
@@ -898,7 +926,7 @@ def run_command(conn, cmd: str, args: list[str]) -> str:
             return do_cast(conn, pid, forced=True)
     return (
         f"unknown command /{cmd} — try /status /prop /candidates /hold /release "
-        "/override /cast /sponsor /revoke /signal"
+        "/override /cast /sponsor /revoke /signal /gas"
     )
 
 

@@ -43,8 +43,8 @@ def cast_vote(prop_id: int, vote: str, reason: str) -> str:
     balance, cost_per_vote = chain.vote_cost_estimate(web3, account.address)
     if balance < cost_per_vote:
         raise RuntimeError(
-            f"bot wallet too low to vote: {web3.from_wei(balance, 'ether')} ETH, a vote "
-            f"needs ~{web3.from_wei(cost_per_vote, 'ether')} ETH at current gas — "
+            f"bot wallet too low to vote: {chain.format_eth(balance)}, a vote "
+            f"needs ~{chain.format_eth(cost_per_vote)} at current gas — "
             f"top up {account.address}"
         )
 
@@ -58,7 +58,7 @@ def cast_vote(prop_id: int, vote: str, reason: str) -> str:
         if exc.data in (None, "no data"):
             raise RuntimeError(
                 f"vote gas estimate reverted with no data — likely low wallet balance "
-                f"({web3.from_wei(balance, 'ether')} ETH): {exc}"
+                f"({chain.format_eth(balance)}): {exc}"
             ) from exc
         raise
     signed = account.sign_transaction(tx)
