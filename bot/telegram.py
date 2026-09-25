@@ -7,6 +7,7 @@ Commands (PRD §6.4):
   /override <prop> <for|against|abstain> <reason...>   replace verdict (reason mandatory)
   /cast <prop>                 cast immediately (also the explicit ratify for flagged props)
   /revoke c<num>               invalidate a previously published candidate signature
+  /gas                         fresh (unthrottled) wallet balance, gas price, votes left
 
 Discover your channel id with: python -m bot.telegram (posts nothing; prints chats it can see)
 """

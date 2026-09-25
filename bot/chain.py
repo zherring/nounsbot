@@ -4,6 +4,7 @@ The key held here can cast votes. It can never transfer the Noun — delegation
 is not custody. Worst case on compromise: bad votes until re-delegation.
 """
 
+import math
 import os
 
 from web3 import Web3
@@ -45,6 +46,14 @@ GOVERNOR_ABI = [
 SUPPORT = {"AGAINST": 0, "FOR": 1, "ABSTAIN": 2}
 CLIENT_ID = int(os.environ.get("NOUNS_CLIENT_ID", "0"))
 
+# Conservative ceiling for castRefundableVoteWithReason with the bot's (often
+# long) reasons. web3's build_transaction runs eth_estimateGas, which caps the
+# estimate at balance/maxFeePerGas — if the wallet is too thin that cap lands
+# below what the call actually needs and the tx reverts with no data at all
+# (looked like a contract bug; was really an empty wallet). 250k is well above
+# normal usage; bump via env if a reason gets exotic.
+VOTE_GAS_BUDGET = int(os.environ.get("VOTE_GAS_BUDGET", "250000"))
+
 
 def w3() -> Web3:
     return Web3(Web3.HTTPProvider(RPC_URL, request_kwargs={"timeout": 30}))
@@ -54,22 +63,64 @@ def governor(web3: Web3):
     return web3.eth.contract(address=GOVERNOR, abi=GOVERNOR_ABI)
 
 
+def format_eth(wei: int) -> str:
+    """Human-friendly ETH amount for Telegram messages — ~2 significant
+    figures for dust-sized balances (so 121465625553468 wei reads as
+    '0.00012 ETH', not an 18-decimal wall of digits) and a plain 4 decimals
+    otherwise. One formatter so every message it's used in can't drift from
+    the others: 0.00012 ETH / 0.0201 ETH / 1.2345 ETH."""
+    eth = float(Web3.from_wei(wei, "ether"))
+    if eth != 0 and abs(eth) < 0.01:
+        exponent = math.floor(math.log10(abs(eth)))
+        decimals = max(0, 1 - exponent)  # 2 significant figures
+        return f"{eth:.{decimals}f} ETH"
+    return f"{eth:.4f} ETH"
+
+
+def vote_max_fee_per_gas(web3: Web3, base_fee: int | None = None) -> int:
+    """The fee build_vote_tx pays — factored out so the live cost estimate
+    below can never drift from what a cast actually sends onchain. Pass
+    base_fee to reuse a block read the caller already made (e.g. /gas)."""
+    base = base_fee if base_fee is not None else web3.eth.get_block("latest")["baseFeePerGas"]
+    tip = web3.to_wei(1, "gwei")
+    return base * 2 + tip
+
+
 def build_vote_tx(web3: Web3, sender: str, prop_id: int, vote: str, reason: str) -> dict:
     fn = governor(web3).functions.castRefundableVoteWithReason(
         prop_id, SUPPORT[vote], reason, CLIENT_ID
     )
-    latest = web3.eth.get_block("latest")
-    base = latest["baseFeePerGas"]
-    tip = web3.to_wei(1, "gwei")
     return fn.build_transaction(
         {
             "from": Web3.to_checksum_address(sender),
             "nonce": web3.eth.get_transaction_count(Web3.to_checksum_address(sender)),
-            "maxFeePerGas": base * 2 + tip,
-            "maxPriorityFeePerGas": tip,
+            "maxFeePerGas": vote_max_fee_per_gas(web3),
+            "maxPriorityFeePerGas": web3.to_wei(1, "gwei"),
             "chainId": 1,
         }
     )
+
+
+def vote_cost_estimate(web3: Web3, sender: str) -> tuple[int, int]:
+    """(balance_wei, cost_per_vote_wei) for the bot wallet at current gas.
+
+    Nouns refunds vote gas, but only *after* the vote lands onchain, and the
+    refund doesn't cover the full cost — so the wallet must front the gas
+    upfront, out of its own balance, every time, and that balance drains a
+    little on every vote until it's topped up."""
+    balance = web3.eth.get_balance(Web3.to_checksum_address(sender))
+    cost_per_vote = VOTE_GAS_BUDGET * vote_max_fee_per_gas(web3)
+    return balance, cost_per_vote
+
+
+def gas_status(web3: Web3, sender: str) -> tuple[int, int, int]:
+    """(balance_wei, cost_per_vote_wei, base_fee_wei) for /gas — the same fee
+    formula as vote_cost_estimate, sharing one block read, plus the raw base
+    fee so it can be shown in gwei."""
+    base_fee = web3.eth.get_block("latest")["baseFeePerGas"]
+    cost_per_vote = VOTE_GAS_BUDGET * vote_max_fee_per_gas(web3, base_fee=base_fee)
+    balance = web3.eth.get_balance(Web3.to_checksum_address(sender))
+    return balance, cost_per_vote, base_fee
 
 
 def simulate_vote(web3: Web3, sender: str, prop_id: int, vote: str, reason: str):
