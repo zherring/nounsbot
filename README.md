@@ -30,7 +30,7 @@ Browser (no bot involvement)
 ```
 
 **Evaluation pipeline** (`bot/evaluator.py`): proposals over ~6k chars get crunched
-by Sonnet 5 into a structured brief; Opus 4.8 judges brief + raw onchain actions
+by Sonnet 5 into a structured brief; Opus 5.5 judges brief + raw onchain actions
 against the constitution (in the system prompt, prompt-cached). Proposal text is
 quarantined as untrusted data (prompt-injection defense). Output: vote, confidence,
 clauses cited, one-sentence TLDR, full publishable reason, flags. The TLDR is the
