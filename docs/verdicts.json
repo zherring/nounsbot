@@ -1,6 +1,295 @@
 {
- "generated_at": "2026-08-04T03:37:35+00:00",
+ "generated_at": "2026-09-25T03:18:20+00:00",
  "verdicts": [
+  {
+   "prop_id": 998,
+   "title": "Unwrap & Stake Treasury WETH",
+   "vote": "AGAINST",
+   "confidence": 0.78,
+   "clauses": [
+    "II.1",
+    "II.3"
+   ],
+   "tldr": "Converting 142.8 WETH of treasury into staked wstETH restructures the treasury's own positions, which is structural treasury mechanics that defaults AGAINST absent extraordinary j\u2026",
+   "reason": "This proposal changes the composition of the treasury's own balance sheet \u2014 unwrapping WETH and staking it into wstETH \u2014 which is a change to treasury mechanics under Article II.1, and per II.3 the test is whose balance sheet is restructured: here it is the DAO's own treasury. No extraordinary or explicit justification beyond yield is offered, so the default is AGAINST. The decoded actions match the prose (unwrap, submit to Lido, approve, wrap), so there is no calldata mismatch; the zero-address referral in the submit call is a benign no-op, not a draft defect.\n\n[ suggestions ]\n- Provide explicit extraordinary justification (risk analysis, slashing/liquidity exposure, unwind path) for restaking treasury reserves.\n- Frame as a reversible experiment with a bounded amount and a clear proposal-based unwind mechanism.",
+   "flags": [
+    "structural"
+   ],
+   "constitution_rev": "d5cbaa0",
+   "outcome": "QUEUED",
+   "status": "missed",
+   "tx_hash": null,
+   "overridden": false,
+   "evaluated_at": "2026-09-17T21:57:06.775511+00:00",
+   "history": []
+  },
+  {
+   "prop_id": 997,
+   "title": "Unwrap & Stake Treasury WETH",
+   "vote": "AGAINST",
+   "confidence": 0.78,
+   "clauses": [
+    "II.1",
+    "II.3"
+   ],
+   "tldr": "Converting treasury WETH into staked wstETH restructures the treasury's own positions, which is a structural change defaulting AGAINST absent extraordinary justification.",
+   "reason": "The two actions unwrap 142.806 WETH and send that ETH to the Lido wstETH contract (0x7f39c581...) \u2014 a restructuring of the treasury's own balance sheet, squarely Article II.1 treasury mechanics, and the calldata matches the prose so there is no mismatch. Under Article II.1/II.3 a 'treasury efficiency'/yield rationale is exactly the euphemism the constitution refuses to auto-bless; the proposal funds no creation and spreads no Nouns culture. It is never auto-ratified and requires human review per II.2.\n\n[ suggestions ]\n- Reframe or accompany with a mission-spending rationale, or route yield to fund proliferation work, if the DAO wants this to clear Article II scrutiny.",
+   "flags": [
+    "structural"
+   ],
+   "constitution_rev": "d5cbaa0",
+   "outcome": "CANCELLED",
+   "status": "skipped",
+   "tx_hash": null,
+   "overridden": false,
+   "evaluated_at": "2026-09-17T03:03:45.968781+00:00",
+   "history": []
+  },
+  {
+   "prop_id": 996,
+   "title": "Camp operational costs 2026/2027",
+   "vote": "FOR",
+   "confidence": 0.9,
+   "clauses": [
+    "III.1",
+    "I.1"
+   ],
+   "tldr": "Funding operational costs for Nouns Camp, a widely-used governance tool, is squarely mission-aligned participation infrastructure and the ask is trivially below cap.",
+   "reason": "Nouns Camp is governance tooling and transparency infrastructure with a visible track record, which Article III.1 defaults FOR, and the modest 8500 USDC ask sits far below the 100 ETH cap under Article I.1. The single decoded action sends exactly 8500 USDC to the recipient, matching the prose budget with no contradiction under Article IV.1. This is a cheap, mission-supporting spend keeping a live governance tool running.",
+   "flags": [],
+   "constitution_rev": "d5cbaa0",
+   "outcome": "DEFEATED",
+   "status": "cast",
+   "tx_hash": "63b9694dc34926a909c20df2f01dd6d95539ebfcea3693acb99eb9dcdb0857c6",
+   "overridden": false,
+   "evaluated_at": "2026-09-08T07:47:29.163094+00:00",
+   "history": []
+  },
+  {
+   "prop_id": 995,
+   "title": "Nouns Treasury: Keep USDC Liquid, Earn Yield While It Waits",
+   "vote": "AGAINST",
+   "confidence": 0.78,
+   "clauses": [
+    "II.1",
+    "II.3"
+   ],
+   "tldr": "This restructures the treasury's own USDC position into a yield-bearing stablecoin, which is treasury mechanics and defaults AGAINST under Article II.",
+   "reason": "The proposal moves 300,000 USDC of treasury funds into OUSD/wOUSD to earn yield \u2014 it restructures the DAO's own balance sheet, which is precisely the treasury-mechanics change Article II.1 defaults AGAINST absent extraordinary and explicit justification. The II.3 'whose balance sheet' test confirms this is the treasury's own position, not a third party building with its own capital, and II.4's direction test does not save it since it neither restores issuance nor widens participation. The calldata (approve/mint/approve/deposit, 300k USDC, funds returning to the timelock) matches the prose with no mismatch, so the concern is classification, not integrity \u2014 and 'idle cash should earn yield' is ordinary treasury optimization, not the extraordinary justification II.1 requires.\n\n[ suggestions ]\n- Provide extraordinary, explicit justification for altering treasury holdings, or withdraw in favor of leaving reserves as native USDC.\n- Have a human reviewer assess smart-contract and de-peg risk of OUSD against the modest ~5% yield before any allocation.",
+   "flags": [
+    "structural"
+   ],
+   "constitution_rev": "d5cbaa0",
+   "outcome": "DEFEATED",
+   "status": "missed",
+   "tx_hash": null,
+   "overridden": false,
+   "evaluated_at": "2026-09-02T17:15:26.497093+00:00",
+   "history": []
+  },
+  {
+   "prop_id": 994,
+   "title": "Nouns Treasury: Keep USDC Liquid, Earn Yield While It Waits",
+   "vote": "AGAINST",
+   "confidence": 0.62,
+   "clauses": [
+    "II.1",
+    "II.2",
+    "II.3",
+    "II.4"
+   ],
+   "tldr": "Moving 300k treasury USDC into OUSD/wOUSD restructures the treasury's own balance sheet and exposes it to new smart-contract and stablecoin risk, so it is a structural treasury-me\u2026",
+   "reason": "The proposal converts the treasury's own USDC into a yield-bearing DeFi position; per II.3 the balance sheet being restructured is the treasury's own, making this Article II treasury mechanics, which default AGAINST under II.1 absent extraordinary and explicit justification \u2014 ~$15k/year of yield is prudent but not extraordinary. The II.4 direction test does not rescue it: this neither restores issuance nor widens participation, it simply redeploys treasury capital into external risk. The decoded actions (approve/mint/approve/deposit for 300k USDC, beneficiary the timelock) match the prose in amount, asset, and recipient, so there is no calldata mismatch, but as a structural proposal it requires human review regardless of confidence.\n\n[ suggestions ]\n- Frame as explicit treasury-risk tradeoff with a spending cap and clear unwind/recall path so reviewers can weigh the extraordinary-justification bar.\n- Cite the specific ratified stETH/staking precedents and their governance treatment to help human reviewers calibrate.",
+   "flags": [
+    "structural"
+   ],
+   "constitution_rev": "d5cbaa0",
+   "outcome": "CANCELLED",
+   "status": "cast",
+   "tx_hash": "fe2f4d0aadea7c6ecc8e2d6d26b172c2acca49f9bf5d14a369699a63e2d13504",
+   "overridden": false,
+   "evaluated_at": "2026-08-27T15:19:49.726115+00:00",
+   "history": []
+  },
+  {
+   "prop_id": 993,
+   "title": "Nounworks for Nouns",
+   "vote": "FOR",
+   "confidence": 0.58,
+   "clauses": [
+    "I.1",
+    "I.2",
+    "I.3"
+   ],
+   "tldr": "A proliferation-focused brand and physical-goods program with a demonstrable five-year Nounish track record clears Article I.2's above-cap bar, so it earns a FOR despite the lump-\u2026",
+   "reason": "This is Article I mission spending \u2014 physical goods, CC0 assets, events, and brand expansion that proliferate Nouns beyond web3 \u2014 funded to a studio rather than a for-profit leveraging Nouns for its own private endeavor, so I.7's partnership tests do not govern. The $300k ask sits near/above the [CAP] and flips to scrutiny under I.2, but that clause permits track record OR milestones as alternatives, and the proposer points to visible delivered Nounish work (events, filters, activations) over five years, satisfying the track-record path. The single USDC transfer matches the prose ($300k to one recipient) so there is no IV.1 mismatch; the concern is that it is a lump sum with explicitly requested budget 'flexibility' and no streaming/clawback wired in \u2014 an I.2 accountability gap, not a disqualifier given the claimed history, but reason to escalate.\n\n[ suggestions ]\n- Restructure the $300k as milestone-based streaming with clawback rather than a single lump-sum transfer.\n- Independently verify the claimed five-year delivered track record before release.\n- Wire the promised 5% royalty return into an enforceable mechanism rather than a renegotiable prose commitment.",
+   "flags": [],
+   "constitution_rev": "d5cbaa0",
+   "outcome": "DEFEATED",
+   "status": "cast",
+   "tx_hash": "ace4917723201a68b80882a19edaad4916d4c193d891a861491c19ab18590dcc",
+   "overridden": false,
+   "evaluated_at": "2026-08-28T21:51:25.637764+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.55,
+     "clauses": [
+      "I.2",
+      "I.7",
+      "I.8",
+      "I.9"
+     ],
+     "tldr": "A $300k lump-sum single transfer to a for-profit studio building its own Nouns licensing portfolio, with no enforceable milestones and no verified partner Noun ownership, fails th\u2026",
+     "reason": "The ask sits at/above the ETH-denominated CAP and, while Bigshot.WTF shows a real Nounish track record (which alone can satisfy I.2), the proposal is a partnership under I.7 \u2014 a for-profit studio funded to build 'a licensing portfolio that will generate revenue' for itself while returning only a 5% royalty \u2014 so it must clear I.8 (both direct benefit and mission alignment) and I.9 (partner owns a verifiable Noun). Noun ownership is not evidenced onchain, which I.9 treats as unmet, and the $300k is a single lump-sum transfer with a 'loose,' explicitly flexible budget and no milestones, streaming, clawback, or onchain-enforced royalty, so the substantial private commercial benefit is not counterbalanced by enforceable deliverables. The mission alignment and CC0/free-product benefits are genuine, which makes this close, but the combination of an unverified partner and an unstructured large lump sum tips it AGAINST.",
+     "constitution_rev": "d5cbaa0",
+     "evaluated_at": "2026-08-27T14:16:31.374091+00:00"
+    }
+   ]
+  },
+  {
+   "prop_id": 992,
+   "title": "Fake World Assets",
+   "vote": "FOR",
+   "confidence": 0.72,
+   "clauses": [
+    "I.5",
+    "II.2",
+    "I.1"
+   ],
+   "tldr": "A well-constructed distribution of 24 idle treasury Nouns into an open gacha mechanism with an enforced minimum backing and treasury-hardcoded custody qualifies as mission spendin\u2026",
+   "reason": "The proposal distributes treasury Nouns through FWA's random-draw mechanism where recipients are not named, no single participant can sweep the batch, and a contract-enforced minimum backing (1 ETH, listed at ~1.28 ETH) is stated and ratifiable \u2014 satisfying I.5's open, unsweepable acquisition and 'cheap is honest' tests; custody and recall are met by a pre-deployed, verified manager whose every exit path is hardcoded to the treasury and whose operator is replaceable by ordinary proposal, and the ~24-Noun escrow keeps drift within the 5% bound. Per I.5 this is judged as Article I mission spending, and combined book value plus the 30 ETH backing sits at or below the 100 ETH cap. Liveness is evidence, not a gate: the mechanism shows ~310 draws/day and ~25 ETH/day in fees across 6,400+ listings but volume is declining from peak \u2014 if that organic volume dies, listings become far easier to aim, so the human reviewer must weigh measured activity and its trend at vote time. One residual concern is that the prose does not explicitly confirm escrowed Nouns' voting weight is inert or directable only by passed proposal (I.5 'no capturable votes'), which the reviewer should verify against the deployed contract.\n\n[ suggestions ]\n- State explicitly and verify onchain that escrowed Nouns' voting weight is inert or directable only by passed proposal, never by the operator.\n- Have the human reviewer confirm current FWA liveness and model the position if draw volume continues to decline toward zero.",
+   "flags": [
+    "structural"
+   ],
+   "constitution_rev": "d5cbaa0",
+   "outcome": "DEFEATED",
+   "status": "cast",
+   "tx_hash": "6361c28fd0890b77e31cd3c994b0bbe52df00518288fe77267d867559c4ba4b6",
+   "overridden": false,
+   "evaluated_at": "2026-08-25T16:21:57.435011+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.9,
+     "clauses": [
+      "II.1",
+      "I.5",
+      "IV.3",
+      "II.2"
+     ],
+     "tldr": "This proposal deploys 24 treasury Nouns plus 30 ETH into a third-party gambling protocol via an operator-controlled middleware, which is structural treasury mechanics and self-dea\u2026",
+     "reason": "Bulk-transferring 24 treasury Nouns into a contract (not named individuals) and wiring treasury assets into a third-party gacha/gambling protocol is treasury mechanics under Article II.1, whose default is AGAINST absent extraordinary justification, and I.5 explicitly excludes bulk Noun transfers to entities from mission-spending treatment. The proposer both runs a competing forked protocol (StockRip) and would serve as operator with control over listing terms, implicating self-dealing under IV.3. Speculative fee-income modeling, unaddressed regulatory/smart-contract risk, and a quorum shift of ~2 votes do not meet the extraordinary-justification bar.",
+     "constitution_rev": "b563d1a",
+     "evaluated_at": "2026-08-22T14:35:55.741118+00:00"
+    }
+   ]
+  },
+  {
+   "prop_id": 991,
+   "title": "Cancel the Endaoment Stream",
+   "vote": "AGAINST",
+   "confidence": 0.6,
+   "clauses": [
+    "I.1",
+    "I.4",
+    "II.1",
+    "II.3"
+   ],
+   "tldr": "Cancelling an approved charitable stream to reclaim capital into the treasury for yield reverses mission spending on the exact treasury-efficiency logic the constitution rejects,\u2026",
+   "reason": "Prop 471's Endaoment stream is charitable/public-goods mission spending (I.1, I.4), and this proposal's core action is to defund it and recover the unstreamed ~88 WETH back into the timelock. The stated justification \u2014 that capital 'does nothing while it waits' and should earn ~2% yield \u2014 is precisely the 'treasury as product' / treasury-efficiency reasoning the Preamble and II.3 warn against, and it walls active mission capital back into the treasury (the II.4 'freeze' direction). The promised replacement of deliberate direct charity is an unenforced future promise, not part of this calldata, which merely calls cancel() and recoverTokens() to the treasury (consistent with the prose, no mismatch). Because it restructures an existing treasury position and rests on a yield rationale, it is flagged structural and escalated.\n\n[ suggestions ]\n- Pair the cancellation with a concrete, funded direct charitable grant so mission giving continues rather than reverting to treasury hoarding.\n- If the concern is stream design, propose a shorter or milestone-based charitable vehicle instead of a net reduction in charitable outflow.",
+   "flags": [
+    "structural"
+   ],
+   "constitution_rev": "d5cbaa0",
+   "outcome": "EXECUTED",
+   "status": "cast",
+   "tx_hash": "f764da7c82f0a0adacfd239e40f862ee42bc042df27e17df95ddee9516dc5a57",
+   "overridden": false,
+   "evaluated_at": "2026-08-25T16:22:37.407781+00:00",
+   "history": [
+    {
+     "vote": "AGAINST",
+     "confidence": 0.72,
+     "clauses": [
+      "II.1",
+      "II.4",
+      "I.6"
+     ],
+     "tldr": "Cancelling a committed 10-year charitable stream and pulling the unstreamed ~88 WETH back into the treasury is a structural treasury-mechanics change in the freeze direction, so i\u2026",
+     "reason": "The calldata (cancel() and recoverTokens() to the treasury at 0xb1a32FC...EF71) reverses a previously approved charitable/mission commitment (Prop 471) and returns funds to the treasury, which is a change to treasury mechanics under Article II.1 and never auto-ratified per II.2. Under the II.4 direction test this moves the wrong way: it walls capital back into the treasury and reduces standing outbound charitable/proliferation flow rather than widening participation or restoring issuance, and the stated yield rationale is exactly the 'treasury efficiency' euphemism II.3 warns against. The charitable giving being cancelled is Article I mission work (I.6), and the proposal offers no extraordinary justification for retracting it.",
+     "constitution_rev": "b563d1a",
+     "evaluated_at": "2026-08-20T17:48:32.885523+00:00"
+    }
+   ]
+  },
+  {
+   "prop_id": 990,
+   "title": "Nouns scooter : irl public goods at noyo gimbal view, indonesia",
+   "vote": "AGAINST",
+   "confidence": 0.6,
+   "clauses": [
+    "I.7",
+    "I.8",
+    "IV.3"
+   ],
+   "tldr": "A cheap, mission-flavored IRL scooter project, but it is a for-profit partnership whose benefits flow largely to the proposer's own tourist business, with no verified Noun ownersh\u2026",
+   "reason": "The proposer is simultaneously grant recipient, builder, and manager of the private for-profit site (Noyo Gimbal View) that will host and retain the DAO-funded scooters indefinitely, which triggers the partnership tests (I.6\u2013I.8) and self-dealing scrutiny under IV.3. Direct, verifiable benefit to Nouns is weak (vague marketing exposure, undefined asset ownership, unenforceable reimbursement promises), and there is no verifiable onchain evidence the partner owns a Noun as I.8 requires, so ownership is treated as unmet. Although the ask is small and below cap and a prototype was reportedly delivered, the concentration of private benefit in the proposer's commercial endeavor without enforceable mechanisms flips the default to AGAINST under I.7. The USD-denominated ask against an ambiguous debt-registration calldata further weakens confidence in what is actually being paid.\n\n[ suggestions ]\n- Have the partner/site acquire and verifiably hold at least one Noun before approval (I.8).\n- Specify that the DAO-funded scooters and any IP become DAO-owned or CC0 assets, not the private site's property.\n- Add enforceable milestones, streaming, or clawback and clarify the exact token and amount in the calldata.",
+   "flags": [
+    "calldata_mismatch"
+   ],
+   "constitution_rev": "b563d1a",
+   "outcome": "DEFEATED",
+   "status": "missed",
+   "tx_hash": null,
+   "overridden": false,
+   "evaluated_at": "2026-08-18T11:26:02.468397+00:00",
+   "history": []
+  },
+  {
+   "prop_id": 989,
+   "title": "Nouns Treasury Management - USDC",
+   "vote": "AGAINST",
+   "confidence": 0.78,
+   "clauses": [
+    "II.1",
+    "II.3",
+    "V.1"
+   ],
+   "tldr": "This proposal deploys 300,000 USDC of treasury funds into an external yield vault, which is a treasury-mechanics change that defaults AGAINST under Article II.",
+   "reason": "Moving idle treasury USDC into OUSD/wOUSD to earn yield is a change to how the treasury holds and deploys its assets \u2014 treasury mechanics under Article II.1, which defaults AGAINST absent extraordinary and explicit justification. The 'treasury management' framing is exactly the kind of euphemism II.3 says does not change the structural classification, and exposing treasury funds to external smart-contract and depeg risk walls value into a financial product rather than proliferating Nouns culture (V.1). Because this is structural, it can never be auto-ratified and requires human review (II.2).\n\n[ suggestions ]\n- Reframe and justify as a treasury-mechanics change with explicit risk analysis and an exit plan, understanding it still requires human review.\n- Tie any yield generated to concrete mission spending so the deliverable proliferates Nouns rather than merely accumulating.",
+   "flags": [
+    "structural"
+   ],
+   "constitution_rev": "b563d1a",
+   "outcome": "CANCELLED",
+   "status": "cast",
+   "tx_hash": "cebe3d59969f7fe1f69c9f0ad0f6204dc48075037c29c34b2c1c61f3e0d492d2",
+   "overridden": false,
+   "evaluated_at": "2026-08-13T18:33:30.937137+00:00",
+   "history": []
+  },
+  {
+   "prop_id": 988,
+   "title": "NOUNS Scooter",
+   "vote": "AGAINST",
+   "confidence": 0.76,
+   "clauses": [
+    "I.7",
+    "I.8",
+    "IV.3"
+   ],
+   "tldr": "This is a for-profit partnership whose benefits flow primarily to the proposer's own tourist business, with an unenforceable off-chain profit-share and no verified Noun ownership,\u2026",
+   "reason": "The scooter fleet is a commercial venture at a site the proposer co-owns, making the proposer both applicant and primary beneficiary \u2014 the direct, verifiable benefit to Nouns is a 20% profit-share that exists only as an off-chain promise with no onchain mechanism, failing I.7's requirement of both direct benefit and mission alignment (self-dealing concern under IV.3). Under I.8 a partner must verifiably own a Noun before approval, and no such ownership is shown, which is treated as unmet. The proposer's genuine Nouns art track record is noted, but the partnership subsection overrides the below-cap default and sets AGAINST absent enforceable deliverables.\n\n[ suggestions ]\n- Embed enforceable profit-sharing and reporting via milestones or streaming rather than an off-chain future agreement\n- Have the partner acquire and verifiably hold a Noun before resubmitting per I.8\n- Direct funds to a named business entity with independent oversight to reduce self-dealing risk",
+   "flags": [],
+   "constitution_rev": "b563d1a",
+   "outcome": "DEFEATED",
+   "status": "cast",
+   "tx_hash": "1f1de756f74d173a9958ba395cee7d1290d94c243a2d1e2d5182f4ed15c4019a",
+   "overridden": false,
+   "evaluated_at": "2026-08-04T22:49:39.054921+00:00",
+   "history": []
+  },
   {
    "prop_id": 987,
    "title": "WALL",
@@ -15,9 +304,9 @@
    "reason": "The onchain action is a single addGlasses call adding a CC0-dedicated 'Wall' glasses trait, with no ETH ask, no lockParts, and no treasury, auction, entity, or governance-parameter change \u2014 so it is mission spending under Article I.1, not structural under Article II. Adding CC0 artwork to the shared Nouns art commons directly serves proliferation and, as a cheap/low-risk addition, gets the benefit of the doubt under I.3. I cannot independently verify the DEFLATE payload decodes to a valid non-destructive image, so if the calldata does not match the claimed harmless trait addition, Article IV.1 flips this to AGAINST.\n\n[ suggestions ]\n- Provide an independent decode of the calldata payload confirming it adds only the described 32x32 image and touches no lock functions.",
    "flags": [],
    "constitution_rev": "b563d1a",
-   "outcome": "VOTING",
-   "status": "scheduled",
-   "tx_hash": null,
+   "outcome": "DEFEATED",
+   "status": "cast",
+   "tx_hash": "904d148ff2fce48e250cf2805638119bf58f52eccc4d53333a13c75c28b2e0de",
    "overridden": false,
    "evaluated_at": "2026-07-31T19:59:04.605700+00:00",
    "history": [
@@ -1193,6 +1482,405 @@
  ],
  "candidates": [
   {
+   "num": 34,
+   "cand_id": "0x2117bf88b4cb0186eaa87500a045fc998290e42a-milestone-test-mu67kegg",
+   "title": "Milestone Test",
+   "vote": "FOR",
+   "confidence": 0.82,
+   "clauses": [
+    "I.3",
+    "III.1"
+   ],
+   "tldr": "A 10 USDC mainnet test of a milestone payment scheduler is a cheap, reversible experiment that builds payment tooling, so it earns benefit of the doubt.",
+   "reason": "This is a trivial 10 USDC test of the Nouns Milestone Payments scheduler, exactly the kind of cheap, reversible experiment I.3 protects, and it builds governance/payment tooling under III.1. The decoded calldata (approve 10 USDC, then createSchedule with two 5 USDC tranches) matches the prose, and the funds are self-clawing via the described cancellation path. The zero-address argument in createSchedule reads as a draft/placeholder parameter, appropriate for a candidate. The recipient is the proposer, but at 10 USDC for a functional test this is not self-dealing of consequence.\n\n[ suggestions ]\n- Confirm the meaning of the zero-address argument (arg7) in createSchedule before promotion to a full proposal.\n- State explicitly who the intended recipient is and why a self-directed test is appropriate.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-09-18T00:17:11.724805+00:00"
+  },
+  {
+   "num": 33,
+   "cand_id": "0xc7ccec521eed20fcddff8f95424816ac421c7d87-unwrap-stake-treasury-weth",
+   "title": "Unwrap & Stake Treasury WETH",
+   "vote": "AGAINST",
+   "confidence": 0.82,
+   "clauses": [
+    "II.1",
+    "II.3"
+   ],
+   "tldr": "This candidate restructures the treasury's own balance sheet by converting 142.8 WETH into staked wstETH, which is treasury mechanics that defaults AGAINST under Article II.",
+   "reason": "The proposal changes the composition of the treasury's own positions \u2014 unwrapping WETH and staking it into wstETH for yield \u2014 which is a change to treasury mechanics under Article II.1 and defaults AGAINST absent extraordinary, explicit justification. It funds no creation, art, media, or proliferation and delivers no mission work, so Article I does not rescue it; 'treasury efficiency' framing is exactly the euphemism II.3 warns against. As a structural proposal it can never be auto-ratified and requires human review regardless of confidence. The zero-address referral in action 2 is a normal Lido submit placeholder, not a mismatch.\n\n[ suggestions ]\n- Provide an extraordinary, explicit justification for altering the treasury's asset composition, or withdraw in favor of mission spending.\n- Split any staking-mechanics rationale from mission-aligned uses of the yield so voters can judge each on its own terms.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [
+    "structural"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-09-17T06:08:26.811888+00:00"
+  },
+  {
+   "num": 32,
+   "cand_id": "0xa86882277e69fbf0a51805cdc8b0a3a113079e63-sunsetting-camp?",
+   "title": "Sunsetting Camp?",
+   "vote": "FOR",
+   "confidence": 0.62,
+   "clauses": [
+    "III.1",
+    "I.3"
+   ],
+   "tldr": "Camp is governance tooling that lowers the cost of participating, so funding to keep it running is squarely mission-aligned \u2014 but this draft states no concrete ask yet.",
+   "reason": "Camp is transparency/participation infrastructure, which Article III.1 defaults FOR, and the stated cost (~$350/month) is a trivial, reversible experiment under I.3. However, this candidate is a discussion post that asks for feedback rather than defining a spend or execution, so it needs a concrete funding request and calldata before it is truly ballot-ready. The single zero-address action is a normal draft placeholder, not deception.\n\n[ suggestions ]\n- Convert the open question into a concrete funding ask (e.g. a defined monthly or annual amount) with a recipient address.\n- Wire the intended transfer into the calldata so the DAO ratifies an actual spend rather than a discussion.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": "FOR",
+   "signal_tx": "594edfa098c3ab1ff412beb2032c1c19bb1271f8719d62208e6544a7074cd751",
+   "evaluated_at": "2026-09-05T17:41:25.802220+00:00"
+  },
+  {
+   "num": 31,
+   "cand_id": "0x2feb329b9289b60064904fa61fc347157a5aed6a-freak-monday",
+   "title": "Freak Monday",
+   "vote": "AGAINST",
+   "confidence": 0.72,
+   "clauses": [
+    "I.6",
+    "V.1"
+   ],
+   "tldr": "A Monday discussion-thread invitation with no funded work, no transaction, and no deliverable to the DAO doesn't belong on the ballot; start the thread \u2014 it needs no proposal.",
+   "reason": "This candidate asks the DAO for nothing concrete: no funded work, no executed transaction, and no artifact delivered \u2014 it's an invitation to a recurring community thread plus self-promotion for the proposer's brands (nogglesboard, Gnars, Airdrop Culture, including a 50%-off coupon). Under Article I.6 an empty ask that seeks only association/endorsement is AGAINST \u2014 a discussion thread needs no proposal to exist. Under the Article V.1 default it makes little new Nouns 'thing' exist in the world beyond a forum post, so it leans AGAINST.\n\n[ suggestions ]\n- Just start the Monday thread in Discord/Discourse \u2014 no on-chain proposal is needed for community discussion.\n- If you want DAO funding, specify a concrete deliverable, budget, and milestones so it can be judged as mission spending.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-08-31T13:58:19.556186+00:00"
+  },
+  {
+   "num": 30,
+   "cand_id": "0xcc4fd6e348009710404641a01b29f15703b90aed-nouns-treasury:-keep-usdc-liquid,-earn-yield-while-it-waits-1",
+   "title": "Nouns Treasury: Keep USDC Liquid, Earn Yield While It Waits",
+   "vote": "AGAINST",
+   "confidence": 0.78,
+   "clauses": [
+    "II.1",
+    "II.3",
+    "Preamble"
+   ],
+   "tldr": "This moves 300k treasury USDC into a yield-bearing stablecoin \u2014 a change to the treasury's own positions, which Article II defaults AGAINST absent extraordinary justification.",
+   "reason": "The proposal restructures the treasury's own balance sheet by converting idle USDC into OUSD/wOUSD to earn yield; the proposer explicitly calls it 'a limited treasury-mechanics change,' which places it squarely in Article II.1's default-AGAINST class regardless of liquidity assurances. The Preamble is explicit that the treasury is fuel, not the product, and yield-farming idle reserves does not make more Nouns things exist in the world; the II.3 test runs both ways and here the calldata plainly restructures the treasury's own positions. No extraordinary, mission-critical justification is offered that would overcome the default, and Article II proposals are never auto-ratified and require human review.\n\n[ suggestions ]\n- Reframe or retire the proposal: treasury yield-optimization is Article II treasury mechanics and needs extraordinary justification the draft does not supply.\n- If pursued, present it explicitly with the DAO's own risk assessment and precedent, acknowledging it will require human review as a structural change.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [
+    "structural"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-08-31T05:19:46.442980+00:00"
+  },
+  {
+   "num": 29,
+   "cand_id": "0xcc4fd6e348009710404641a01b29f15703b90aed-nouns-treasury:-keep-usdc-liquid,-earn-yield-while-it-waits-update-2",
+   "title": "Nouns Treasury: Keep USDC Liquid, Earn Yield While It Waits",
+   "vote": "AGAINST",
+   "confidence": 0.8,
+   "clauses": [
+    "II.1",
+    "II.3",
+    "II.5"
+   ],
+   "tldr": "Moving 300k treasury USDC into a yield-bearing OUSD/wOUSD position restructures the treasury's own balance sheet \u2014 a structural treasury-mechanics change that defaults AGAINST und\u2026",
+   "reason": "This is a change to the treasury's own positions: converting idle USDC into a yield-bearing stablecoin, which Article II.1 classifies as treasury mechanics with a default AGAINST absent extraordinary, explicit justification. Article II.3's test \u2014 whose balance sheet does this restructure \u2014 points squarely at the DAO's own treasury, and the preamble is explicit that the treasury is fuel for the mission, not the product; earning yield on idle cash makes no Nouns things exist in the world. The 'modeled after ratified staking proposals' rationale is not the extraordinary justification the article demands, and per II.2 this can never be auto-ratified and requires human review regardless of confidence.\n\n[ suggestions ]\n- Frame and justify the position explicitly against Article II's high bar, e.g. tie the yield to concrete, milestone-bound mission spending rather than generic treasury optimization.\n- Document the exact reversibility/redemption path and any operator or admin controls on the OUSD/wOUSD contracts so custody remains hardcoded to the treasury.",
+   "change_summary": "Added a 'Scope and rationale' section framing it as a capped treasury-mechanics change, updated the wrapping rationale to 'simplify treasury accounting,' and corrected the USDC approve link to the real USDC address.",
+   "change_materiality": "minor",
+   "flags": [
+    "structural"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-08-28T02:26:45.424271+00:00"
+  },
+  {
+   "num": 28,
+   "cand_id": "0xc6a39e2f9a7626612292ad56e76d738db43596e4-withdraw-client-incentives-balance-to-treasury",
+   "title": "Withdraw Client Incentives Balance to Treasury",
+   "vote": "AGAINST",
+   "confidence": 0.55,
+   "clauses": [
+    "II.1",
+    "II.2",
+    "III.1"
+   ],
+   "tldr": "This candidate withdraws 26.09 WETH from the client-incentives contract to the treasury, a change to auction/participation infrastructure that defaults AGAINST under Article II ab\u2026",
+   "reason": "Client incentives are participation infrastructure the constitution favors under III.1, and draining that pool to the treasury restructures auction/incentive machinery, which is Article II structural territory and defaults AGAINST without extraordinary justification (II.1). The prose itself is undecided \u2014 'either reclaim this pool, or distribute to still active clients' \u2014 so there is no concrete mission-aligned deliverable to weigh, only a fund consolidation. As a structural proposal it can never be auto-ratified and requires human review (II.2).\n\n[ suggestions ]\n- State a single, definite purpose for the reclaimed WETH rather than offering two alternatives.\n- Justify why removing the client-incentive balance does not undermine future participation infrastructure (III.1).\n- Confirm the decoded amount (26.09 WETH) and recipient match the intended treasury timelock before promotion.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [
+    "structural"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": "AGAINST",
+   "signal_tx": "5ea6df612c3ac2da640743534e64ed11e9ca3257437f3000b9ca92ab2537aec4",
+   "evaluated_at": "2026-08-25T22:02:25.011560+00:00"
+  },
+  {
+   "num": 27,
+   "cand_id": "0xcc4fd6e348009710404641a01b29f15703b90aed-nouns-treasury:-keep-usdc-liquid,-earn-yield-while-it-waits",
+   "title": "Nouns Treasury: Keep USDC Liquid, Earn Yield While It Waits",
+   "vote": "AGAINST",
+   "confidence": 0.72,
+   "clauses": [
+    "II.1",
+    "II.3",
+    "II.4"
+   ],
+   "tldr": "Moving 300k treasury USDC into a wOUSD yield position restructures the DAO's own balance sheet, which is structural treasury mechanics that default AGAINST absent extraordinary ju\u2026",
+   "reason": "The proposal deploys treasury USDC into an OUSD/wOUSD yield strategy \u2014 this restructures the treasury's own positions and is Article II treasury mechanics, not Article I proliferation, since it creates no Nouns things and does not widen participation or restore issuance (II.3, II.4). Under II.1 the default is AGAINST absent extraordinary and explicit justification, and 'earn yield while it waits' is treasury management, not mission spending. The decoded actions (approve USDC\u2192vault, mint OUSD, approve OUSD\u2192wrapper, deposit wOUSD to the timelock) are internally consistent with the prose; note the prose mislabels the USDC contract link but action 1 targets the correct USDC address. As a structural proposal this requires human review regardless of confidence.\n\n[ suggestions ]\n- Frame and justify this explicitly as a treasury-mechanics change with the extraordinary rationale Article II requires, including counterparty and smart-contract risk analysis for OUSD.\n- Correct the USDC contract link in the description, which currently points to the OUSD vault address.",
+   "change_summary": "Whitespace-only reformatting plus an added parenthetical citing that some OUSD audits were by the same firm Nouns used; no substantive or onchain change.",
+   "change_materiality": "minor",
+   "flags": [
+    "structural"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": "AGAINST",
+   "signal_tx": "e52897d16ff9c250ecfa7c1266e5fb8f9dfc5bd224629aa0de80ba2128185246",
+   "evaluated_at": "2026-08-26T20:39:14.161744+00:00"
+  },
+  {
+   "num": 26,
+   "cand_id": "0xc6a39e2f9a7626612292ad56e76d738db43596e4-cancel-prop-707-the-musicals-stream",
+   "title": "Cancel Prop 707 the Musical's Stream?",
+   "vote": "FOR",
+   "confidence": 0.55,
+   "clauses": [
+    "I.2",
+    "IV.2"
+   ],
+   "tldr": "Cancelling a stalled grant stream and returning the unvested funds to the treasury is legitimate accountability enforcement, though the evidence of abandonment here is thin.",
+   "reason": "The onchain actions cancel a stream and recover its tokens to the Nouns treasury (verified as the timelock), which is exactly the clawback mechanism Article I.2 and IV.2 endorse when milestones stall \u2014 returning mission capital to the DAO is protecting fuel, not freezing the treasury, so this is not a structural II proposal. However, the factual basis is weak: the proposer explicitly says 'I could go either way' and cites only 'several months since there's been any updates,' so whether prop 707 has genuinely abandoned its deliverables needs human verification before clawing back ~$115k. The recover target decodes correctly to the treasury, so there is no calldata mismatch.\n\n[ suggestions ]\n- Document concrete evidence that prop 707's milestones have been abandoned (missed deliverables, dates, unreturned funds).\n- State clearly the amount being clawed back and confirm it is only the unvested remainder.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-08-25T16:23:17.134345+00:00"
+  },
+  {
+   "num": 25,
+   "cand_id": "0x387a161c6b25aa854100abaed39274e51aaffffd-fake-world-assets",
+   "title": "Fake World Assets",
+   "vote": "AGAINST",
+   "confidence": 0.9,
+   "clauses": [
+    "II.1",
+    "I.5",
+    "IV.3",
+    "II.2"
+   ],
+   "tldr": "This routes 24 treasury Nouns and 30 ETH into a third-party gacha/buyback protocol run by a conflicted sole operator \u2014 a textbook treasury-mechanics/buyback structural proposal th\u2026",
+   "reason": "Sending 24 treasury Nouns plus 30 ETH into an onchain buyback/gacha mechanism is exactly the buyback and treasury-distribution engineering Article II.1 defaults AGAINST, and it is a bulk Noun transfer far beyond the 2-Noun in-kind allowance of I.5, so it is not mission spending. The proposer would be sole operator of a middleware controlling pricing/listing while also running a competing forked protocol (StockRip), a self-dealing and counterparty concern under IV.3. Critically, the onchain actions only grant operator approval, pull the Nouns, and send ETH \u2014 the described ~1.28 ETH backing and pricing are not enforced by calldata but left to the operator's discretion, a prose/calldata gap. It concentrates control and moves treasury assets into a third-party gambling-like system outside DAO control, failing the II.4 direction test.\n\n[ suggestions ]\n- Reduce or eliminate the treasury Noun exposure and encode the pricing/backing formula directly in enforceable onchain actions.\n- Remove the conflicted sole-operator role or replace it with a trustless/DAO-controlled execution path.\n- Bring this as an explicit structural proposal with justification rather than framing it as a partnership.",
+   "change_summary": "Removed one descriptive line stating the ask was ~30 ETH / 0.7% of the treasury; onchain actions unchanged.",
+   "change_materiality": "minor",
+   "flags": [
+    "structural",
+    "calldata_mismatch"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-08-22T08:57:34.158882+00:00"
+  },
+  {
+   "num": 24,
+   "cand_id": "0xb2a6ad0c411815843b43a2377df9bb945dfee5ac-\u2310\u25e8-\u25e8-|-fund-the-agentic-dao:-nouns-collaboration-for-the-open-standard-for-how-daos-govern",
+   "title": "\u2310\u25e8-\u25e8 | Fund the Agentic DAO: Nouns collaboration for the open standard for how DAOs govern",
+   "vote": "AGAINST",
+   "confidence": 0.62,
+   "clauses": [
+    "I.7",
+    "I.8",
+    "I.9",
+    "I.2"
+   ],
+   "tldr": "A 40k USDC lump-sum grant to a for-profit AI company leveraging Nouns for a commercial licensing product, with no verified Noun ownership and no milestones, reads as an under-test\u2026",
+   "reason": "ARC/SmartDAO is a for-profit enterprise seeking to leverage Nouns for its own commercial licensing endeavor, so it is judged under the partnership tests (I.7\u2013I.9) notwithstanding I.1's below-cap default; there is no verifiable onchain Noun ownership by the partner, which I.9 treats as unmet and defaults to AGAINST. A meaningful share of the ask funds ARC's own business-development and commercial pipeline (the outreach line), benefits that flow primarily to the partner and do not satisfy I.8's direct-benefit test. The single-payment lump sum to the proposer's own address with no milestones or clawback also cuts against I.2's preference for verifiable, staged funding, even though the amount is under the cap.\n\n[ suggestions ]\n- Acquire a Noun (secondary or auction) before sponsorship to satisfy I.9's partner-ownership requirement.\n- Replace the single lump-sum transfer with milestone-based streaming and clawback tied to the stated KPIs.\n- Drop or externally fund the private BD/outreach line so Nouns capital funds the CC0 public good, not ARC's commercial pipeline.\n- Verify and disclose the recipient multisig on-chain rather than routing to the proposer EOA.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-08-25T16:23:57.990317+00:00"
+  },
+  {
+   "num": 23,
+   "cand_id": "0x6501b7a416ed4d861129a4b2efa90b364d4e776c-alphayields-\u00d7-nouns-a-perpetual-revenue-stream-for-public-goods-\u2014-proof-of-concept",
+   "title": "AlphaYields \u00d7 Nouns",
+   "vote": "AGAINST",
+   "confidence": 0.82,
+   "clauses": [
+    "I.7",
+    "I.8",
+    "I.9"
+   ],
+   "tldr": "A for-profit DeFi protocol asking $50k for builder capital in exchange for an unenforceable perpetual revenue-share promise and 'official partner' status, with no Noun ownership s\u2026",
+   "reason": "AlphaYields is a for-profit enterprise leveraging Nouns for its own commercial endeavor, so it is judged under I.7\u2013I.9 notwithstanding I.1's below-cap default. The core return \u2014 5% of protocol revenue 'in perpetuity' plus a returnable $50k \u2014 is an unenforced promise with no on-chain deliverable, distribution, or CC0 artifact, and the capital primarily funds the partner's own product; direct, verifiable benefit to Nouns is not established (I.8). There is also no verifiable onchain evidence the partner owns a Noun, which I.9 treats as unmet, and 'official ecosystem project' status is largely the kind of symbolic endorsement I.8 discounts.\n\n[ suggestions ]\n- Acquire at least one Noun (ideally via the daily auction) before seeking partnership approval, per I.9.\n- Encode the 5% revenue share and the $50k buy-back/clawback as an enforceable on-chain mechanism rather than a monthly-report promise.\n- Fund a concrete Nouns/CC0 deliverable so the ask carries direct, verifiable benefit under I.8.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-08-25T16:24:17.851734+00:00"
+  },
+  {
+   "num": 22,
+   "cand_id": "0xe3ff24a97bfb65cadef30f6ad19a6ea7e6f6149d-fey---trade-with-superpowers",
+   "title": "FEY - Trade with superpowers",
+   "vote": "AGAINST",
+   "confidence": 0.8,
+   "clauses": [
+    "I.8",
+    "I.9",
+    "I.2"
+   ],
+   "tldr": "A $360k grant to a for-profit AI trading app whose return to Nouns is an unenforceable revenue-share promise and symbolic branding, with no verified partner Noun ownership.",
+   "reason": "This is a partnership with a for-profit enterprise leveraging Nouns for its own commercial trading product, so it is judged under I.7\u2013I.9 notwithstanding any below-cap default. Its offered benefits \u2014 a non-binding pledge to spend 30% of future fees buying Nouns, a default-Noun pfp, and 'Funded by Nouns' co-marketing \u2014 are the vague, primarily-partner-benefiting, unenforceable kind that I.8 rejects absent both concrete direct benefit and mission alignment. The proposal also does not establish that the partner (FEY) itself owns a Noun onchain as I.9 requires, and the ask is explicitly an unmilestoned 'flexible runway' above cap, which I.2 disfavors even though the calldata streams half.\n\n[ suggestions ]\n- Encode the Nouns-purchase revenue commitment as an enforceable, verifiable obligation rather than a prose promise\n- Verify and cite the FEY partner entity's onchain Noun ownership before sponsorship\n- Replace the open-ended runway with concrete milestones and clawback tied to delivery",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-08-25T16:24:43.199516+00:00"
+  },
+  {
+   "num": 21,
+   "cand_id": "0x0081e6f9373c1ffb7d7fc702eb15ac805eb50389-nouns-scooter--irl-public-goods-at-noyo-gimbal-view-indonesia",
+   "title": "Nouns scooter : irl public goods at noyo gimbal view, indonesia",
+   "vote": "AGAINST",
+   "confidence": 0.72,
+   "clauses": [
+    "I.7",
+    "I.8",
+    "IV.3",
+    "IV.1"
+   ],
+   "tldr": "Below-cap but self-dealing partnership benefiting the proposer's own commercial tourist venue, with no verified Noun ownership and ambiguous calldata, so it fails the partnership\u2026",
+   "reason": "This is a partnership under I.6 \u2014 the proposer is the manager of a for-profit tourist destination and is also the grant recipient/builder, so private commercial benefit flows primarily to the venue and proposer (IV.3 self-dealing, I.7 direct-benefit test unmet). No Noun ownership by the partner is verifiable, failing I.8. The truncated calldata does not clearly specify the currency or amount matching the stated $7,015, and the selector appears to have changed between versions, so integrity under IV.1 cannot be confirmed.\n\n[ suggestions ]\n- Disclose and verify the funding token and exact amount so calldata matches the $7,015 ask.\n- Verify onchain that the partner/venue owns at least one Noun per I.8.\n- Restructure to separate DAO-funded public-good deliverables from the venue's commercial benefit and address the self-dealing conflict.",
+   "change_summary": "Description emoji formatting was cosmetically rearranged and the sendOrRegisterDebt calldata (function selector/parameters) changed between versions.",
+   "change_materiality": "material",
+   "flags": [
+    "calldata_mismatch"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-08-18T03:15:32.343655+00:00"
+  },
+  {
+   "num": 20,
+   "cand_id": "0xcc4fd6e348009710404641a01b29f15703b90aed-nouns-treasury-management---usdc",
+   "title": "Nouns Treasury Management - USDC",
+   "vote": "AGAINST",
+   "confidence": 0.82,
+   "clauses": [
+    "II.1",
+    "II.3",
+    "II.4"
+   ],
+   "tldr": "This candidate redeploys 300,000 treasury USDC into a third-party yield protocol (OUSD/wOUSD), which is treasury mechanics and defaults AGAINST under Article II.",
+   "reason": "Converting treasury USDC into an external yield-bearing protocol is a change to treasury mechanics, so it is structural and defaults AGAINST under Article II.1, and the 'yield/sustainability' framing does not change that classification (II.3). It does not restore issuance or widen participation, so the II.4 direction test does not flip it to FOR; instead it introduces smart-contract, protocol, and stablecoin depeg risk to walled treasury assets with no mission-spending justification. Per II.2 this requires human review regardless of confidence, and the brief itself notes the encoded amounts could not be fully reconciled with the stated figures.\n\n[ suggestions ]\n- Reframe or withdraw as a treasury-mechanics change requiring extraordinary justification, or route to human review with full risk disclosure.\n- Verify and publish the exact decoded USDC/OUSD amounts so calldata matches the stated 300,000 USDC precisely.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [
+    "structural",
+    "calldata_mismatch"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-08-12T14:01:31.868359+00:00"
+  },
+  {
+   "num": 19,
+   "cand_id": "0x0c66d954d9cb1ebdf4e37a000262323c83655e70-happy-nouniversary!",
+   "title": "Happy Nouniversary!",
+   "vote": "AGAINST",
+   "confidence": 0.72,
+   "clauses": [
+    "I.6",
+    "V.1"
+   ],
+   "tldr": "This candidate is a friendly progress update on a manga project with no funding ask, no executed transaction, and no deliverable to the DAO, so there is nothing on the ballot to a\u2026",
+   "reason": "The only onchain action is a zero-address no-op and the prose requests no funds, executes no transaction, and hands the DAO no artifact \u2014 it is a status update, not a spend. Under Article V.1 a proposal that makes nothing new exist in the world leans AGAINST, and Article I.6's logic applies: the brand is already CC0 and an unenforced 'coming soon' is not a deliverable. If and when the volume ships or a concrete funded ask is attached, it can be judged as mission spending under Article I.\n\n[ suggestions ]\n- Attach a concrete funded ask (e.g. a retroactive grant for delivered work under I.4, or milestones for the printing/distribution costs) rather than a signaling no-op.\n- Include verifiable links to the delivered manga work so the DAO can assess track record under I.2/I.4.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-08-25T16:24:59.761486+00:00"
+  },
+  {
    "num": 18,
    "cand_id": "0x0081e6f9373c1ffb7d7fc702eb15ac805eb50389-nouns-scooter",
    "title": "NOUNS Scooter",
@@ -1272,14 +1960,15 @@
    "cand_id": "0x2117bf88b4cb0186eaa87500a045fc998290e42a-nouns-x-ai",
    "title": "Nouns x AI",
    "vote": "FOR",
-   "confidence": 0.78,
+   "confidence": 0.68,
    "clauses": [
-    "I.1",
-    "III.1",
-    "V.1"
+    "I.3",
+    "I.4",
+    "V.1",
+    "I.6"
    ],
-   "tldr": "An open-source research writeup and free tooling that helps proposers understand Nouns governance, with zero treasury ask and a no-op onchain action, so it aligns with lowering pa\u2026",
-   "reason": "The candidate has a null (0x0) onchain action and no funding request, sharing open-source data, a model, and a public Hugging Face tool that helps proposers benchmark drafts \u2014 transparency/tooling infrastructure favored under Article III.1 and mission-aligned public work under I.1. Article V.1 confirms it makes more Nouns things exist at zero treasury cost, and the tool explicitly avoids gaming/verdicts. The rhetorical 'trust but verify' framing is persuasive style, not directives to an evaluator, so no injection concern rises to review.",
+   "tldr": "A free, already-delivered open-source research tool and dataset for Nouns proposers, asking for nothing, is a low-cost public good that makes more Nouns things exist.",
+   "reason": "The candidate delivers real artifacts \u2014 an open dataset, a fine-tuned model, and a public analysis Space \u2014 already built and public at no cost to the treasury, so it is Article I mission work / a retroactive public good rather than an empty endorsement ask (I.6 does not reach a proposal that hands over a delivered artifact). It carries no funding request and no structural calldata, so Article II is not implicated, and under I.3/V.1 a cheap, reversible thing that makes more Nouns tooling exist leans FOR. The single caveat is that the prose specifies no ask at all, leaving it unclear what execution (if any) a final proposal would carry; the sole action is a draft NO-OP placeholder, which is normal for a candidate.\n\n[ suggestions ]\n- Clarify whether any funding or specific onchain action is intended, or state explicitly that this is a purely informational signaling proposal.\n- If retroactive funding is intended for the delivered work, name an amount and recipient so it can be judged under I.4.",
    "change_summary": "",
    "change_materiality": "initial",
    "flags": [],
@@ -1289,7 +1978,7 @@
    "revoke_available": false,
    "signal_stance": null,
    "signal_tx": null,
-   "evaluated_at": "2026-07-18T19:43:08.695710+00:00"
+   "evaluated_at": "2026-08-25T16:25:21.647988+00:00"
   },
   {
    "num": 10,
@@ -1524,26 +2213,24 @@
    "cand_id": "0x6501b7a416ed4d861129a4b2efa90b364d4e776c-alphayields:-bringing-nounish-identity-into-institutional-defi",
    "title": "AlphaYields: Bringing Nounish Identity Into Institutional DeFi",
    "vote": "AGAINST",
-   "confidence": 0.82,
+   "confidence": 0.9,
    "clauses": [
-    "I.7",
+    "I.6",
     "I.8",
-    "IV.1"
+    "I.9"
    ],
-   "tldr": "A for-profit DeFi firm wants to attach Nounish branding to its commercial product with only vague co-marketing commitments, no enforceable deliverables, and no verified Noun owner\u2026",
-   "reason": "AlphaYields is a for-profit enterprise seeking to leverage Nouns for its own commercial DeFi product, so it is judged under the partnership tests (I.6\u2013I.8), not I.1's below-cap default. The commitments offered \u2014 carrying Noggles branding, publishing research, quarterly updates \u2014 are largely symbolic co-marketing whose primary benefit flows to the partner, with no enforceable deliverables or direct verifiable benefit to Nouns, so the I.7 default is AGAINST. There is also no verifiable onchain Noun ownership as required by I.8, and the single onchain action targets the zero address with no calldata, so there is nothing concrete to ratify (IV.1).\n\n[ suggestions ]\n- Acquire a Noun (ideally via the daily auction) and verify ownership onchain before seeking sponsorship.\n- Replace vague co-marketing with enforceable, verifiable deliverables and concrete CC0/Nounish artifacts.\n- Return with an actual proposal containing real calldata rather than a null-target feedback request.",
+   "tldr": "A for-profit asking Nouns to bless its brand association with no funded work, transaction, or deliverable in return \u2014 the brand is already CC0, so the empty ask is AGAINST.",
+   "reason": "The entire ask is endorsement: AlphaYields wants the DAO to sanction its use of Noggles/Nounish identity and gets no funded work, executed transaction, or delivered artifact in return, which I.6 answers with AGAINST since the brand is already free to use. Judged as a partnership under I.7\u2013I.9, it fails the direct-benefit test \u2014 commitments are vague co-marketing and unenforced promises that flow benefit primarily to the partner \u2014 and there is no verifiable Noun ownership by the partner as I.9 requires. The single zero-address placeholder is a normal candidate drafting state and not counted against it.\n\n[ suggestions ]\n- Build the integration first and return with a concrete Nouns/CC0 artifact or enforceable deliverable rather than an endorsement request.\n- Acquire at least one Noun to establish alignment per I.9 if pursuing a partnership.\n- Bring any public-goods yield funding mechanism as a concrete, enforceable proposal instead of a future promise.",
    "change_summary": "",
    "change_materiality": "initial",
-   "flags": [
-    "structural"
-   ],
+   "flags": [],
    "sponsor_state": "none",
    "sponsor_tx": null,
    "revoke_tx": null,
    "revoke_available": false,
    "signal_stance": null,
    "signal_tx": null,
-   "evaluated_at": "2026-07-18T19:43:21.322066+00:00"
+   "evaluated_at": "2026-08-25T16:25:34.012702+00:00"
   }
  ]
 }
