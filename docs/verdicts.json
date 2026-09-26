@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-26T19:03:59+00:00",
+ "generated_at": "2026-09-26T22:24:49+00:00",
  "verdicts": [
   {
    "prop_id": 998,
@@ -1481,6 +1481,33 @@
   }
  ],
  "candidates": [
+  {
+   "num": 37,
+   "cand_id": "0x10fc964ef70c8467cd8c53e9ed9347422adf96a8-bring-offline-ai-research-to-android",
+   "title": "Bring Offline AI Research to Android",
+   "vote": "FOR",
+   "confidence": 0.62,
+   "clauses": [
+    "I.1",
+    "I.3",
+    "V.1",
+    "IV.3"
+   ],
+   "tldr": "Adds 2 ETH from Nouns to an existing open poidh bounty for an offline, open-source AI research app on Android, with the calldata matching the stated contribution.",
+   "reason": "The decoded action sends 2 ETH to poidh's contract via joinOpenBounty(31), which matches the prose's recipient, amount and asset. The ask is far below the 100 ETH cap and funds open-source software through a permissionless competition, so it is a cheap, reversible experiment that gets the benefit of the doubt under I.1 and I.3. The link to spreading Nouns or CC0 culture is thin: the software is open-source but not Nouns-branded or necessarily CC0, which leaves I.1's scope ambiguous and lowers confidence. This is not self-dealing under IV.3, because the funds go to a contestable prize pool with a contributor vote rather than to the proposer's own liquidity.\n\n[ suggestions ]\n- Require the winning submission to be released under CC0 or a permissive open license, with visible Nouns attribution such as noggles or credit, so it spreads Nouns and CC0 culture.\n- State who will cast Nouns DAO's contributor vote on the poidh claim, for example the timelock via a passed proposal, and confirm that wind-down refunds return to the treasury.\n- Link the current working submissions and their GitHub repos so voters can verify the delivered progress.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [
+    "constitution_gap"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-09-26T22:24:48.574331+00:00"
+  },
   {
    "num": 36,
    "cand_id": "0x00fb8a99188c6083df04abeb0f7066e8ffb1f124-nouns-takes-seoul-2026",
