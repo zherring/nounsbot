@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-26T15:35:00+00:00",
+ "generated_at": "2026-09-26T19:03:59+00:00",
  "verdicts": [
   {
    "prop_id": 998,
@@ -1481,6 +1481,32 @@
   }
  ],
  "candidates": [
+  {
+   "num": 36,
+   "cand_id": "0x00fb8a99188c6083df04abeb0f7066e8ffb1f124-nouns-takes-seoul-2026",
+   "title": "Nouns Takes Seoul 2026",
+   "vote": "AGAINST",
+   "confidence": 0.77,
+   "clauses": [
+    "I.6",
+    "I.7",
+    "I.8",
+    "I.9",
+    "V.1"
+   ],
+   "tldr": "Internoun asks for 0 ETH and wants the DAO to officially endorse and amplify two externally funded Seoul events, FuturaCanvas and DIGITAL AF!, under co-branded Nouns activations.",
+   "reason": "The only thing asked of the DAO is endorsement: an @nounsdao announcement, reposts, and a co-branded 'Nouns DAO' billing. The single onchain action is a 0 ETH call to the proposer's own address, so it executes nothing and funds nothing. The events happen with or without the vote, and the only return to the DAO is a promised recap, which is an unenforced promise and not a deliverable. This is the empty ask Article I.6 addresses: Nouns is CC0, so the activations can proceed without a vote, and if they are good the brand follows. To the extent this is a co-branding relationship with commercial event organizers, I.8 and I.9 are also unmet, because there is no enforceable direct benefit and no verified Noun ownership by the partners.\n\n[ suggestions ]\n- Turn this into a small funded grant with concrete deliverables the DAO receives, such as the installation artwork released CC0 or an event video, so it is judged as Article I mission spending.\n- Seek X amplification and community invitations through informal channels instead of a DAO vote, since CC0 already permits the activations.\n- If the event organizers are positioned as partners, show onchain that they own a Noun and list enforceable benefits to Nouns.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-09-26T19:03:58.091968+00:00"
+  },
   {
    "num": 35,
    "cand_id": "0x9ec255f1af4d3e4a813aadab8ff0497398037d56-i-would-love-to-get-a-noun!",
