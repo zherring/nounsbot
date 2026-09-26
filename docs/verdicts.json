@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-25T03:18:20+00:00",
+ "generated_at": "2026-09-26T15:35:00+00:00",
  "verdicts": [
   {
    "prop_id": 998,
@@ -1481,6 +1481,30 @@
   }
  ],
  "candidates": [
+  {
+   "num": 35,
+   "cand_id": "0x9ec255f1af4d3e4a813aadab8ff0497398037d56-i-would-love-to-get-a-noun!",
+   "title": "I would love to get a noun!",
+   "vote": "AGAINST",
+   "confidence": 0.8,
+   "clauses": [
+    "I.5",
+    "IV.3",
+    "V.1"
+   ],
+   "tldr": "A no-action draft asking whether the proposer can receive a treasury-held Noun, with no delivered work, mechanism, or deliverable offered in return.",
+   "reason": "The candidate is effectively a request for a treasury Noun to go to the proposer personally. I.5 treats treasury Nouns as mission capital, but only when distributed through an open, unsweepable mechanism, or as one of up to [NOUN_GRANTS: 2] rewards to named individuals with visible delivered contributions. This draft describes no contributions and no mechanism, so it fits neither path, and a transfer whose primary beneficiary is the proposer runs into IV.3. The zero-address action is a normal drafting placeholder and is not held against it; the question behind it (freeing stranded treasury Nouns) is legitimate but belongs in a proposal that meets I.5's tests.\n\n[ suggestions ]\n- If you have visible delivered work in the Nouns ecosystem, document it and request a single Noun as a retroactive reward under the I.5 named-individual exception.\n- Alternatively, redraft as an open, unsweepable distribution mechanism (random draw or open auction) that meets I.5's custody, recall, vote-inertness, and drift tests, rather than a transfer to yourself.\n- Replace the placeholder with the actual intended transfer or mechanism calldata once the ask is defined.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-09-26T15:34:59.591058+00:00"
+  },
   {
    "num": 34,
    "cand_id": "0x2117bf88b4cb0186eaa87500a045fc998290e42a-milestone-test-mu67kegg",
