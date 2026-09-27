@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-27T01:13:13+00:00",
+ "generated_at": "2026-09-27T05:18:22+00:00",
  "verdicts": [
   {
    "prop_id": 998,
@@ -16,7 +16,7 @@
     "structural"
    ],
    "constitution_rev": "d5cbaa0",
-   "outcome": "QUEUED",
+   "outcome": "EXECUTED",
    "status": "missed",
    "tx_hash": null,
    "overridden": false,
