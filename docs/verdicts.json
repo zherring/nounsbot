@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-26T22:24:49+00:00",
+ "generated_at": "2026-09-27T01:13:13+00:00",
  "verdicts": [
   {
    "prop_id": 998,
@@ -1504,9 +1504,9 @@
    "sponsor_tx": null,
    "revoke_tx": null,
    "revoke_available": false,
-   "signal_stance": null,
-   "signal_tx": null,
-   "evaluated_at": "2026-09-26T22:24:48.574331+00:00"
+   "signal_stance": "FOR",
+   "signal_tx": "fd522f98a6f6ecb1dac22a6b1c1d81f4f6bb5546d73dfb2d9784ac8e94ae5399",
+   "evaluated_at": "2026-09-27T01:13:12.865212+00:00"
   },
   {
    "num": 36,
