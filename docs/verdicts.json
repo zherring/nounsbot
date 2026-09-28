@@ -1,6 +1,28 @@
 {
- "generated_at": "2026-09-27T16:41:12+00:00",
+ "generated_at": "2026-09-28T04:04:26+00:00",
  "verdicts": [
+  {
+   "prop_id": 1000,
+   "title": "Noun",
+   "vote": "FOR",
+   "confidence": 0.85,
+   "clauses": [
+    "III.1",
+    "I.1",
+    "I.3",
+    "IV.1"
+   ],
+   "tldr": "FOR: approving noun.wtf (Client ID 37) for client incentives directly lowers the cost of governance participation, and the calldata matches the prose exactly.",
+   "reason": "The only onchain action is setClientApproval(37, true), which matches the stated ask of approving Client ID 37 (noun.wtf) for client incentives, so there is no mismatch under IV.1. Article III.1 explicitly defaults FOR on client incentives and governance tooling, and the client shows visible delivered work: voting, candidates, feedback, auction bidding, and transparency dashboards. The action enrolls an existing client in the DAO's established rewards program rather than changing its parameters, so it is a cheap, reversible experiment under I.3, not a structural change.\n\n[ suggestions ]\n- Disclose usage metrics for Client ID 37, such as votes, bids, and proposals routed, so voters can gauge its participation impact.\n- Commit to publishing how client incentive rewards will be spent on continued development.",
+   "flags": [],
+   "constitution_rev": "49d1d42",
+   "outcome": "UPDATABLE",
+   "status": "scheduled",
+   "tx_hash": null,
+   "overridden": false,
+   "evaluated_at": "2026-09-28T04:04:24.662767+00:00",
+   "history": []
+  },
   {
    "prop_id": 999,
    "title": "Bring Offline AI Research to Android",
