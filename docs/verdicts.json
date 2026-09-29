@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-29T13:08:42+00:00",
+ "generated_at": "2026-09-29T15:27:03+00:00",
  "verdicts": [
   {
    "prop_id": 1000,
@@ -1528,6 +1528,33 @@
   }
  ],
  "candidates": [
+  {
+   "num": 39,
+   "cand_id": "0x2feb329b9289b60064904fa61fc347157a5aed6a-boar-head-2026-09-29",
+   "title": "\ud83c\udfa8 Noundry: Add BOAR  Head",
+   "vote": "FOR",
+   "confidence": 0.72,
+   "clauses": [
+    "I.1",
+    "I.3",
+    "I.7",
+    "V.1"
+   ],
+   "tldr": "Candidate to add a CC0 'BOAR' head trait, honoring an open-source offline-AI app from Gnars builders, to the Nouns descriptor so it can appear in future Nouns.",
+   "reason": "This is a no-ETH art contribution: the single action calls addHeads on the Nouns descriptor with one compressed head image, and the artist has signed the Nouns Art Contribution Agreement waiving rights under CC0. That is creation that spreads Nouns art, so it takes the default FOR under I.1 and is a cheap experiment under I.3. The trait commemorates a third-party project, but that project is described as open-source and ecosystem-built, not a for-profit enterprise. So the I.7\u2013I.9 partnership tests do not clearly apply, and no treasury funds flow to anyone. Human review is suggested because a descriptor addition permanently shapes every future Noun, and the constitution does not say whether promotional traits or descriptor changes touch Article II.\n\n[ suggestions ]\n- Disclose whether the artist (zimardrp.eth) is affiliated with or benefits from the BOAR project, so voters can weigh any promotional or self-interest angle.\n- Confirm that the encoded addHeads image data and palette indices match the showcased artwork before it goes onchain.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [
+    "constitution_gap"
+   ],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-09-29T15:27:02.045921+00:00"
+  },
   {
    "num": 38,
    "cand_id": "0x00fb8a99188c6083df04abeb0f7066e8ffb1f124-nouns-|-robinhood-chain-community-kickoff",
