@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-28T04:04:26+00:00",
+ "generated_at": "2026-09-29T13:08:42+00:00",
  "verdicts": [
   {
    "prop_id": 1000,
@@ -1528,6 +1528,31 @@
   }
  ],
  "candidates": [
+  {
+   "num": 38,
+   "cand_id": "0x00fb8a99188c6083df04abeb0f7066e8ffb1f124-nouns-|-robinhood-chain-community-kickoff",
+   "title": "Nouns | Robinhood Chain Community Kickoff",
+   "vote": "FOR",
+   "confidence": 0.8,
+   "clauses": [
+    "I.1",
+    "I.3",
+    "I.7",
+    "IV.1"
+   ],
+   "tldr": "A $20,000 USDC grant to host a Nouns-branded community event for Robinhood Chain builders at Token2049 Singapore, with merch, photo booth, and CC0 outreach.",
+   "reason": "This is a small event grant, about $20k and far below the 100 ETH cap, to spread Nouns and CC0 awareness to new builders, so I.1's default FOR and I.3's benefit of the doubt for cheap experiments apply. The calldata pays 20,000 USDC to the proposer, which matches the stated ask. Robinhood Chain is the event's theme, not a counterparty receiving funds or claiming partner status, so the I.7\u2013I.9 partnership tests do not govern it. The event also produces reusable Nouns creative assets and a post-event report.\n\n[ suggestions ]\n- Break down the $18,000 production line, including the share spent on the curated VIP dinner versus the open event.\n- State explicitly whether Robinhood or Robinhood Chain is a sponsor or co-funder, so the proposal clearly sits outside the I.7 partnership tests.\n- Commit to releasing the photo booth, T-shirt, and event artwork under CC0 rather than 'where possible'.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-09-29T13:08:41.456746+00:00"
+  },
   {
    "num": 37,
    "cand_id": "0x10fc964ef70c8467cd8c53e9ed9347422adf96a8-bring-offline-ai-research-to-android",
