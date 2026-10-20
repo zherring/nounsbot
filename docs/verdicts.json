@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-17T19:00:38+00:00",
+ "generated_at": "2026-10-20T13:09:10+00:00",
  "verdicts": [
   {
    "prop_id": 1000,
@@ -1528,6 +1528,30 @@
   }
  ],
  "candidates": [
+  {
+   "num": 40,
+   "cand_id": "0x5f930c8f172ff9416bc2769fa25b8cf9d01cabfd-cryptoknights-tv-series-partnership-proposal-mvgp735u",
+   "title": "CryptoKnights TV Series Partnership Proposal",
+   "vote": "AGAINST",
+   "confidence": 0.8,
+   "clauses": [
+    "I.7",
+    "I.8",
+    "I.9"
+   ],
+   "tldr": "CryptoKnights, a for-profit Web3 reality TV show, asks for 10,000 USDC for a sponsorship package: a logo credit in one episode, a 30-second explainer, social posts and a website l\u2026",
+   "reason": "This is a for-profit enterprise selling a commercial sponsorship, so I.7\u2013I.9 govern it instead of I.1's below-cap default. Under I.9, a partner must own a Noun that can be verified onchain, and the candidate shows no Noun ownership by CryptoKnights or the proposer address, so the requirement is treated as unmet. Under I.8, most deliverables are symbolic partner status and organic co-marketing on CryptoKnights' own channels, with no minimum impressions and with CryptoKnights keeping editorial control. The reusable assets come only under a twelve-month license rather than CC0, so the benefits flow mainly to the partner and the direct benefit to Nouns is thin.\n\n[ suggestions ]\n- Have CryptoKnights acquire at least one Noun itself, preferably at the daily auction, so ownership is verifiable onchain before sponsorship is sought.\n- Release all Nouns-specific assets CC0 instead of under a twelve-month license, and commit to enforceable reach or distribution deliverables.\n- Stream or split payment against delivery of the episode integration and the explainer, and confirm that the recipient address 0x5f93\u2026abfd is cryptoknights.eth.",
+   "change_summary": "",
+   "change_materiality": "initial",
+   "flags": [],
+   "sponsor_state": "none",
+   "sponsor_tx": null,
+   "revoke_tx": null,
+   "revoke_available": false,
+   "signal_stance": null,
+   "signal_tx": null,
+   "evaluated_at": "2026-10-20T13:09:09.657623+00:00"
+  },
   {
    "num": 39,
    "cand_id": "0x2feb329b9289b60064904fa61fc347157a5aed6a-boar-head-2026-09-29",
