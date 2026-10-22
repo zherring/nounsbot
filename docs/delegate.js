@@ -2,15 +2,38 @@
 // No libraries, no custody — the user's own wallet signs one transaction,
 // reversible any time by delegating elsewhere.
 
+// KILL SWITCH: the delegate key was compromised, so nobody may delegate to
+// BOT_DELEGATE. Flip to false once a new delegate address replaces it.
+const DELEGATION_PAUSED = true;
+
 const NOUNS_TOKEN = "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03";
 const BOT_DELEGATE = "0xF6e7501dFe7003299108020c5830C4c5B3CA6aA9";
 const DELEGATE_SELECTOR = "0x5c19a95c"; // delegate(address)
 
+// Paused copy never names the address or sends anyone to Etherscan.
+const PAUSED_LABEL = "Delegation paused";
+const PAUSED_MESSAGE =
+  "Delegation is paused while we rotate the delegate key. Existing delegators: nothing to do.";
+const NO_WALLET_MESSAGE = DELEGATION_PAUSED
+  ? PAUSED_MESSAGE
+  : `No wallet detected — use delegate(${BOT_DELEGATE}) on Etherscan.`;
+
 function delegateCalldata() {
+  if (DELEGATION_PAUSED) throw new Error("Delegation is paused.");
   return DELEGATE_SELECTOR + BOT_DELEGATE.slice(2).toLowerCase().padStart(64, "0");
 }
 
 let statusCounter = 0;
+
+// Make a delegate button inert: no href, out of the tab order, labelled, and
+// the pause notice shown beside it (styled via [aria-disabled] in style.css).
+function pauseButton(button) {
+  button.textContent = PAUSED_LABEL;
+  button.removeAttribute("href");
+  button.setAttribute("aria-disabled", "true");
+  button.setAttribute("tabindex", "-1");
+  setStatus(button, PAUSED_MESSAGE);
+}
 
 function setStatus(button, text, cls) {
   // Land the status line as a full-width block right after the whole
@@ -76,13 +99,14 @@ function pickWallet(button) {
 }
 
 async function delegateFlow(button) {
+  if (DELEGATION_PAUSED) return pauseButton(button); // before any wallet access
   const eth = await pickWallet(button);
   if (!eth) {
     if (/iPhone|iPad|Android/i.test(navigator.userAgent)) {
       showMobileWalletLinks(button); // reopen inside the wallet's own browser
     } else {
       window.open(`https://etherscan.io/address/${NOUNS_TOKEN}#writeContract`, "_blank");
-      setStatus(button, `No wallet detected — use delegate(${BOT_DELEGATE}) on Etherscan.`);
+      setStatus(button, NO_WALLET_MESSAGE);
     }
     return;
   }
@@ -133,8 +157,10 @@ async function delegateFlow(button) {
 }
 
 document.querySelectorAll(".btn-delegate").forEach((button) => {
+  if (DELEGATION_PAUSED) pauseButton(button);
   button.addEventListener("click", (e) => {
     e.preventDefault();
+    if (DELEGATION_PAUSED) return pauseButton(button);
     delegateFlow(button);
   });
 });
@@ -146,7 +172,7 @@ document.querySelectorAll(".btn-delegate").forEach((button) => {
 // to the first button on load.
 const MOCK_STATES = {
   idle: ["", ""],
-  "no-wallet": [`No wallet detected — use delegate(${BOT_DELEGATE}) on Etherscan.`, ""],
+  "no-wallet": [NO_WALLET_MESSAGE, ""],
   connecting: ["Connecting wallet…", ""],
   switching: ["Switching to Ethereum mainnet…", ""],
   confirm: ["Confirm the delegation in your wallet…", ""],
@@ -162,6 +188,8 @@ const MOCK_STATES = {
 };
 
 window.__mockDelegate = function (state, buttonIndex = 0) {
+  // Paused: never paint fake success/pending states over the pause notice.
+  if (DELEGATION_PAUSED) return console.log("Delegation is paused; mock states are off.");
   const entry = MOCK_STATES[state];
   const button = document.querySelectorAll(".btn-delegate")[buttonIndex];
   if (!button || !entry) {
