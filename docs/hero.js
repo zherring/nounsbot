@@ -1,12 +1,17 @@
 // Dynamic hero: the Nouns delegated to the agent, as a playful stack.
 // One Noun renders big; more pile up behind it, front 2-3 clearly visible.
 // Hover a card to see the Noun + its owner/delegator.
-// Set DELEGATE_ADDRESS when the bot EOA exists (M1). Preview: ?delegate=0x...
+// Nothing here is hardcoded as fact: the headline and stack come only from the
+// subgraph. While loading, or if the query fails, the headline stays a neutral
+// "Nouns vote." with no count and the stack stays hidden. A successful query
+// that finds no delegation renders the honest "Zero Nouns vote."
+// DELEGATE_ADDRESS is the vote-only bot EOA. Preview another: ?delegate=0x...
 
 const DELEGATE_ADDRESS = "0xf6e7501dfe7003299108020c5830c4c5b3ca6aa9"; // vote-only bot EOA
-const SEED_NOUNS = [1251]; // shown until live delegation data replaces them
 
-const SUBGRAPH = "https://www.nouns.camp/subgraphs/nouns";
+// Public, keyless Goldsky endpoint (the nouns.camp proxy now 404s).
+const SUBGRAPH =
+  "https://api.goldsky.com/api/public/project_clnbcoajmebxn33wdbt98f439/subgraphs/nouns-mainnet/1.0.0/gn";
 const WORDS = [
   "Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight",
   "Nine", "Ten", "Eleven", "Twelve",
@@ -97,11 +102,13 @@ function makeCard(noun, cls, rot) {
 }
 
 function renderStack(nouns) {
-  // nouns: [{id, owner}] — featured + side picks are randomized per load
+  // nouns: [{id, owner}] — featured + side picks are randomized per load.
+  // An empty list clears the stack and hides the gallery (zero state).
   const stack = document.getElementById("noun-gallery");
-  if (!stack || nouns.length === 0) return;
+  if (!stack) return;
   stack.innerHTML = "";
-  stack.classList.add("filled");
+  stack.classList.toggle("filled", nouns.length > 0);
+  if (nouns.length === 0) return;
 
   const shuffled = [...nouns].sort(() => Math.random() - 0.5);
   const featured = shuffled[0];
@@ -134,22 +141,25 @@ async function gql(query) {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ query }),
   });
-  return (await resp.json()).data;
+  if (!resp.ok) throw new Error(`subgraph HTTP ${resp.status}`);
+  const json = await resp.json();
+  if (json.errors?.length) throw new Error(json.errors[0].message || "subgraph error");
+  if (!json.data) throw new Error("subgraph returned no data");
+  return json.data;
 }
 
-async function loadSeed() {
-  const ids = SEED_NOUNS.map((id) => `"${id}"`).join(",");
-  try {
-    const data = await gql(`{ nouns(where: {id_in: [${ids}]}) { id owner { id } } }`);
-    renderStack((data?.nouns || []).map((x) => ({ id: x.id, owner: x.owner?.id })));
-  } catch {
-    renderStack(SEED_NOUNS.map((id) => ({ id })));
-  }
+// "<count> Noun(s) vote(s)." — a null count is the neutral, number-free headline.
+function setHeadline(count) {
+  const countEl = document.getElementById("noun-count");
+  const nounWordEl = document.getElementById("noun-word");
+  const verbEl = document.getElementById("noun-verb");
+  const singular = count === 1;
+  if (countEl) countEl.textContent = count === null ? "" : count < WORDS.length ? WORDS[count] : String(count);
+  if (nounWordEl) nounWordEl.textContent = singular ? "Noun" : "Nouns";
+  if (verbEl) verbEl.textContent = singular ? "votes." : "vote.";
 }
 
 async function loadDelegation() {
-  await loadSeed();
-
   const param = new URLSearchParams(location.search).get("delegate");
   const address = (param || DELEGATE_ADDRESS).toLowerCase();
   if (!address) return;
@@ -162,25 +172,17 @@ async function loadDelegation() {
         nounsRepresented(first: 100, orderBy: id) { id owner { id } }
       }
     }`);
-    delegate = data?.delegate;
+    delegate = data.delegate; // null = no such delegate, i.e. nothing delegated
   } catch {
-    return; // network failure: seed stays
+    return; // query failed: claim nothing, the neutral headline stays
   }
-  if (!delegate) return;
 
-  const nouns = delegate.nounsRepresented || [];
-  const count = Math.max(1, parseInt(delegate.delegatedVotes, 10) || 0);
+  const count = delegate ? parseInt(delegate.delegatedVotes, 10) : 0;
+  if (Number.isNaN(count)) return; // malformed response: same as a failure
 
-  const countEl = document.getElementById("noun-count");
-  const nounWordEl = document.getElementById("noun-word");
-  const verbEl = document.getElementById("noun-verb");
-  if (countEl) countEl.textContent = count < WORDS.length ? WORDS[count] : String(count);
-  if (nounWordEl && count > 1) nounWordEl.textContent = "Nouns";
-  if (verbEl) verbEl.textContent = count > 1 ? "vote." : "votes.";
-
-  if (nouns.length) {
-    renderStack(nouns.map((x) => ({ id: x.id, owner: x.owner?.id })));
-  }
+  setHeadline(count);
+  renderStack(count > 0 ? (delegate.nounsRepresented || []).map((x) => ({ id: x.id, owner: x.owner?.id })) : []);
 }
 
+setHeadline(null); // neutral until the subgraph answers
 loadDelegation();
